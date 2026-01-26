@@ -1,0 +1,19 @@
+{
+  "name": "claude-forge",
+  "owner": {
+    "name": "Hisham"
+  },
+  "metadata": {
+    "description": "Custom skills, agents, and commands for enhanced Claude Code workflows",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "claude-forge",
+      "source": "./",
+      "description": "Skills, agents, and commands for requirements engineering, contract verification, and productivity workflows",
+      "version": "1.0.0",
+      "strict": true
+    }
+  ]
+}

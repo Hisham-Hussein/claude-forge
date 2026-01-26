@@ -1,0 +1,17 @@
+{
+  "name": "claude-forge",
+  "description": "Custom skills, agents, and commands for enhanced Claude Code workflows - requirements engineering, contract verification, and productivity tools",
+  "version": "1.0.0",
+  "author": {
+    "name": "Hisham"
+  },
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "agents",
+    "requirements",
+    "contracts",
+    "productivity",
+    "workflows"
+  ]
+}
