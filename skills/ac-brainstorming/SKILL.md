@@ -7,10 +7,23 @@ description: Use when reviewing or enhancing acceptance criteria for user storie
 Systematic methodology for brainstorming comprehensive acceptance criteria. Apply these techniques to review existing AC and identify gaps in coverage.
 </objective>
 
-<ten_questions>
-## Ten Powerful Questions
+<critical_principle>
+**COMPREHENSIVE COVERAGE IS YOUR PRIMARY GOAL**
 
-Use these to discover missing AC for each user story:
+Your job is to ADD all acceptance criteria needed to achieve complete coverage of:
+- All 6 categories (Functional, Business Rules, UI/UX, Error Handling, NFRs, Edge Cases)
+- All SMART + 3C quality checks
+- All negative scenarios (concurrency, authorization, timeouts, API failures, etc.)
+
+**Add as MANY criteria as needed.** Do NOT limit yourself to 7 AC per story.
+
+If a story ends up with more than 7 AC, simply FLAG it for splitting in your sign-off summary. A separate sub-agent handles the actual splitting — that is NOT your responsibility.
+
+**Quality and coverage come first. Flagging for split comes after.**
+</critical_principle>
+
+<ten_questions>
+Use these Ten Powerful Questions to discover missing AC for each user story:
 
 | # | Question | Purpose |
 |---|----------|---------|
@@ -27,9 +40,7 @@ Use these to discover missing AC for each user story:
 </ten_questions>
 
 <starbursting>
-## Starbursting (6W Method)
-
-Generate AC by asking questions across six dimensions:
+Generate AC using the Starbursting (6W) method - ask questions across six dimensions:
 
 | Dimension | Questions to Ask |
 |-----------|------------------|
@@ -42,9 +53,7 @@ Generate AC by asking questions across six dimensions:
 </starbursting>
 
 <six_categories>
-## 6 AC Categories Framework
-
-For comprehensive coverage, verify AC exists for each relevant category:
+For comprehensive coverage, verify AC exists for each of these 6 categories:
 
 **1. Functional Behavior (Happy Path)**
 What the system does when everything goes right.
@@ -96,8 +105,6 @@ Unusual but valid scenarios at the limits.
 </six_categories>
 
 <edge_case_identification>
-## Edge Case Identification
-
 **Boundary Value Analysis:**
 For constrained inputs, test at critical points:
 - Minimum valid value
@@ -124,8 +131,6 @@ For constrained inputs, test at critical points:
 </edge_case_identification>
 
 <quality_frameworks>
-## Quality Frameworks
-
 **SMART Criteria:**
 Each AC must be:
 - **S**pecific: Clear what must happen (not "fast" → "< 2 seconds")
@@ -139,14 +144,15 @@ Each AC must be:
 - **Concise**: No unnecessary detail
 - **Checkable**: Binary pass/fail when tested
 
-**Optimal Count:** 3-7 criteria per story
-- <3 suggests missing coverage
-- >7 suggests story needs splitting
+**AC Count Guideline (for flagging only):**
+- <3 criteria: Likely missing coverage — apply brainstorming techniques
+- 3-7 criteria: Typical for well-sized stories
+- >7 criteria: FLAG for splitting in sign-off (but do NOT stop adding criteria)
+
+**Important:** The 7 AC threshold is a FLAG, not a LIMIT. Add ALL criteria needed for comprehensive coverage. If count exceeds 7, note it in sign-off. Splitting is handled by a separate sub-agent.
 </quality_frameworks>
 
 <anti_patterns>
-## Anti-Patterns to Avoid
-
 | Anti-Pattern | Fix |
 |--------------|-----|
 | Too vague ("should be fast") | Quantify ("< 2 seconds") |
@@ -154,14 +160,40 @@ Each AC must be:
 | Untestable ("intuitive") | Observable outcome |
 | Subjective ("good results") | Measurable criteria |
 | Missing "so what" | Include user-visible outcome |
-| >7 criteria | Split the story |
+| Missing categories | Ensure all 6 categories considered |
+| Stopped at 7 to avoid count | Add ALL needed criteria, then flag for split |
 </anti_patterns>
 
-<completeness_verification>
-## Completeness Verification (5W1H Review)
+<self_verification>
+**MANDATORY: Before finalizing, verify your own work against these checks.**
 
-Before finalizing, verify coverage:
+**Step 1: Category Coverage Check**
+For EACH story, verify you have criteria for:
+- [ ] Functional Behavior (happy path)
+- [ ] Business Rules & Constraints
+- [ ] UI/UX (loading states, empty states, visual feedback)
+- [ ] Error Handling & Validation
+- [ ] Non-Functional Requirements (performance, security)
+- [ ] Edge Cases & Boundaries
 
+If any category is missing, GO BACK and add criteria for it.
+
+**Step 2: Negative Scenario Check**
+Verify you've addressed:
+- [ ] What if user enters invalid data?
+- [ ] What if network/API fails?
+- [ ] What if user lacks permission? (authorization)
+- [ ] What if another user modifies same data? (concurrency)
+- [ ] What if operation times out? (with consequence)
+
+**Step 3: Quality Check (SMART + 3C)**
+For each criterion:
+- [ ] Is it Specific? (no vague words like "correctly", "properly", "good")
+- [ ] Is it Measurable/Testable? (can write pass/fail test)
+- [ ] Is it Clear? (one interpretation only)
+- [ ] Does it include the consequence? (not just "max 100 chars" but what happens at 101)
+
+**Step 4: 5W1H Review**
 | Check | Question |
 |-------|----------|
 | WHO | All user roles covered? |
@@ -171,20 +203,21 @@ Before finalizing, verify coverage:
 | WHY | Each AC ties to user value? |
 | HOW | Success measurement specified? |
 
-**Final Checklist:**
-- [ ] Happy path AND error cases covered
-- [ ] Edge cases identified using boundary analysis
-- [ ] Each criterion passes SMART validation
-- [ ] Count is 3-7 per story
-- [ ] No ambiguous language remains
-</completeness_verification>
+**Step 5: Flag Stories for Splitting**
+After completing all criteria, count AC per story:
+- Stories with >7 AC → List in sign-off under "Stories flagged for splitting"
+- Do NOT remove criteria to get below 7. Just flag.
+</self_verification>
 
 <success_criteria>
 AC brainstorming is complete when:
-- All 6 categories considered for each story
+- All 6 categories have criteria for EVERY story (100% coverage)
 - Ten Questions applied to find gaps
+- Negative scenarios covered (authorization, concurrency, timeouts, API failures)
 - Edge cases identified using boundary analysis
-- Each AC passes SMART + 3C validation
-- 3-7 criteria per story (or flagged for splitting)
-- No vague or untestable criteria remain
+- Each AC passes SMART + 3C validation (no vague language)
+- Each boundary condition includes its consequence
+- Self-verification checklist completed
+- Stories with >7 AC flagged for splitting (but ALL criteria retained)
+- Sign-off summary documents coverage statistics and flagged stories
 </success_criteria>
