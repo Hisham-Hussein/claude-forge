@@ -13,6 +13,7 @@ headless_mode: false
 </variables>
 
 <essential_principles>
+
 ## How Fork-Terminal Works
 
 This skill spawns independent terminal sessions with structured context handoffs. Each spawned session receives a handoff document containing task, context, and constraints.
@@ -20,6 +21,7 @@ This skill spawns independent terminal sessions with structured context handoffs
 ### 1. Handoff Documents Are Critical
 
 Never spawn a terminal without a proper handoff document. Raw commands work for CLI tools, but agentic tools need structured context:
+
 - What task to complete
 - What files/code to focus on
 - What constraints apply
@@ -28,6 +30,7 @@ Never spawn a terminal without a proper handoff document. Raw commands work for 
 ### 2. Track What You Spawn
 
 Every spawned session gets logged to a manifest file. This enables:
+
 - Status checks across all spawned work
 - Resumption if sessions fail
 - Coordination between parallel tasks
@@ -69,6 +72,7 @@ What would you like to do?
 | 4, "custom", "specific" | `workflows/spawn-agent.md` | Direct agent dispatch |
 
 **Variable-based routing:**
+
 - If user requests Claude Code AND `enable_claude_code` is false → Suggest alternative
 - If user requests Gemini AND `enable_gemini_cli` is false → Suggest alternative
 - If user requests Aider AND `enable_aider` is false → Suggest alternative
@@ -77,6 +81,7 @@ What would you like to do?
 </routing>
 
 <reference_index>
+
 ## Domain Knowledge
 
 All in `references/`:
@@ -87,6 +92,7 @@ All in `references/`:
 </reference_index>
 
 <workflows_index>
+
 ## Workflows
 
 | Workflow | Purpose |
@@ -98,6 +104,7 @@ All in `references/`:
 </workflows_index>
 
 <prompts_index>
+
 ## Meta-Prompts
 
 | Prompt | Purpose |
@@ -106,6 +113,7 @@ All in `references/`:
 </prompts_index>
 
 <templates_index>
+
 ## Templates
 
 | Template | Purpose |
@@ -114,26 +122,32 @@ All in `references/`:
 </templates_index>
 
 <quick_start>
+
 ## Quick Start
 
 **Fork work to Claude Code:**
+
 ```
 User: "Fork this to Claude Code - implement the login form in src/components/"
 ```
 
 **Parallel dispatch:**
+
 ```
 User: "Spawn 3 agents - one for frontend, one for API, one for tests"
 ```
 
 **Check progress:**
+
 ```
 User: "Check status of spawned sessions"
 ```
+
 </quick_start>
 
 <success_criteria>
 A successful fork-terminal invocation:
+
 - Creates structured handoff document for each spawned agent
 - Logs session to manifest for tracking
 - Launches appropriate tool (CLI or agent) in new terminal
