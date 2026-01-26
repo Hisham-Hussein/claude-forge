@@ -1,6 +1,6 @@
 ---
 name: ac-brainstormer
-description: Reviews and enhances acceptance criteria in USER-STORIES.md. Spawned after user story creation to ensure comprehensive AC coverage using systematic methodology.
+description: Reviews and enhances acceptance criteria in USER-STORIES.md. Use proactively after user story creation to ensure comprehensive AC coverage using systematic methodology.
 tools: Read, Edit
 skills:
   - ac-brainstorming
