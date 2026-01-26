@@ -59,13 +59,22 @@ Decision log:
    - Keep "Next Up" to roughly 5 items
    - **CRITICAL:** If clearing ACTIVE.md, ensure "Next Up" has at least one item (check project directives, strategic docs, or conversation context for logical next steps)
 
-5. **Ensure handoff clarity** (critical for session transitions):
+5. **Check artifacts index** (if `artifacts/` exists):
+   - Scan `artifacts/` for all `.md` files (excluding ARTIFACTS-INDEX.md itself)
+   - Compare against files listed in `artifacts/ARTIFACTS-INDEX.md`
+   - If new files found that aren't in the index:
+     - List the unindexed files to the user
+     - Ask: "Should I add these to ARTIFACTS-INDEX.md?"
+     - If yes, add entries with appropriate category (guides vs research) and brief description
+   - This ensures new research and guides are discoverable
+
+6. **Ensure handoff clarity** (critical for session transitions):
    - If work is in-progress, note specific files modified in this session
    - Note current state: tests passing/failing, build status, any errors
    - "How to Continue" first step must be immediately actionable (not "continue working on X")
    - Include any context a fresh agent would need to pick up seamlessly
 
-6. **Verify ACTIVE.md core section alignment** (final consistency check):
+7. **Verify ACTIVE.md core section alignment** (final consistency check):
    - After all updates, re-read ACTIVE.md and check that core sections tell the same story:
      - **Current Focus** = what we're working on right now
      - **Status** (in Progress section) = where we are in that work
@@ -74,7 +83,7 @@ Decision log:
    - If any section contradicts another (e.g., "Current Focus" says X but "How to Continue" says build Y instead), fix before finishing
    - Common inconsistency: updating "How to Continue" but forgetting to update "Current Focus" or "Status"
 
-7. **Present summary** to user:
+8. **Present summary** to user:
    - What was updated
    - Items checked off
    - New queue items added
