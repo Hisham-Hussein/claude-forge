@@ -19,7 +19,7 @@ claude --plugin-dir ~/.claude/plugins/marketplaces/claude-forge
 
 | Skill | Description |
 |-------|-------------|
-| `ac-brainstorming` | Systematic methodology for brainstorming comprehensive acceptance criteria |
+| `brainstorm-userstories-ac` | Systematic methodology for brainstorming comprehensive acceptance criteria |
 | `article-extractor` | Extract clean content from web articles |
 | `build-llm-app` | Guide for building LLM applications |
 | `characterization-first` | Characterize code before refactoring |
