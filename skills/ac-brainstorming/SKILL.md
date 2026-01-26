@@ -1,6 +1,8 @@
 ---
 name: ac-brainstorming
-description: Use when reviewing or enhancing acceptance criteria for user stories. Preloaded into sub-agents that iterate over existing AC to ensure comprehensive coverage.
+description: Use when reviewing or enhancing acceptance criteria for user stories. Applies systematic methodology to ensure comprehensive AC coverage across all 6 categories.
+context: fork
+agent: general-purpose
 ---
 
 <objective>
