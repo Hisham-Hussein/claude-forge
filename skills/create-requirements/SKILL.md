@@ -95,6 +95,12 @@ FR-DISC-01: System shall discover influencers by hashtag search
 | `templates/user-stories-template.md` | Phase 7b | User Stories backlog structure with placeholders |
 
 **Loading pattern:** Read references BEFORE corresponding phases. Read templates WHEN generating output files.
+
+**Loading sequence for Phase 4 (User Stories):**
+1. **First:** Read `references/user-story-methodology.md` — understand story structure, INVEST criteria, Epic/Feature/Story hierarchy, and vertical slicing principles
+2. **Second:** Read `references/acceptance-criteria-methodology.md` — learn how to write AC for those stories (assumes story context from step 1)
+
+This sequence matters because acceptance criteria methodology references story components and assumes you understand what makes a good story.
 </reference_index>
 
 <intake>
