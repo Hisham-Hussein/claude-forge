@@ -1,5 +1,12 @@
 <overview>
 This reference covers architecture documentation methodologies: Google Design Docs, C4 Model, arc42, and Architecture Decision Records (ADRs). These can be combined into a pragmatic approach for Agile teams.
+
+## Contents
+- Google Design Docs — Decision-focused documents, Goals/Non-Goals pattern
+- C4 Model — Visual architecture at 4 zoom levels
+- arc42 — Structured template with 12 optional sections
+- ADRs — Capture single decisions with rationale
+- Recommended Approach — Combining methodologies for Agile teams
 </overview>
 
 <google_design_docs>

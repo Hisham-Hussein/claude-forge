@@ -126,6 +126,22 @@ Briefly address (1-2 sentences each unless more needed):
 3. Write to output location (same directory as primary input)
 4. Filename: `DESIGN-DOC.md`
 
+## Phase 8: Validate Output
+
+Review the generated document against these checks:
+
+1. **Placeholder check**: Search for `[` brackets — all `[placeholder]` text should be replaced with actual content
+2. **Goals count**: Verify 3-7 goals exist (not fewer, not excessive)
+3. **Non-Goals count**: Verify 3-5 non-goals exist with rationale for each
+4. **Diagram validation**: Confirm Mermaid diagrams have valid syntax (no broken references)
+5. **Alternatives documented**: At least 2 alternatives with rejection rationale
+6. **Cross-references**: Requirements mentioned should trace back to input files
+
+**If validation fails:**
+- Return to the relevant phase and fix the issue
+- Re-run validation after fixes
+- Only mark complete when all checks pass
+
 </process>
 
 <success_criteria>

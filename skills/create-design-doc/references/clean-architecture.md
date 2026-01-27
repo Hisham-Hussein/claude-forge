@@ -1,5 +1,16 @@
 <overview>
 Clean Architecture organizes code into concentric layers where dependencies point INWARD only. The business logic (domain) sits at the center with zero external dependencies, making it testable, maintainable, and technology-agnostic.
+
+## Contents
+- The Dependency Rule — The only rule that matters
+- Four Layers — Entities, Use Cases, Interface Adapters, Frameworks
+- Layer Documentation — How to document each layer
+- Crossing Boundaries — Dependency Inversion for outward control flow
+- Interface Documentation — How to document interfaces
+- Data Crossing Boundaries — DTOs at boundaries
+- Common Violations — Signs and fixes
+- Architecture Testing — How to verify correctness
+- When Clean Architecture Fits — Decision guide
 </overview>
 
 <the_dependency_rule>

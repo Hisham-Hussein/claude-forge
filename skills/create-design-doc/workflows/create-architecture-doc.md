@@ -204,6 +204,26 @@ Use Mermaid C4 syntax or standard flowcharts.
 3. Write to output location (same directory as primary input)
 4. Filename: `ARCHITECTURE-DOC.md`
 
+## Phase 9: Validate Output
+
+Review the generated document against these checks:
+
+1. **Placeholder check**: Search for `[` brackets — all `[placeholder]` text should be replaced with actual content
+2. **Domain model completeness**:
+   - At least 2 entities documented with attributes
+   - At least 2 value objects with validation rules
+   - At least 1 aggregate with root identified
+3. **Layer coverage**: All three layers (Domain, Application, Adapters) have content
+4. **Interface coverage**: Repository interface exists for each aggregate root
+5. **Diagram validation**: Confirm Mermaid diagrams have valid syntax (no broken references)
+6. **Quality attributes**: Each NFR from requirements maps to an architecture decision
+7. **Traceability**: Domain concepts trace back to user story nouns/verbs
+
+**If validation fails:**
+- Return to the relevant phase and fix the issue
+- Re-run validation after fixes
+- Only mark complete when all checks pass
+
 </process>
 
 <success_criteria>

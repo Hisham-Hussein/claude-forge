@@ -1,5 +1,14 @@
 <overview>
 Domain modeling extracts the core business concepts from requirements. This reference covers entities, value objects, aggregates, and domain services following Domain-Driven Design (DDD) tactical patterns.
+
+## Contents
+- Extraction from Requirements — Mapping user stories to domain concepts
+- Entities — Objects with identity and lifecycle
+- Value Objects — Immutable objects defined by attributes
+- Aggregates — Consistency boundaries and roots
+- Domain Services — Operations spanning multiple entities
+- Domain Model Documentation — Format for documenting the model
+- Validation Questions — Checklist to validate your domain model
 </overview>
 
 <extraction_from_requirements>
