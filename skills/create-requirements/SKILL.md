@@ -85,7 +85,7 @@ FR-DISC-01: System shall discover influencers by hashtag search
 |-----------|--------------|---------|
 | `references/srs-methodology.md` | Phase 3 (SRS output) | BABOK, ISO 25010, requirement classification, traceability patterns |
 | `references/user-story-methodology.md` | Phase 4 (User Stories output) | INVEST criteria, Epic/Feature/Story hierarchy, vertical slicing, anti-patterns |
-| `references/acceptance-criteria-methodology.md` | Phase 7c (AC enhancement) | Ten Questions, 6 Categories Framework, SMART/3C validation, edge case identification |
+| `references/acceptance-criteria-methodology.md` | Phase 4 (writing AC) | Ten Questions, 6 Categories Framework, SMART/3C validation, edge case identification |
 
 **Output Templates:**
 
@@ -426,24 +426,6 @@ Write to `.charter/USER-STORIES.md` using the template structure. Fill in all pl
 
 </phase_7_output_stories>
 
-<phase_7c_enhance_acceptance_criteria>
-**Phase 7c: Enhance Acceptance Criteria (Sub-Agent)**
-
-**When:** Only if User Stories output was selected (Phase 7b completed)
-
-Spawn the ac-brainstormer sub-agent:
-
-```
-Task tool:
-  description: "Enhance acceptance criteria for user stories"
-  prompt: "Review and enhance acceptance criteria in .charter/USER-STORIES.md"
-  subagent_type: "ac-brainstormer"
-```
-
-Proceed to Phase 8 after sub-agent completes.
-
-</phase_7c_enhance_acceptance_criteria>
-
 <phase_8_completion>
 **Phase 8: Completion**
 
@@ -489,6 +471,5 @@ Requirements generation is complete when:
 - [ ] MoSCoW priorities assigned (inherited from BRD)
 - [ ] 60% rule validated
 - [ ] Output files written to `.charter/`
-- [ ] AC Brainstormer sub-agent completed (if User Stories output selected)
 - [ ] User confirmed or adjusted output
 </success_criteria>

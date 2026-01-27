@@ -5,6 +5,40 @@ context: fork
 agent: general-purpose
 ---
 
+<fork_execution>
+**FORK CONTEXT CHECK**
+
+Are you already running as a sub-agent (Task tool spawned you)?
+- **YES** → SKIP this section entirely, proceed directly to `<objective>`
+- **NO** (you are the main conversation agent) → EXECUTE the instruction below
+
+---
+
+**MAIN AGENT: SPAWN SUB-AGENT NOW**
+
+Claude Code's `context: fork` frontmatter is not working. You MUST manually spawn a fresh sub-agent.
+
+**IMMEDIATE ACTION:**
+
+Use the `Task` tool with:
+- `subagent_type: "general-purpose"`
+- `description: "Brainstorm acceptance criteria"`
+- `prompt:` Must include TWO parts:
+  1. The FULL methodology content (copy everything from `<objective>` to `</success_criteria>` below)
+  2. The instruction: "Apply this methodology to review and enhance acceptance criteria in [USER-STORIES.md path]"
+
+**Why this is required:**
+- Fresh context ensures ALL 7 frameworks are applied without shortcuts
+- No bias from prior conversation history
+- Isolated execution guarantees comprehensive coverage
+
+**DO NOT** continue reading this skill in the current context.
+**DO NOT** apply the methodology yourself.
+**SPAWN** the sub-agent with the full methodology content NOW.
+
+---
+</fork_execution>
+
 <objective>
 Systematic methodology for brainstorming comprehensive acceptance criteria. Apply these techniques to review existing AC and identify gaps in coverage.
 </objective>
