@@ -7,6 +7,24 @@
 3. templates/execution-plan.md
 </required_reading>
 
+<progress_tracker>
+## Progress Tracker
+
+Copy this checklist and update as you complete each step:
+
+```
+Execution Plan Progress:
+- [ ] Step 1: Load and analyze documents
+- [ ] Step 2: Group stories into vertical slices
+- [ ] Step 3: Order phases by priority and dependencies
+- [ ] Step 4: Decompose stories into tasks
+- [ ] Step 5: Define phase transitions
+- [ ] Step 6: Write Definition of Done per phase
+- [ ] Step 7: Generate outputs
+- [ ] Step 8: Validate plan
+```
+</progress_tracker>
+
 <process>
 
 ## Step 1: Load and Analyze Documents
