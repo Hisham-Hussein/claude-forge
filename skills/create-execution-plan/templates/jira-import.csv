@@ -1,0 +1,2 @@
+Summary,Issue Type,Priority,Epic Link,Fix Version,Description,Acceptance Criteria,Labels
+"[Story Title]",Story,[Highest|High|Medium|Low],[PROJ-Epic-N],Phase [N],"[Full user story text: As a [role], I want [goal], so that [benefit]]","[AC1|AC2|AC3|AC4]","[label1,label2]"
