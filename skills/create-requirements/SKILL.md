@@ -22,14 +22,17 @@ Transform business case documents into formal, traceable software requirements s
 **Usage:**
 ```
 /create-requirements .charter/BUSINESS-CASE.md
+/create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md
+/create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md artifacts/research/api-specs.md
 ```
 
 **What happens:**
 1. Parses the 9-section BUSINESS-CASE.md format
-2. Extracts BR-XX requirements from Section 9 (BRD)
-3. Asks: "SRS format, User Stories, or both?"
-4. Transforms BR-XX into software requirements with traceability
-5. Writes output to `.charter/`
+2. Loads reference documents (from Section 9.6 AND/OR command arguments) for detailed specifications
+3. Extracts BR-XX requirements from Section 9 (BRD)
+4. Asks: "SRS format, User Stories, or both?"
+5. Transforms BR-XX into software requirements with traceability (using reference doc details)
+6. Writes output to `.charter/`
 
 **Output location:** `.charter/REQUIREMENTS.md` and/or `.charter/USER-STORIES.md`
 </quick_start>
@@ -105,10 +108,25 @@ This sequence matters because acceptance criteria methodology references story c
 
 <intake>
 
-Read the input document path from `$ARGUMENTS`. If no path provided, check if `.charter/BUSINESS-CASE.md` exists.
+**Arguments:**
+- First argument (required): Path to BUSINESS-CASE.md
+- Additional arguments (optional): Reference documents for detailed specifications
+
+**Examples:**
+```
+/create-requirements .charter/BUSINESS-CASE.md
+/create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md
+/create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md artifacts/research/api-specs.md
+```
+
+**Parsing:**
+1. Split `$ARGUMENTS` by spaces
+2. First path = business case document
+3. Remaining paths = explicit reference documents (store for Phase 1b)
+4. If no arguments provided, check if `.charter/BUSINESS-CASE.md` exists
 
 **Validation:**
-1. Read the document
+1. Read the business case document
 2. Verify it has the 9-section structure (look for "## 9. Business Requirements")
 3. If not a BUSINESS-CASE.md format, warn: "This document doesn't match Skill 1's output format. Run `/create-business-case` first, or confirm you want generic extraction."
 
@@ -174,8 +192,40 @@ Extract KPIs and targets — these inform acceptance criteria for derived requir
 Ready to transform into [SRS / User Stories / Both].
 ```
 
-Proceed to Phase 2.
+Proceed to Phase 1b.
 </phase_1_parse_business_case>
+
+<phase_1b_reference_documents>
+**Phase 1b: Load Reference Documents**
+
+Collect references from two sources:
+
+**1. From Section 9.6 (automatic):**
+If Section 9.6 (Reference Documents) exists in the business case, collect all document paths listed in the reference table.
+
+**2. From command arguments (explicit):**
+If reference documents were passed as arguments in the intake phase, add them to the collection.
+
+**3. Merge and deduplicate:**
+Combine both sources. If the same document appears in both, load it only once.
+
+**4. Load all collected references:**
+For each reference document:
+- Read the document
+- Extract detailed specifications (data types, validation rules, thresholds, enumerations)
+
+**5. Use these details throughout the transformation process:**
+- Field specifications → Functional requirements
+- Validation rules → Acceptance criteria
+- Integration dependencies → Non-functional requirements
+- Enumerations → Requirement precision
+
+**Example:** BR-04 says "classify into size buckets" → Reference doc specifies exact thresholds (Nano=1K-10K, Micro=10K-100K, etc.) → Both the functional requirement AND acceptance criteria should include these thresholds.
+
+**If no references from either source:** Proceed without additional context. Output may lack implementation-level precision.
+
+Proceed to Phase 2.
+</phase_1b_reference_documents>
 
 <phase_2_clarification>
 **Phase 2: Targeted Clarification**
@@ -469,6 +519,7 @@ Requirements generation complete.
 <success_criteria>
 Requirements generation is complete when:
 - [ ] BUSINESS-CASE.md parsed (all 9 sections)
+- [ ] Section 9.6 reference documents loaded (if present)
 - [ ] Stakeholders reused from Section 4 (not re-extracted)
 - [ ] Constraints reused from Section 7 (not re-extracted)
 - [ ] All BR-XX transformed to FR-XX and/or User Stories
