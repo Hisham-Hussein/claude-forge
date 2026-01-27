@@ -36,7 +36,7 @@ Decision log:
    - STRICT: Each entry = heading + one short paragraph. No sub-headings, no bullet lists, no "What was done / Impact / Artifacts" structure. Details live in ACTIVE.md and research docs — the log is a scannable index, not a record of everything.
    - Good: "Created custom `/execute-phase` skill (not GSD) because GSD won't enforce our architecture principles. Borrows wave parallelization and deviation rules but adds DOE integration. At `.claude/skills/execute-phase/`."
    - Bad: Multi-paragraph entry with "What was done:", "Key decisions:", "Impact:" sections and 15+ lines
-   - **Queue behavior:** Add entry at TOP, remove entry from BOTTOM. Max 10 entries. Push front, shift back — every time.
+   - **Queue behavior:** When adding a new entry, ALSO delete the oldest entry (last `## YYYY-MM-DD` section + its paragraph). One in, one out — every time.
    - Each entry should be self-contained (make sense without reading others)
 
 3. **Update ACTIVE.md** (safe to trim now — decisions are captured in LOG.md):
