@@ -17,6 +17,30 @@ Diagram complexity directly impacts readability. Complex diagrams become unreada
 - Mermaid Live: Can handle larger diagrams but readability suffers
 </limits>
 
+<grid_limits>
+## Block-Beta Grid Limits
+
+Grid diagrams have different complexity metrics than node-edge diagrams.
+
+| Metric | Recommended | Warning | Split Required |
+|--------|-------------|---------|----------------|
+| Columns | 4–7 | 8–9 | >9 |
+| Rows | ≤8 | 9–12 | >12 |
+| Max lines per cell label | 3 | 4 | >5 |
+| Total cells (columns × rows) | ≤56 | 57–80 | >80 |
+
+**Splitting strategies for grids:**
+- **By column groups**: Split a 10-column grid into two 5-column grids with shared row labels
+- **By row groups**: Split a 15-row grid by release milestone (MVP–R2 in one, R3–Future in another)
+- **Keep a full-width overview**: Maintain an abbreviated full grid alongside detailed splits
+
+**Label compression techniques** (to reduce cell height):
+- Use `·` separator: `"Item A · Item B"` (2 items → 1 line)
+- Abbreviate: `"Mawthouq"` → `"Mawth."`
+- Remove articles/prepositions: `"Filter by status"` → `"Status filter"`
+- Row height is set by the tallest cell — compress the tallest cell first
+</grid_limits>
+
 <when_to_split>
 ## When to Split a Diagram
 
@@ -148,4 +172,8 @@ When generating diagrams with Claude:
 | Using click events | For GitHub target | Remove - not supported |
 | Color names | `fill:blue` | Use `fill:#1976D2` |
 | Missing type declaration | No first line | Add `flowchart LR` etc. |
+| Flowchart for grid data | Story map as flowchart | Use `block-beta` — no arrows needed |
+| `classDef` in block-beta | Not supported | Use per-node `style` statements |
+| `<br/>` in block-beta | Not supported | Use `\n` for line breaks |
+| Inconsistent row width | 5 blocks in a 7-column grid | Pad with `space:1` to total N |
 </common_mistakes>

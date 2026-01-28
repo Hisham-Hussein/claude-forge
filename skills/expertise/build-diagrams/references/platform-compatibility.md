@@ -19,6 +19,7 @@ Platform choice affects what Mermaid features work. GitHub has significant limit
 | C4 | Yes | Full support (stable now) |
 | Mindmap | Yes | Full support |
 | Timeline | Yes | Full support |
+| Block-beta grids | **Partial** | Requires Mermaid ≥10.9. May not render on older GitHub. Works in VSCode. |
 | Click events | **No** | Security restriction |
 | JavaScript callbacks | **No** | Security restriction |
 | Custom fonts | **No** | System fonts only |
@@ -45,7 +46,7 @@ With the Markdown Preview Mermaid extension:
 
 | Feature | Supported |
 |---------|-----------|
-| All diagram types | Yes |
+| All diagram types (incl. block-beta) | Yes |
 | Click events | Yes (with `securityLevel: loose`) |
 | Custom fonts | Yes |
 | Theme control | Full |
@@ -113,6 +114,26 @@ end
 
 **Note:** Use RGB values (0-255), not hex codes, in the `box` syntax.
 </sequence_diagram_support>
+
+<block_beta_support>
+## Block-Beta Platform Support
+
+`block-beta` is a newer Mermaid diagram type (v10.9+). Platform support varies:
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| VSCode (Mermaid Preview) | **Full** | Best rendering. Recommended target for block-beta. |
+| GitHub | **Partial** | May not render if GitHub's Mermaid version is < 10.9. Test before committing. |
+| Mermaid Live Editor | **Full** | Use for testing: `mermaid.live` |
+
+**Styling differences from flowcharts:**
+- No `classDef` support → use per-node `style` statements
+- No `linkStyle` (no links/arrows exist in block-beta)
+- `\n` works for label line breaks (flowcharts need `<br/>`)
+- No `%%{init: ...}%%` spacing control — grid layout is automatic
+
+**Fallback strategy:** If block-beta doesn't render on target platform, export as PNG from VSCode or Mermaid Live Editor and embed as an image.
+</block_beta_support>
 
 <mermaid_vs_plantuml>
 ## Mermaid vs PlantUML

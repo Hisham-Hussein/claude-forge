@@ -16,6 +16,7 @@ Diagram type selection is communication-driven. The right diagram type makes the
 | Project timeline | Gantt | `gantt` |
 | Brainstorming/hierarchy | Mindmap | `mindmap` |
 | Historical events | Timeline | `timeline` |
+| 2D grid / matrix (rows × cols) | Block Beta | `block-beta` |
 | 2x2 matrix analysis | Quadrant | `quadrantChart` |
 </quick_reference>
 
@@ -43,6 +44,9 @@ Diagram type selection is communication-driven. The right diagram type makes the
 
 "Code structure (classes/interfaces)"
   → Class Diagram (inheritance, composition)
+
+"2D grid — data with rows AND columns"
+  → Block Beta (story maps, priority matrices, feature planners)
 
 "Project timeline"
   → Gantt Chart (tasks, dependencies, dates)
@@ -99,6 +103,39 @@ The C4 model provides four levels of abstraction. Most teams only need levels 1-
 - No inter-system communication
 </sequence_vs_flowchart>
 
+<block_beta_grids>
+## Block Beta Grid Diagrams
+
+**Use `block-beta` when data has two dimensions** — anything that would be a spreadsheet or matrix, NOT a process flow.
+
+| Use Case | Columns | Rows | Example |
+|----------|---------|------|---------|
+| User story map | Activities (journey steps) | Release slices (MVP, R2, R3...) | Features at each intersection |
+| Priority matrix | Feature areas | MoSCoW priority | Items per area/priority |
+| Team × feature | Teams | Features | Ownership mapping |
+| Release planner | Sprints | Epics | Stories per sprint/epic |
+
+**Why NOT flowchart:** Flowcharts add arrows between nodes, implying process flow. Grids have no flow — just intersections.
+**Why NOT journey:** Mermaid `journey` is a 1D backbone. It cannot show vertical stacking (release slices) — only a single horizontal journey.
+
+**Key syntax:**
+```mermaid
+block-beta
+    columns 7
+    space:1 H1["Col Header"]:1 H2["Col Header"]:1
+    ROW["Row Label"]:1 CELL["Content\nLine 2"]:1 space:1
+```
+
+**Rules:**
+- `columns N` defines width. 4-7 columns works well for typical screens.
+- Every row must total exactly N blocks (use `space:1` for empties).
+- `\n` creates line breaks in labels (NOT `<br/>`).
+- Use `·` separator to fit two items on one line: `"Item A · Item B"`.
+- No `classDef` support — use per-node `style` statements.
+- No arrows/edges — pure grid layout.
+- Color rows by semantic meaning (e.g., release → color) for scanability.
+</block_beta_grids>
+
 <anti_patterns>
 ## Wrong Type Choices
 
@@ -110,4 +147,6 @@ The C4 model provides four levels of abstraction. Most teams only need levels 1-
 | Object inheritance | ER diagram | Class diagram |
 | System overview | Component diagram | Context diagram |
 | Internal modules | Context diagram | Component diagram |
+| Story map / release planner | Flowchart or Journey | Block Beta |
+| Feature × team matrix | Flowchart | Block Beta |
 </anti_patterns>

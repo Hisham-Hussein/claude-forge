@@ -23,6 +23,7 @@ If type is ambiguous, use decision logic from `references/diagram-selection.md`:
 - Service breakdown → C4 Container
 - Step-by-step process → Flowchart
 - API/object interactions → Sequence
+- 2D grid / matrix (rows × columns) → Block Beta
 - Database tables → ER
 - Object lifecycle → State
 
@@ -56,12 +57,19 @@ From the conversation context or by asking, identify:
 - Attributes (columns)
 - Relationships (1:1, 1:N, N:M)
 
+**For Block Beta grids:**
+- Column headers (the horizontal dimension — e.g., activities, teams, sprints)
+- Row labels (the vertical dimension — e.g., releases, priorities, epics)
+- Cell contents (what goes at each intersection — 1-3 word summaries)
+- Empty cells (which intersections are blank — mark with `space:1`)
+- Color strategy (typically color by row for release-based grids)
+
 **For State diagrams:**
 - States
 - Transitions (events that cause state changes)
 - Initial and final states
 
-**Complexity check:** If >15 elements identified, discuss splitting with user.
+**Complexity check:** If >15 elements identified, discuss splitting with user. For block-beta grids: if >7 columns or >8 rows, discuss splitting.
 </step>
 
 <step name="2b-design-decisions">
@@ -163,14 +171,24 @@ Choose layout based on the **longest sequential chain** (number of ranks):
 
 ### Line Breaks in Labels
 
-**Use `<br/>` for line breaks, NOT `\n`.**
+**Flowcharts: Use `<br/>` for line breaks, NOT `\n`.**
 
 ```mermaid
-%% WRONG - renders literally as "\n"
+%% WRONG in flowcharts - renders literally as "\n"
 Decision{Database\nExists?}
 
-%% CORRECT - renders as two lines
+%% CORRECT in flowcharts - renders as two lines
 Decision{Database<br/>Exists?}
+```
+
+**Block-beta grids: Use `\n` for line breaks (NOT `<br/>`).**
+
+```mermaid
+%% CORRECT in block-beta - renders as two lines
+CELL["Item A\nItem B"]:1
+
+%% Combine items on one line with · separator to reduce height
+CELL["Item A · Item B\nItem C"]:1
 ```
 
 ### Subgraph Labels vs Node Labels
@@ -298,6 +316,30 @@ flowchart LR
     [elements and relationships]
     [styling]
 ```
+
+**For block-beta grids:**
+```mermaid
+block-beta
+    columns N
+
+    space:1 H1["COL HEADER"]:1 H2["COL HEADER"]:1
+
+    ROW1["Row Label"]:1 C1["Content\nLine 2"]:1 space:1
+
+    ROW2["Row Label"]:1 space:1 C2["Content"]:1
+
+    style H1 fill:#374151,stroke:#9CA3AF,color:#F9FAFB
+    style ROW1 fill:#1E293B,stroke:#64748B,color:#E2E8F0
+    style C1 fill:#1E40AF,stroke:#60A5FA,color:#DBEAFE
+```
+
+**Block-beta rules:**
+- First column is typically `space:1` (header row) or row labels
+- Every row must total exactly N blocks (pad with `space:1`)
+- No `classDef` — use per-node `style` statements
+- No arrows — block-beta is a pure grid
+- `\n` for line breaks in labels, `·` to combine items on one line
+- Color headers with neutral (dark gray), row labels with slate, cells by semantic meaning
 
 **For other diagram types:**
 ```mermaid

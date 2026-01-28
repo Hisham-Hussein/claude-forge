@@ -1,6 +1,6 @@
 ---
 name: build-diagrams
-description: Use when creating technical diagrams for documentation, architecture, processes, or data models. Supports Mermaid.js with C4, flowcharts, sequence, ER, state, class, Gantt, and mindmap diagrams.
+description: Use when creating technical diagrams for documentation, architecture, processes, or data models. Supports Mermaid.js with C4, flowcharts, sequence, block-beta grids, ER, state, class, Gantt, and mindmap diagrams.
 ---
 
 <essential_principles>
@@ -14,6 +14,7 @@ description: Use when creating technical diagrams for documentation, architectur
 - Architecture overview → C4 Context/Container
 - Process/algorithm → Flowchart
 - Object interactions over time → Sequence
+- 2D grid / matrix (rows × columns) → Block Beta
 - Database schema → ER Diagram
 - Object lifecycle → State Diagram
 
@@ -60,6 +61,20 @@ Skipping this step produces dull, generic diagrams that require multiple iterati
 - See `references/color-palettes.md` for sequence-specific colors
 </principle>
 
+<principle name="block-beta-for-grids">
+**Use `block-beta` for any 2D grid visualization.** Story maps, priority matrices, feature × team mappings, release planners — anything with rows AND columns. Key rules:
+- `columns N` sets column count. Match to viewport: 4-7 columns for typical screens.
+- `space:1` fills empty cells to maintain grid alignment. Every row must have exactly N blocks.
+- `\n` works for line breaks in labels (unlike flowcharts which need `<br/>`).
+- Does NOT support `classDef`. Use per-node `style` statements instead.
+- No arrows/edges. Block-beta is a pure grid — no flow semantics.
+- Abbreviate labels: 1-2 words per line, use `·` separator to fit 2 items on one line.
+- Color by row semantics (e.g., release = color) using per-node `style fill:#hex,stroke:#hex,color:#hex`.
+- See `references/diagram-selection.md` for when to choose block-beta over flowchart.
+
+**Common mistake:** Using flowchart for grid data. Flowcharts add arrows implying process flow. If data has no flow direction — just intersections of two dimensions — use block-beta.
+</principle>
+
 </essential_principles>
 
 <defaults>
@@ -89,11 +104,12 @@ What would you like to diagram?
 1. System architecture (C4 Context/Container/Component)
 2. Process or algorithm (Flowchart)
 3. Object interactions (Sequence)
-4. Database schema (ER Diagram)
-5. Object states (State Diagram)
-6. Code structure (Class Diagram)
-7. Project timeline (Gantt)
-8. Something else
+4. 2D grid or matrix (Block Beta — story maps, priority matrices, feature planners)
+5. Database schema (ER Diagram)
+6. Object states (State Diagram)
+7. Code structure (Class Diagram)
+8. Project timeline (Gantt)
+9. Something else
 
 **Wait for response before proceeding.**
 </intake>
@@ -103,7 +119,7 @@ Optional CLI-style arguments:
 
 | Argument | Values | Default |
 |----------|--------|---------|
-| type | c4-context, c4-container, c4-component, flowchart, sequence, er, state, class, gantt, mindmap, timeline | (auto-detect) |
+| type | c4-context, c4-container, c4-component, flowchart, sequence, block-beta, er, state, class, gantt, mindmap, timeline | (auto-detect) |
 | --theme | dark, light | dark |
 | --target | github, vscode | github |
 | --title | "string" | (none) |
@@ -121,11 +137,12 @@ Examples:
 | 1, "architecture", "c4", "system", "overview" | `workflows/create-diagram.md` (type: c4) |
 | 2, "process", "flow", "algorithm", "steps" | `workflows/create-diagram.md` (type: flowchart) |
 | 3, "sequence", "interaction", "api", "messages" | `workflows/create-diagram.md` (type: sequence) |
-| 4, "database", "schema", "er", "tables" | `workflows/create-diagram.md` (type: er) |
-| 5, "state", "lifecycle", "status", "transitions" | `workflows/create-diagram.md` (type: state) |
-| 6, "class", "code", "interface", "inheritance" | `workflows/create-diagram.md` (type: class) |
-| 7, "timeline", "gantt", "schedule", "project" | `workflows/create-diagram.md` (type: gantt) |
-| 8, other | Clarify, then route |
+| 4, "grid", "matrix", "story map", "2d", "rows and columns", "planner" | `workflows/create-diagram.md` (type: block-beta) |
+| 5, "database", "schema", "er", "tables" | `workflows/create-diagram.md` (type: er) |
+| 6, "state", "lifecycle", "status", "transitions" | `workflows/create-diagram.md` (type: state) |
+| 7, "class", "code", "interface", "inheritance" | `workflows/create-diagram.md` (type: class) |
+| 8, "timeline", "gantt", "schedule", "project" | `workflows/create-diagram.md` (type: gantt) |
+| 9, other | Clarify, then route |
 | "fix", "error", "broken", "not rendering" | `workflows/troubleshoot-diagram.md` |
 | "change", "modify", "update", "add to" | `workflows/iterate-diagram.md` |
 
