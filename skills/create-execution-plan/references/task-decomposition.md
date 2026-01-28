@@ -6,6 +6,8 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 - Providing clear success criteria
 - Enabling atomic commits
 - Supporting TDD workflow
+
+**Note:** Examples throughout this document use an influencer marketing domain for illustration. Adapt all entity names, value objects, services, and components to match YOUR project's domain model and architecture.
 </overview>
 
 <task_template>
@@ -38,6 +40,8 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 ### Domain Layer Tasks
 
 **Entities:**
+
+*Example:*
 ```markdown
 ### Task 1.1: Create Influencer entity
 
@@ -49,6 +53,8 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 ```
 
 **Value Objects:**
+
+*Example:*
 ```markdown
 ### Task 1.2: Create FollowerCount value object
 
@@ -60,6 +66,8 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 ```
 
 **Domain Services:**
+
+*Example:*
 ```markdown
 ### Task 1.3: Create EngagementCalculator service
 
@@ -71,6 +79,8 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 ```
 
 **Repository Interfaces:**
+
+*Example:*
 ```markdown
 ### Task 1.4: Define InfluencerRepository interface
 
@@ -84,6 +94,8 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 ### Application Layer Tasks
 
 **Use Cases:**
+
+*Example:*
 ```markdown
 ### Task 2.1: Create DiscoverInfluencers use case
 
@@ -97,6 +109,8 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 ### Infrastructure Layer Tasks
 
 **Repository Implementations:**
+
+*Example:*
 ```markdown
 ### Task 3.1: Implement ConvexInfluencerRepository
 
@@ -108,6 +122,8 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 ```
 
 **External Adapters:**
+
+*Example:*
 ```markdown
 ### Task 3.2: Implement TikTokDiscoveryAdapter
 
@@ -121,6 +137,8 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 ### UI Layer Tasks
 
 **Components:**
+
+*Example:*
 ```markdown
 ### Task 4.1: Create InfluencerCard component
 
@@ -132,6 +150,8 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 ```
 
 **Pages:**
+
+*Example:*
 ```markdown
 ### Task 4.2: Create InfluencerListPage
 
@@ -184,7 +204,7 @@ Every task must have explicit Input/Output/Test. This structure minimizes AI cod
 - `ui`: UI layer
 - `config`: Configuration
 
-**Examples:**
+*Examples (from influencer domain—adapt to your project):*
 ```
 feat(domain): add Influencer entity with validation
 feat(app): add DiscoverInfluencers use case
@@ -199,6 +219,8 @@ test(app): add unit tests for DiscoverInfluencers
 ## From Acceptance Criteria to Tests
 
 **Every AC becomes at least one test.**
+
+*Example (from influencer domain—adapt to your project):*
 
 AC in User Story:
 ```markdown

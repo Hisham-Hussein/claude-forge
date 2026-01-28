@@ -11,6 +11,8 @@ They answer different questions:
 - Clean Architecture: "How do I separate concerns?"
 - Vertical Slices: "How do I organize by features?"
 - FDD: "How do I decompose into work units?"
+
+**Note:** Examples throughout this document use an influencer marketing domain for illustration. Adapt all entity names, services, and features to match YOUR project's domain model.
 </overview>
 
 <clean_architecture>
@@ -142,6 +144,7 @@ Task Breakdown:
 
 **Principle:** Each phase's output is the next phase's input.
 
+*Example (adapt to your project's domain):*
 ```
 Phase N Output          →  Phase N+1 Input
 ────────────────────       ─────────────────────

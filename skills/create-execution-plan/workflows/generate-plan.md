@@ -131,11 +131,12 @@ Story US-XXX: [Story Name]
 
 **Document how output flows to next phase:**
 
+*Example (adapt to your project's domain):*
 ```
 | From Phase | To Phase | Output → Input |
 |------------|----------|----------------|
 | 1 | 2 | Influencer entity → Entity to enrich |
-| 1 | 2 | Repository interface → Repo to implement |
+| 1 | 2 | InfluencerRepository → Repo to implement |
 | 2 | 3 | Discovery results → Data to display |
 ```
 

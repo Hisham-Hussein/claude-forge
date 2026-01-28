@@ -22,7 +22,8 @@ description: Use when you have architecture documents and user stories ready and
 **Task Structure (CRITICAL):**
 
 Every task MUST have:
-```
+
+```text
 Task X.Y: [Description]
 ├── Input: What this task needs to start
 ├── Output: What this task produces
@@ -40,14 +41,17 @@ Transform architecture documents and user stories into phased execution plans wi
 
 <quick_start>
 **Required inputs:**
+
 - USER-STORIES.md (with acceptance criteria)
 - ARCHITECTURE-DOC.md or Design Doc (from /create-design-doc)
 
 **Optional inputs:**
+
 - BUSINESS-CASE.md (constraints, success criteria)
 - Tech stack research, API docs, data templates
 
 **Output:**
+
 - EXECUTION-PLAN.md (phases, stories, tasks with I/O/Test)
 - jira-import.csv (optional JIRA bulk import)
 
@@ -77,6 +81,7 @@ Transform architecture documents and user stories into phased execution plans wi
 </intake>
 
 <routing>
+
 | Intent | Workflow |
 |--------|----------|
 | Generate new plan | `workflows/generate-plan.md` |
@@ -88,15 +93,15 @@ Transform architecture documents and user stories into phased execution plans wi
 <reference_index>
 All in `references/`:
 
-**Methodology:** methodology.md (Clean Architecture + VSA + FDD integration)
-**Task decomposition:** task-decomposition.md (FDD-style atomic tasks)
+- **Methodology:** methodology.md (Clean Architecture + VSA + FDD integration)
+- **Task decomposition:** task-decomposition.md (FDD-style atomic tasks)
 </reference_index>
 
 <templates_index>
 All in `templates/`:
 
-**Plan structure:** execution-plan.md (EXECUTION-PLAN.md template)
-**JIRA export:** jira-import.csv (CSV format for bulk import)
+- **Plan structure:** execution-plan.md (EXECUTION-PLAN.md template)
+- **JIRA export:** jira-import.csv (CSV format for bulk import)
 </templates_index>
 
 <success_criteria>
