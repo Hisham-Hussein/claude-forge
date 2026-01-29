@@ -9,7 +9,7 @@ description: Transform BUSINESS-CASE.md into a journey-organized story map with 
 Transform business case documents into 2D user story maps organized by user journey with release slices.
 
 **Input:** `.charter/BUSINESS-CASE.md` (9-section format from `/create-business-case`)
-**Output:** `.charter/STORY-MAP.md` (journey-organized map with multiple visualization formats)
+**Output:** `.charter/STORY-MAP.md` (journey-organized map with release slices)
 
 **Methodology:** Jeff Patton's User Story Mapping + Walking Skeleton + Vertical Release Slicing
 
@@ -17,10 +17,12 @@ Transform business case documents into 2D user story maps organized by user jour
 | Aspect | /create-requirements | /create-story-map |
 |--------|----------------------|-------------------|
 | Organization | Domain (Epic → Feature → Story) | Journey (Activity → Task → Story) |
-| Output | Prioritized backlog list | 2D map with release slices |
+| Output | Full story cards with AC | Compact map with release slices |
 | Best for | Formal documentation, sprint planning | MVP planning, shared understanding |
 
 Both consume BUSINESS-CASE.md. Use together: map for vision, backlog for execution.
+
+**Output philosophy:** The story map is a PLANNING artifact, not a backlog. It shows WHAT stories exist, WHERE they sit in the journey, and WHICH release they belong to — but does NOT duplicate full story cards (As a / I want / So that + acceptance criteria). Full story details belong in USER-STORIES.md from `/create-requirements`.
 </objective>
 
 <quick_start>
@@ -36,14 +38,15 @@ Both consume BUSINESS-CASE.md. Use together: map for vision, backlog for executi
 3. Builds Activity → Task backbone (horizontal journey)
 4. Places stories vertically by priority under each task
 5. Asks user to define release boundaries (MVP, R2, R3)
-6. Generates multi-format STORY-MAP.md
+6. Generates compact STORY-MAP.md
 
 **Output:** `.charter/STORY-MAP.md` with:
 - Release overview table (quick reference)
-- Mermaid journey diagram (visual backbone)
-- Nested sections (detailed map)
-- TextUSM format (tool export)
+- Mermaid diagram (visual map)
+- Detailed map (stories per task with release assignments)
+- Walking skeleton (minimal end-to-end journey)
 - Traceability table (BR-XX links)
+- Cross-cutting concerns and gaps
 </quick_start>
 
 <essential_principles>
@@ -148,7 +151,7 @@ Collect references from two sources:
 1. **From Section 9.6 (automatic):** If Section 9.6 (Reference Documents) exists, collect all document paths listed in the reference table.
 2. **From command arguments (explicit):** If reference documents were passed as arguments in the intake phase, add them to the collection.
 3. **Merge and deduplicate:** Combine both sources. Load once if duplicated.
-4. **Load all collected references:** Extract detailed specifications (data types, validation rules, thresholds, enumerations) that inform story granularity and acceptance criteria.
+4. **Load all collected references:** Extract detailed specifications (data types, validation rules, thresholds, enumerations) that inform story granularity and scope decisions.
 
 **If no references from either source:** Proceed without additional context. Stories may lack implementation-level precision.
 
@@ -239,12 +242,16 @@ For each BR-XX requirement:
 2. Identify which task it supports
 3. Create one or more user stories
 
-**Story format:**
-```
-As a [persona from Phase 1],
-I want [capability from BR-XX],
-So that [benefit from BR-XX or Section 5].
-```
+**Story format (internal working format — NOT written to output):**
+
+For each story, define internally:
+- Title: short descriptive name
+- Persona: from Phase 1
+- Capability: from BR-XX
+- Benefit: from BR-XX or Section 5
+- BR-XX source
+
+The output file uses ONLY story ID + title + BR-XX source in the Detailed Map tables. Full "As a / I want / So that" story cards are NOT included in the story map output — they belong in USER-STORIES.md from `/create-requirements`.
 
 **3.2 Vertical Priority**
 
@@ -345,13 +352,13 @@ Wait for user confirmation before generating output.
 
 **Read template:** `templates/story-map-template.md`
 
-Generate the output file with multiple visualization formats:
+Generate a compact output file. The story map is a PLANNING artifact — it shows story placement and release slicing, NOT full story details. Full story cards with acceptance criteria belong in USER-STORIES.md (from `/create-requirements`).
 
 **5.1 Quick Reference (Release Overview Table)**
 
 Shows what's in each release at a glance—one row per activity/task combo.
 
-**5.2 Visual Journey (Mermaid Diagram)**
+**5.2 Visual Map (Mermaid Diagram)**
 
 ```mermaid
 journey
@@ -365,7 +372,8 @@ journey
 
 **5.3 Detailed Map (Nested Sections)**
 
-Full detail with story IDs, acceptance criteria, BR-XX sources:
+Story IDs, titles, and BR-XX sources per task. Brief task descriptions. NO full story cards — no "As a / I want / So that", no acceptance criteria checkboxes.
+
 ```markdown
 ## Activity 1: [Name]
 
@@ -375,30 +383,35 @@ Full detail with story IDs, acceptance criteria, BR-XX sources:
 
 ### Task 1.1: [Name]
 
+[Brief description of what happens in this task]
+
 | Release | Stories |
 |---------|---------|
-| **MVP** | • SM-001: [Story] (BR-XX) |
-| **R2**  | • SM-005: [Story] (BR-XX) |
+| **MVP** | • SM-001: [Story title] (BR-XX) |
+| **R2**  | • SM-005: [Story title] (BR-XX) |
 ```
 
-**5.4 Tool Export (TextUSM Format)**
+**5.4 Walking Skeleton Table**
 
-Indented text format for diagramming tool import:
-```
-# Activity 1
-## Task 1
-Story A
-Story B
----
-Story C (R2)
----
-Story D (Future)
-```
+Minimal MVP story per task showing end-to-end capability.
 
 **5.5 Traceability Table**
 
-| Story ID | Title | BR-XX Source | Activity | Task | Release |
-|----------|-------|--------------|----------|------|---------|
+Single compact cross-reference. Do NOT produce multiple traceability views (e.g., separate "BR-XX Coverage" table). One table is sufficient:
+
+| Story ID | Title | BR-XX | Release |
+|----------|-------|-------|---------|
+
+After the table, add a one-line coverage summary: `**Coverage:** X/Y BR-XX requirements mapped`
+
+**5.6 Cross-Cutting Concerns and Gaps**
+
+From Section 7 constraints and any unresolved questions.
+
+**What NOT to include:**
+- **No Story Details section** — Full "As a / I want / So that" + acceptance criteria belong in USER-STORIES.md, not the story map
+- **No Tool Export section** — TextUSM/MarkdownUSM format is a niche concern; omit from default output
+- **No duplicate traceability** — One cross-reference table, not multiple orientations of the same data
 
 Write output to `.charter/STORY-MAP.md`.
 
@@ -449,6 +462,6 @@ Story map generation is complete when:
 - [ ] Walking skeleton identified (top story per task)
 - [ ] Each release delivers end-to-end value
 - [ ] All stories have BR-XX traceability
-- [ ] Multi-format output written to `.charter/STORY-MAP.md`
+- [ ] Compact output written to `.charter/STORY-MAP.md` (no full story cards, no duplicate traceability)
 - [ ] User confirmed or adjusted output
 </success_criteria>
