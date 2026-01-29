@@ -68,7 +68,7 @@ Skipping this step produces dull, generic diagrams that require multiple iterati
 - `\n` works for line breaks in labels (unlike flowcharts which need `<br/>`).
 - Does NOT support `classDef`. Use per-node `style` statements instead.
 - No arrows/edges. Block-beta is a pure grid — no flow semantics.
-- Abbreviate labels: 1-2 words per line, use `·` separator to fit 2 items on one line.
+- Prefer descriptive labels (3-4 words per line). Grids scale well with longer text — don't over-abbreviate.
 - Color by row semantics (e.g., release = color) using per-node `style fill:#hex,stroke:#hex,color:#hex`.
 - See `references/diagram-selection.md` for when to choose block-beta over flowchart.
 

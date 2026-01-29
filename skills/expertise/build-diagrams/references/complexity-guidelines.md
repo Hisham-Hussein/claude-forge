@@ -26,7 +26,7 @@ Grid diagrams have different complexity metrics than node-edge diagrams.
 |--------|-------------|---------|----------------|
 | Columns | 4–7 | 8–9 | >9 |
 | Rows | ≤8 | 9–12 | >12 |
-| Max lines per cell label | 3 | 4 | >5 |
+| Max lines per cell label | 4 | 5 | >5 |
 | Total cells (columns × rows) | ≤56 | 57–80 | >80 |
 
 **Splitting strategies for grids:**

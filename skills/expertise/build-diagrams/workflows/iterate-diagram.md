@@ -23,6 +23,8 @@ What does the user want to change?
 | "Fix labels" | Update text for clarity |
 | "Add styling" | Apply semantic colors |
 | "Make it simpler" | Remove nodes, increase abstraction |
+| "Make labels clearer" (block-beta) | Iterate cell label content |
+| "Too tall / too compact" (block-beta) | Adjust row height via label compression |
 
 If unclear, ask: "What specifically would you like to change?"
 </step>
@@ -68,6 +70,27 @@ If unclear, ask: "What specifically would you like to change?"
 **Changing layout:**
 - `flowchart LR` ↔ `flowchart TB`
 - Reorder elements if needed for readability
+
+**Iterating block-beta grids:**
+
+Block-beta iteration is about **label content, not structure**. The grid (columns, rows, space:1 padding) stays fixed — what changes is the text inside each cell.
+
+1. **Label clarity** — iterate from terse to descriptive:
+   - Round 1: Short nouns (`"Niche\nSize"`)
+   - Round 2: Add context (`"Primary niche\nFollower bucket"`)
+   - Round 3: Add specifics (`"Primary niche (25+)\nNano→Mega bucket"`)
+   - Grids scale well with descriptive text (3-4 words per line) — don't fear longer labels
+
+2. **Row height control** — row height is set by the **tallest cell**:
+   - Identify the tallest cell in the row
+   - Compress that cell first (combine items, shorten phrases)
+   - Other cells in the row automatically shrink with it
+   - Use `·` separator only for obvious noun pairs: `"Status · Priority"` (not for phrases)
+
+3. **What NOT to change:**
+   - Column count (viewport-dependent, set once)
+   - `space:1` padding (maintains grid alignment)
+   - Per-node `style` statements (colors are semantic, not aesthetic)
 </step>
 
 <step name="4-validate">
