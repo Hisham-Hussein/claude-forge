@@ -360,15 +360,31 @@ Shows what's in each release at a glance—one row per activity/task combo.
 
 **5.2 Visual Map (Mermaid Diagram)**
 
+Use `block-beta` to render a 2D grid — activities across columns, releases down rows. This preserves the story map's defining characteristic: horizontal journey × vertical priority.
+
+Do NOT use `journey` diagram type — it shows satisfaction scores per step, not release slicing or story placement. It looks like a story map but represents something fundamentally different.
+
 ```mermaid
-journey
-    title [Primary Persona] Journey
-    section [Activity 1]
-      [Task 1]: 5: [Persona]
-      [Task 2]: 4: [Persona]
-    section [Activity 2]
-      ...
+block-beta
+    columns 4
+
+    space:1 A1["[Activity 1]"]:1 A2["[Activity 2]"]:1 A3["[Activity 3]"]:1
+
+    MVP["MVP"]:1 M1["[Story summaries]"]:1 M2["[Story summaries]"]:1 M3["[Story summaries]"]:1
+
+    R2["R2"]:1 R2_1["[Story summaries]"]:1 R2_2["[Story summaries]"]:1 R2_3["[Story summaries]"]:1
+
+    FUT["Future"]:1 F1["[Story summaries]"]:1 F2["[Story summaries]"]:1 F3["[Story summaries]"]:1
+
+    style A1 fill:#374151,stroke:#9CA3AF,color:#F9FAFB
+    style A2 fill:#374151,stroke:#9CA3AF,color:#F9FAFB
+    style A3 fill:#374151,stroke:#9CA3AF,color:#F9FAFB
+    style MVP fill:#1E293B,stroke:#64748B,color:#E2E8F0
+    style R2 fill:#1E293B,stroke:#64748B,color:#E2E8F0
+    style FUT fill:#1E293B,stroke:#64748B,color:#E2E8F0
 ```
+
+Adapt the number of columns/rows to match the actual activities and release slices. Use `\n` within block labels to list multiple stories per cell. Use distinct fill colors per release row for visual differentiation (e.g., blue for MVP, green for R2, amber for R3).
 
 **5.3 Detailed Map (Nested Sections)**
 
