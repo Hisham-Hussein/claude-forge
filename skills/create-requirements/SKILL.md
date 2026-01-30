@@ -296,6 +296,22 @@ FR-SEARCH-04: System shall filter influencers by follower size bucket
 FR-SEARCH-05: System shall support combined filters (AND logic)
 ```
 
+**Data-model-driven derivation (beyond BR text):**
+```
+BR-06: "searchable interface for niche, country, platform, size"
+    -> (from BR text)
+FR-SEARCH-01 through FR-SEARCH-05 (as above)
+    -> (from data model cross-reference)
+FR-SEARCH-06: System shall filter by city (data model has City as Enum with predefined values)
+FR-SEARCH-07: System shall filter by status (data model has Status as Enum with 7 values)
+FR-SEARCH-08: System shall filter by gender (data model has Gender as Enum; brand matching needs)
+```
+
+**Rule:** When a BR mentions "search and filter," and reference documents
+include a data model, check it for ALL discrete/enumerable fields — each
+is a potential filter candidate. If no data model exists, decompose only
+the filter dimensions named in the BR text.
+
 **3.2 Non-Functional Requirements (NFR-XX)**
 
 Transform constraints into ISO 25010 categories:
@@ -325,6 +341,75 @@ Source: BR-XX (BUSINESS-CASE.md, Section 9.3)
 ```
 
 </phase_3_transform_requirements>
+
+<phase_3_5_reference_verification>
+**Phase 3.5: Reference Document Verification**
+
+After transforming all BR-XX into FR/NFR requirements, verify completeness
+against reference documents loaded in Phase 1b.
+
+**3.5.1 Data Model Field Verification**
+
+If the reference documents contain a data model or field specification:
+
+For EACH field in the source data model:
+1. Is there an FR that covers storing/collecting this field? If not, add one.
+2. Does the FR's acceptance criteria include the field's data type? If not, add it.
+3. Does the FR's acceptance criteria include the field's validation rules? If not, add them.
+4. Does the FR's acceptance criteria include enumerated values (if applicable)? If not, add them.
+5. Is the field's data source (Profile/Enrichment/Derived/Outreach/System) consistent with the FR's domain area? If not, flag.
+
+**3.5.2 Filterable Field Verification**
+
+If a search/filter BR exists:
+
+For EACH field with a discrete/enumerable data type (Enum, Boolean, predefined list):
+1. Would users naturally want to filter by this field?
+2. If yes, is there an FR-SEARCH requirement for this filter?
+3. If not, add one with appropriate priority (Must if the field is core to brand matching, Should otherwise).
+
+**3.5.3 Present Verification Results**
+
+```
+## Reference Document Verification
+
+**Data model fields:** [X]/[Y] covered by FRs
+**Gaps found:** [list any uncovered fields]
+**Additional filters identified:** [list any new filter FRs added]
+**Validation rules transferred:** [count]
+```
+
+Proceed to Phase 3.6.
+</phase_3_5_reference_verification>
+
+<phase_3_6_implicit_requirements>
+**Phase 3.6: Implicit Requirements**
+
+After transforming all explicit BR-XX items, identify requirements implied by
+system behavior but not stated in any BR:
+
+**Check 1: Data Integrity**
+- Does the system collect data in multiple rounds? -> Derive deduplication requirement
+- Does the system collect from multiple sources? -> Derive conflict resolution requirement
+- Does the system allow concurrent edits? -> Derive concurrency control requirement
+
+**Check 2: Operational Ordering**
+- Do source documents specify priority/ordering among items? -> Derive ordering requirement
+- Is there a natural sequence for processing steps? -> Derive sequencing requirement
+
+**Check 3: Stakeholder Workflows**
+- For each stakeholder in Section 4: does at least one FR address their stated Needs?
+- If a stakeholder has a need (e.g., "Quality assurance interface, spot-check workflows") but no FR covers it, derive one.
+
+**Check 4: System-Managed Fields** (if reference documents include a data model)
+- For each field marked as "System" source: is there an FR that specifies when/how the system populates it?
+- Common system fields: auto-generated IDs, timestamps, derived calculations, default values.
+- If no data model exists, check whether the BRs imply auto-generated fields (IDs, timestamps) and derive FRs for those.
+
+Mark implicit requirements with source: "Implicit from [triggering requirement/behavior]"
+
+Proceed to Phase 4.
+</phase_3_6_implicit_requirements>
 
 <phase_4_transform_user_stories>
 **Phase 4: Transform BR-XX to User Stories (if selected)**
@@ -461,6 +546,18 @@ Before output, verify each requirement:
 **Common fixes:**
 - "Fast search" → "Search returns results within 2 seconds for up to 10,000 records"
 - "Easy to use" → "New user can complete core workflow within 5 minutes without training"
+
+**6.2 Document-Level Verification**
+
+After verifying individual requirements, check document-level consistency:
+
+| Check | Method |
+|-------|--------|
+| Count accuracy | Manually count FR, NFR, TRANS totals; verify they match summary table |
+| Priority percentages | Recalculate Must/Should/Could percentages from counts |
+| Traceability completeness | Every BR-XX has at least one FR in the traceability matrix |
+| Cross-reference integrity | Every FR-XX referenced in the traceability matrix exists in Section 2 |
+| No orphan requirements | Every FR-XX in Section 2 appears in the traceability matrix |
 
 </phase_6_quality_verification>
 

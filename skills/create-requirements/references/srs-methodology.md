@@ -404,6 +404,34 @@ Use category prefixes with sequential numbering:
 ### 6. Grouping Strategy
 Group requirements by business capability or workflow phase, not by technical layer. This keeps them understandable to stakeholders who think in terms of "what the system does" not "how it's built."
 
+### 7. Source Document Completeness Verification
+
+After generating requirements from business requirements, verify completeness
+against all source documents:
+
+**The Completeness Triangle:**
+```
+BR-XX (top-down: what the business says it needs)
+    +
+Data Model (bottom-up: what fields the system must store)
+    +
+Stakeholder Needs (lateral: what each actor needs to do)
+    =
+Complete requirement set
+```
+
+A common failure mode: generating requirements only from BR-XX text and missing
+fields/behaviors that are in the source data model but not explicitly stated in
+any BR. This happens because BRs are intentionally abstract ("collect profile
+data") while data models are intentionally specific ("43 fields with types and
+validation rules").
+
+**Verification procedure:**
+1. Map every data model field to an FR (storage, collection, or derivation)
+2. Map every stakeholder need to at least one FR or UI requirement
+3. Identify implied requirements from system behavior (deduplication, ordering,
+   timestamps, defaults)
+
 ---
 
 ## Limitations & Edge Cases

@@ -68,6 +68,15 @@
 | BR-01 | FR-DISC-01, FR-DISC-02 | NFR-PERF-01 | US-01, US-02 |
 [...]
 
+## 6.5 Data Model Coverage
+
+| # | Field | Data Type | Covered By | Coverage Status |
+|---|-------|-----------|------------|-----------------|
+| [For each field in reference data model] | [name] | [type] | [FR-XX reference] | Full / Partial / Missing |
+
+**Coverage:** [X]/[Y] fields covered ([Z]%)
+**Gaps:** [list any fields not covered by an FR]
+
 ## 7. Prioritization Summary
 
 | Category | Count | % of Total | Status |
