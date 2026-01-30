@@ -22,7 +22,7 @@
 
 ## Executive Summary
 
-**Coverage Score: {X}% ({adequate_count} of {total_count} items adequately captured)**
+**Coverage Score: {X}% (weighted) | {adequate_count} of {total_count} items fully adequate**
 
 {2-3 paragraph overview covering:
 - Coverage percentage and gap counts by type (MISSING, PARTIAL, DISTORTED, ADEQUATE)
@@ -45,10 +45,22 @@
 ### Coverage Score
 
 - **Total items evaluated:** {N}
-- **Adequate:** {N} ({X}%)
-- **Partial:** {N} ({X}%)
-- **Missing:** {N} ({X}%)
-- **Distorted:** {N} ({X}%)
+- **Adequate:** {N}
+- **Partial:** {N} — HIGH: {N}, MED: {N}, LOW: {N}
+- **Missing:** {N}
+- **Distorted:** {N}
+
+**Weighted Score Calculation:**
+
+| Classification | Count | Weight | Contribution |
+|---------------|-------|--------|-------------|
+| Adequate | {N} | 1.00 | {N.00} |
+| Partial (HIGH) | {N} | 0.25 | {N.NN} |
+| Partial (MED) | {N} | 0.50 | {N.NN} |
+| Partial (LOW) | {N} | 0.75 | {N.NN} |
+| Missing | {N} | 0.00 | 0 |
+| Distorted | {N} | 0.00 | 0 |
+| **Total** | **{N}** | | **{sum} / {total} = {X}%** |
 
 {If duplicates exist, note them and provide a deduplicated count.}
 
@@ -169,7 +181,7 @@
 
 - [ ] Every section of the input file has been compared against the output file
 - [ ] Every gap has a root cause traced to a specific skill source file
-- [ ] Coverage percentage math is correct ({adequate_count} / {total_count} = {X}%)
+- [ ] Weighted coverage score math is correct (sum of weighted contributions / {total_count} = {X}%)
 - [ ] All recommended upstream fixes are generalizable (would help any future project)
 - [ ] All upstream fixes follow the Fix Format Contract (U-{N} numbering, target file, action, location, content)
 - [ ] Top systemic issues genuinely address the highest number of gaps

@@ -80,7 +80,30 @@ For each non-ADEQUATE item, rate the impact of the gap:
 Calculate:
 - Total items evaluated (after deduplication)
 - Count and percentage for each classification
-- Overall coverage score = (ADEQUATE count / Total) * 100
+- Overall coverage score using the **Weighted Coverage Formula**
+
+**Weighted Coverage Score Formula:**
+
+PARTIAL items receive partial credit based on their impact level — higher-impact gaps get less credit because more critical information was lost:
+
+| Classification | Impact | Weight |
+|---------------|--------|--------|
+| ADEQUATE | -- | 1.00 |
+| PARTIAL | LOW | 0.75 |
+| PARTIAL | MED | 0.50 |
+| PARTIAL | HIGH | 0.25 |
+| MISSING | any | 0.00 |
+| DISTORTED | any | 0.00 |
+
+Score = (Sum of all item weights / Total items) × 100
+
+**Rationale:** A PARTIAL/LOW item (minor nuance lost) is mostly captured and deserves more credit than a PARTIAL/HIGH item (critical conditional directive simplified to a flat statement). MISSING and DISTORTED items receive zero credit regardless of impact.
+
+**Example:** 46 ADEQUATE + 1 PARTIAL/HIGH + 4 PARTIAL/MED + 2 PARTIAL/LOW + 5 MISSING out of 58 total:
+= (46×1.0 + 1×0.25 + 4×0.50 + 2×0.75 + 5×0.0) / 58 × 100
+= (46 + 0.25 + 2.0 + 1.5 + 0) / 58 × 100
+= 49.75 / 58 × 100
+= 86%
 </step_2_4>
 
 <step_2_5 name="Methodology Compliance (if reference provided)">

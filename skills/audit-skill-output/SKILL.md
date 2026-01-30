@@ -223,7 +223,7 @@ Skill is complete when:
 - A report exists at the output path
 - The report contains machine-parseable AUDIT-METADATA header
 - Every meaningful item from the input file is classified (ADEQUATE/MISSING/PARTIAL/DISTORTED)
-- Coverage percentage is calculated correctly
+- Weighted coverage score is calculated correctly (PARTIAL items weighted by impact: HIGH=0.25, MED=0.50, LOW=0.75)
 - Every non-adequate gap has a root cause traced to a specific skill source file
 - Top systemic issues are identified and address the highest number of gaps
 - All upstream fix proposals follow the Fix Format Contract (U-{N} numbering, target file, action, location, content)
