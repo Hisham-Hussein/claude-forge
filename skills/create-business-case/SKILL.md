@@ -42,6 +42,12 @@ NEVER read technical plans, architecture docs, or implementation files during ge
 **Reference Forward, Don't Duplicate**
 Input documents (client briefs, research docs) often contain detailed specifications — data models, field lists, API details, pricing tables — that are too granular for the BRD but essential for downstream stages (SRS, architecture). Do NOT duplicate these details in the BRD. Instead, add a "Reference Documents" section (9.6) that points to these specifications with brief descriptions of what they contain. This keeps the BRD at the right abstraction level while ensuring downstream stages know exactly where to find implementation-level details.
 
+**Preserve Strategic Decisions Verbatim**
+When the source document explicitly ranks, orders, or prioritizes items, preserve the exact ordering. A client who says "Channel A first, Channel B second" has made a strategic decision — that ordering is not a formatting choice. Similarly, conditional directives like "use X unless research finds better" carry logic that must be preserved, not flattened into a simple dependency or requirement.
+
+**Never Fabricate When Source Says Unknown**
+If the source document marks information as unknown, pending, or to-be-determined, NEVER invent a plausible value. An AI-generated number that looks reasonable but has no basis is more dangerous than a gap — it creates false confidence. Capture unknowns in Section 9.7 (Open Items).
+
 </essential_principles>
 
 <complexity_detection>
@@ -95,6 +101,19 @@ Read the provided document. Extract and map to template sections:
 
 Identify gaps — sections with no coverage from the document.
 
+**Extract strategic and operational context:**
+- Explicit priority orderings or rankings → Preserve verbatim in relevant sections
+- Strategic directives ("use X unless Y", "don't include Z") → Section 7 (Constraints) or Section 9.2 (Scope)
+- Existing tool/system landscape → Section 7 (Constraints)
+- Usage patterns (frequency, volume, batch vs. continuous) → Section 7 (Constraints) or Section 9.4 (Assumptions)
+- Non-functional operational context (localization, quality thresholds, accessibility) → Formal requirements (BR-XX) if non-trivial
+- Actor/role expectations (what specific users, teams, or systems are expected to do) → Section 9.3 requirements with capabilities as acceptance criteria
+
+**Identify open items and unresolved questions:**
+- Look for: checkboxes, "TBD", "pending", "to be determined", "open question", placeholder text, or sections explicitly marked as requiring stakeholder input
+- These go into Section 9.7 (Open Items) — do NOT convert them into assumptions, dependencies, or fabricated values
+- CRITICAL: If the source document marks information as unknown, NEVER invent a plausible value. Preserve the uncertainty.
+
 **Also identify detailed specifications for downstream reference:**
 - Data models / field lists / schema definitions
 - API specifications or integration details
@@ -130,6 +149,8 @@ Generate the full BUSINESS-CASE.md:
 - Requirements use format: "The business needs to [verb] [object] so that [benefit]"
 - IDs follow pattern: BR-01, BR-02, etc.
 - If input documents contained detailed specifications (identified in Step 2), add Section 9.6 Reference Documents with file paths and brief descriptions of what each contains. This ensures downstream stages (SRS, architecture) know where to find implementation-level details without the BRD duplicating them.
+- If open items were identified in Step 2, populate Section 9.7 Open Items with each unresolved question and its owner/impact.
+- When incorporating data from multiple sources (document, interview, research), note the provenance of key figures and claims — especially distinguish client-stated facts from inferred or researched data.
 
 **Step 5: Validate**
 
@@ -190,6 +211,10 @@ For heavyweight projects, also capture RACI roles (Responsible, Accountable, Con
 - Asking more than 5 questions in a single round
 - Producing heavyweight output for a solo developer's side project
 - Producing lightweight output for a multi-team enterprise initiative
+- Fabricating data when the source explicitly marks it as unknown or pending
+- Converting open items into assumptions or dependencies (they are a distinct category)
+- Flattening explicit priority orderings into unordered lists
+- Dropping conditional directives ("use X unless Y") by simplifying them into flat statements
 
 </anti_patterns>
 
@@ -201,6 +226,9 @@ Skill is complete when:
 - Section 9 has requirements with IDs (BR-XX), MoSCoW priorities, and acceptance criteria
 - All requirements describe business needs, never implementation
 - Section 9.6 references any detailed specifications from input documents (if present)
+- Section 9.7 captures any open items/unresolved questions from the source material (if present)
+- Explicit priority orderings from the source are preserved verbatim
+- No data was fabricated for items the source marks as unknown
 - User has validated the draft and confirmed it captures their intent
 - Output is ready to feed into requirements engineering
 </success_criteria>

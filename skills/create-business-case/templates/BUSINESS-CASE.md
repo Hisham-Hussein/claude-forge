@@ -51,7 +51,15 @@
 - **Budget:** [Financial limits, funding source]
 - **Team:** [Available people, skills, capacity]
 - **Technical:** [Must-use or can't-use technologies, existing systems]
+- **Operational:** [Usage patterns, expected volumes, batch vs. continuous, seasonal patterns]
+- **Language/Localization:** [Languages required, multilingual needs, regional considerations]
 - **Regulatory:** [Compliance requirements, data handling rules]
+
+### Existing Tool/System Landscape (if applicable)
+
+| Tool/System | Current Use | Integration Required | Notes |
+|-------------|-------------|---------------------|-------|
+| [Tool] | [Current function] | [Yes/No/Conditional] | [Client directives, if any] |
 
 ## 8. Risks
 
@@ -102,3 +110,12 @@
 | Document | Location | Contains |
 |----------|----------|----------|
 | [Document name] | [File path + section if applicable] | [Brief description of detailed specs] |
+
+### 9.7 Open Items
+
+> Unresolved items requiring stakeholder input. These are explicitly marked as unknown
+> in the source material and must not be assumed or fabricated.
+
+| # | Open Item | Owner | Why Needed | Status |
+|---|-----------|-------|------------|--------|
+| OI-01 | [Unresolved question or pending input] | [Who must provide] | [Impact on project if unresolved] | Pending |

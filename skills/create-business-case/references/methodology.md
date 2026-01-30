@@ -103,9 +103,26 @@ Each requirement follows:
 - Keep accessible: Plain language, no jargon
 - Scope explicitly: Document what's OUT as clearly as what's IN
 - 81% of successful projects use context-specific BRD formats (BABOK 2024)
+- Extract operational context: Usage patterns, localization needs, quality thresholds, and actor capabilities are often stated informally in source documents but should be formalized as constraints, assumptions, or dedicated requirements
+- Preserve strategic decisions: When source documents explicitly rank, order, or prioritize items, that ordering is a strategic decision — preserve it verbatim, not as an unordered list
+- Capture open items: If the source marks information as unknown or pending, it goes into Section 9.7, not into assumptions or fabricated values
 </brd_best_practices>
 
 </brd_structure>
+
+<open_items>
+Source documents often contain explicitly unresolved questions — items the author knows are needed but doesn't yet have answers for. These are distinct from:
+
+- **Assumptions** (believed to be true but unverified)
+- **Dependencies** (required external resources)
+- **Risks** (uncertain events that could affect the project)
+
+Open items are KNOWN UNKNOWNS — the stakeholder is aware the information is missing and needs to actively obtain it. Preserve them as a separate section (9.7).
+
+**Detection signals:** Checkboxes (- [ ]), "TBD", "placeholder", "to provide", "pending", "[PLACEHOLDER]", question marks in requirement text, empty fields in tables.
+
+**Handling:** Never fabricate values for open items. Never reclassify them as assumptions or dependencies. Capture them with: what is unknown, who must provide the answer, and what project decisions are blocked until it's resolved.
+</open_items>
 
 <elicitation_techniques>
 
@@ -124,6 +141,9 @@ Each requirement follows:
 - Extract: problems, stakeholders, constraints, implied requirements
 - Map findings to template sections
 - Cross-reference against template to find gaps
+- Preserve explicit priority orderings as strategic decisions
+- Map existing tools/systems, integration directives, and non-integration decisions
+- Identify unresolved items (TBD, pending, open questions) for Section 9.7
 - Identify what needs conversational elicitation
 </document_analysis>
 
