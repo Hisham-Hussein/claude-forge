@@ -1,6 +1,6 @@
 ---
 name: create-requirements
-description: Transform BUSINESS-CASE.md into formal software requirements. Use when user has completed /create-business-case and needs SRS or User Stories documentation.
+description: Transform BUSINESS-CASE.md into formal software requirements (SRS or User Stories). Use when user has completed /create-business-case and needs requirements documentation. Optionally accepts STORY-MAP.md from /create-story-map for journey-organized user stories with SM-XXX traceability.
 ---
 
 <objective>
@@ -8,12 +8,19 @@ description: Transform BUSINESS-CASE.md into formal software requirements. Use w
 
 Transform business case documents into formal, traceable software requirements specifications.
 
-**Input:** `.charter/BUSINESS-CASE.md` (9-section format from `/create-business-case`)
+**Inputs:**
+- `.charter/BUSINESS-CASE.md` (required — 9-section format from `/create-business-case`)
+- `.charter/STORY-MAP.md` (optional — from `/create-story-map`)
+
 **Outputs:**
 - `.charter/REQUIREMENTS.md` (SRS format) — formal functional/non-functional requirements
 - `.charter/USER-STORIES.md` (Agile format) — Epic/Feature/Story hierarchy with acceptance criteria
 
 **Methodology:** BABOK v3 + ISO/IEC 25010:2023 + INVEST criteria + MoSCoW prioritization
+
+**Two modes:**
+- **Business Case only:** Derives Epic/Feature/Story hierarchy from BR-XX groupings
+- **Story Map + Business Case:** Inherits hierarchy from story map (Activity→Epic, Task→Feature, SM-XXX→US-XXX parent), each US-XXX traces to exactly one SM-XXX
 
 **Core principle:** Skill 1 already extracted stakeholders, constraints, and business requirements. This skill TRANSFORMS business requirements (BR-XX) into software requirements — it doesn't re-extract.
 </objective>
@@ -24,15 +31,18 @@ Transform business case documents into formal, traceable software requirements s
 /create-requirements .charter/BUSINESS-CASE.md
 /create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md
 /create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md artifacts/research/api-specs.md
+/create-requirements .charter/BUSINESS-CASE.md .charter/STORY-MAP.md
 ```
 
 **What happens:**
 1. Parses the 9-section BUSINESS-CASE.md format
-2. Loads reference documents (from Section 9.6 AND/OR command arguments) for detailed specifications
-3. Extracts BR-XX requirements from Section 9 (BRD)
-4. Asks: "SRS format, User Stories, or both?"
-5. Transforms BR-XX into software requirements with traceability (using reference doc details)
-6. Writes output to `.charter/`
+2. Detects STORY-MAP.md if provided (enables story-map mode)
+3. Loads reference documents (from Section 9.6 AND/OR command arguments) for detailed specifications
+4. Extracts BR-XX requirements from Section 9 (BRD)
+5. Asks: "SRS format, User Stories, or both?" (story-map mode defaults to User Stories)
+6. Transforms BR-XX into software requirements with traceability
+7. If story-map mode: inherits Activity→Epic, Task→Feature, SM-XXX→US-XXX hierarchy
+8. Writes output to `.charter/`
 
 **Output location:** `.charter/REQUIREMENTS.md` and/or `.charter/USER-STORIES.md`
 </quick_start>
@@ -110,25 +120,31 @@ This sequence matters because acceptance criteria methodology references story c
 
 **Arguments:**
 - First argument (required): Path to BUSINESS-CASE.md
-- Additional arguments (optional): Reference documents for detailed specifications
+- Additional arguments (optional): STORY-MAP.md and/or reference documents
 
 **Examples:**
 ```
 /create-requirements .charter/BUSINESS-CASE.md
 /create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md
-/create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md artifacts/research/api-specs.md
+/create-requirements .charter/BUSINESS-CASE.md .charter/STORY-MAP.md
+/create-requirements .charter/BUSINESS-CASE.md .charter/STORY-MAP.md assets/CLIENT-BRIEF.md
 ```
 
 **Parsing:**
 1. Split `$ARGUMENTS` by spaces
 2. First path = business case document
-3. Remaining paths = explicit reference documents (store for Phase 1b)
-4. If no arguments provided, check if `.charter/BUSINESS-CASE.md` exists
+3. For remaining paths: detect STORY-MAP.md by checking for `SM-` IDs or `## Detailed Map` heading. If detected, store as story map document. All other remaining paths = explicit reference documents (store for Phase 1b).
+4. If no arguments provided, check if `.charter/BUSINESS-CASE.md` exists. Also check if `.charter/STORY-MAP.md` exists — if so, ask user whether to use it.
+
+**Mode detection:**
+- If story map detected → **story-map mode** (hierarchy inherited from map)
+- If no story map → **business-case mode** (hierarchy derived from BR-XX groupings)
 
 **Validation:**
 1. Read the business case document
 2. Verify it has the 9-section structure (look for "## 9. Business Requirements")
 3. If not a BUSINESS-CASE.md format, warn: "This document doesn't match Skill 1's output format. Run `/create-business-case` first, or confirm you want generic extraction."
+4. If story map provided, verify it has SM-XXX IDs and Activity/Task structure
 
 **After validation, ask output format:**
 
@@ -136,10 +152,12 @@ Use AskUserQuestion:
 ```
 "What output format do you need?"
 Options:
+- User Stories only (Recommended when story map provided)  [default in story-map mode]
 - SRS only (formal requirements specification)
-- User Stories only (Agile backlog format)
-- Both SRS and User Stories (Recommended)
+- Both SRS and User Stories
 ```
+
+In story-map mode, pre-select "User Stories only" as the recommended option since the story map's structure maps naturally to Agile hierarchy. SRS is still available if explicitly requested.
 
 Proceed to Phase 1 with the user's choice.
 
@@ -224,8 +242,63 @@ For each reference document:
 
 **If no references from either source:** Proceed without additional context. Output may lack implementation-level precision.
 
-Proceed to Phase 2.
+Proceed to Phase 1c (if story map provided) or Phase 2.
 </phase_1b_reference_documents>
+
+<phase_1c_parse_story_map>
+**Phase 1c: Parse Story Map (story-map mode only)**
+
+Skip this phase entirely if no STORY-MAP.md was provided.
+
+**1c.1 Extract Structure**
+
+Parse the story map's hierarchical organization:
+- **Activities** (top-level journey steps) → will become Epics in Phase 4
+- **Tasks** (under each Activity) → will become Features in Phase 4
+- **Stories** (SM-XXX IDs under each Task) → will become US-XXX parents in Phase 4
+
+**1c.2 Extract SM-XXX Registry**
+
+Build a registry of all story map stories:
+
+For each SM-XXX entry, capture:
+- SM-XXX ID
+- Title
+- Parent Activity and Task
+- Release assignment (MVP, R2, R3, Future, etc.)
+- Source BR-XX reference(s)
+
+**1c.3 Extract Release Assignments**
+
+From the story map's release overview table or detailed sections, capture which SM-XXX stories belong to which release. These release assignments flow into USER-STORIES.md.
+
+**1c.4 Extract Walking Skeleton**
+
+Identify SM-XXX stories marked as walking skeleton (typically the first MVP slice). These inform priority in Phase 5.
+
+**1c.5 Cross-Reference with Business Case**
+
+Verify that BR-XX references in the story map exist in the business case's Section 9.3. Flag any mismatches:
+- SM-XXX references a BR-XX not in the business case → warn
+- BR-XX in business case has no SM-XXX coverage → note as gap (may be intentional deferral)
+
+**1c.6 Present Story Map Parsing Summary**
+
+```
+## Story Map Parsing Summary
+
+**Activities found:** [count] ([list names])
+**Tasks found:** [count]
+**Stories (SM-XXX):** [count] (MVP: X, R2: X, R3: X, Future: X)
+**Walking skeleton stories:** [count]
+**BR-XX coverage:** [X]/[Y] business requirements mapped to SM-XXX stories
+**Gaps:** [list any BR-XX without SM-XXX coverage]
+
+Story map hierarchy will be used for Epic/Feature/Story structure.
+```
+
+Proceed to Phase 2.
+</phase_1c_parse_story_map>
 
 <phase_2_clarification>
 **Phase 2: Targeted Clarification**
@@ -412,29 +485,43 @@ Proceed to Phase 4.
 </phase_3_6_implicit_requirements>
 
 <phase_4_transform_user_stories>
-**Phase 4: Transform BR-XX to User Stories (if selected)**
+**Phase 4: Transform to User Stories (if selected)**
 
 **4.1 Build Epic/Feature/Story Hierarchy**
 
-**From BR-XX, derive:**
+**Business-case mode (no story map) — derive from BR-XX:**
 ```
 Epic: [Major capability area from BR-XX groupings]
   └── Feature: [Specific capability from single BR-XX]
         └── User Story: [Atomic user interaction]
 ```
 
-**Example:**
+**Story-map mode — inherit from story map structure:**
 ```
-Epic: Influencer Discovery System (from BR-01, BR-02, BR-03)
-  └── Feature: Platform Discovery (from BR-02)
-        └── Story: As a data collector, I want to trigger TikTok discovery by hashtag
-        └── Story: As a data collector, I want to see discovery progress in real-time
+Epic: [Activity name from story map]  (Activity goal + persona)
+  └── Feature: [Task name from story map]  (Task under that Activity)
+        └── User Story: US-XXX [from SM-XXX]  (one US per SM story)
+```
+
+Each SM-XXX in the story map produces exactly one US-XXX. The US-XXX inherits:
+- **Epic** from the SM-XXX's parent Activity
+- **Feature** from the SM-XXX's parent Task
+- **Release** from the SM-XXX's release assignment (MVP, R2, etc.)
+- **Source BR-XX** from the SM-XXX's traceability (carried from the story map)
+
+**Story-map mode example:**
+```
+Epic: Influencer Discovery (Activity: "Discover Influencers")
+  └── Feature: Platform Discovery (Task: "Search by Hashtag")
+        └── US-001: TikTok hashtag discovery  (Parent: SM-1.1-01, Source: BR-02)
+        └── US-002: Discovery progress tracking  (Parent: SM-1.1-02, Source: BR-02)
 ```
 
 **4.2 Story Format**
 
+**Business-case mode:**
 ```markdown
-## Story: [Brief title]
+#### US-XXX: [Story Title]
 
 **Source:** BR-XX (BUSINESS-CASE.md, Section 9.3)
 **Epic:** [Parent epic]
@@ -445,11 +532,32 @@ I want [specific capability derived from BR-XX],
 So that [benefit — often from BR-XX or Section 5].
 
 ### Acceptance Criteria
-
 - [ ] [Criterion derived from BR-XX acceptance criteria or Section 6 KPIs]
 - [ ] [Additional testable criterion]
 - [ ] [Edge case handling]
 ```
+
+**Story-map mode** — adds Parent and Release fields:
+```markdown
+#### US-XXX: [Story Title]
+
+**Parent:** SM-XXX (STORY-MAP.md)
+**Source:** BR-XX (BUSINESS-CASE.md, Section 9.3)
+**Epic:** [Activity name from story map]
+**Feature:** [Task name from story map]
+**Release:** [MVP | R2 | R3 | Future]
+
+As a [role from Section 4 stakeholders],
+I want [specific capability — elaborated from SM-XXX title using BR-XX detail],
+So that [benefit — from BR-XX or Section 5].
+
+### Acceptance Criteria
+- [ ] [Criterion derived from BR-XX acceptance criteria or Section 6 KPIs]
+- [ ] [Additional testable criterion]
+- [ ] [Edge case handling]
+```
+
+**Key difference:** In story-map mode, the story title and capability come from the SM-XXX story in the map, but the full "As a/I want/So that" card and acceptance criteria are ELABORATED here — the story map only had compact IDs and titles, not full specification cards.
 
 **4.3 INVEST Validation**
 
@@ -588,12 +696,14 @@ Report to user:
 ```
 Requirements generation complete.
 
+**Mode:** [business-case | story-map]
 **Files written:**
-- .charter/REQUIREMENTS.md ([X] functional, [Y] non-functional requirements)
+- .charter/REQUIREMENTS.md ([X] functional, [Y] non-functional requirements) [if selected]
 - .charter/USER-STORIES.md ([Z] stories across [N] epics) [if selected]
 
 **Coverage:**
 - [X]/[Y] BR-XX requirements transformed
+- [X]/[Y] SM-XXX stories expanded to US-XXX [story-map mode only]
 
 **Priorities:**
 - Must: [count] ([%])
@@ -601,6 +711,7 @@ Requirements generation complete.
 - Could: [count] ([%])
 
 **Traceability:** All requirements link to source BR-XX IDs.
+[Story-map mode: All US-XXX link to parent SM-XXX IDs.]
 ```
 
 **8.2 Offer Refinement**
@@ -609,7 +720,8 @@ Requirements generation complete.
 1. Adjust any priorities?
 2. Split large stories further?
 3. Add requirements I may have missed?
-4. Proceed to Skill 3 (`/create-design-doc`)?"
+4. Proceed to `/create-design-doc`?
+5. Proceed to `/plan-project-roadmap`? [if story map was used]"
 
 </phase_8_completion>
 
@@ -626,4 +738,14 @@ Requirements generation is complete when:
 - [ ] 60% rule validated
 - [ ] Output files written to `.charter/`
 - [ ] User confirmed or adjusted output
+
+**Additional checks for story-map mode:**
+- [ ] STORY-MAP.md parsed (Activities, Tasks, SM-XXX IDs, releases)
+- [ ] Every SM-XXX has exactly one US-XXX child story
+- [ ] Every US-XXX has exactly one SM-XXX parent (in `Parent:` field)
+- [ ] Epic names match Activity names from story map
+- [ ] Feature names match Task names from story map
+- [ ] Release assignments preserved from story map
+- [ ] BR-XX references in story map cross-checked against business case
+- [ ] Traceability table uses SM-XXX → US-XXX format
 </success_criteria>

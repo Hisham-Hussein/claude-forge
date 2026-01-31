@@ -150,6 +150,7 @@ Generate the full BUSINESS-CASE.md:
 - IDs follow pattern: BR-01, BR-02, etc.
 - If input documents contained detailed specifications (identified in Step 2), add Section 9.6 Reference Documents with file paths and brief descriptions of what each contains. This ensures downstream stages (SRS, architecture) know where to find implementation-level details without the BRD duplicating them.
 - If open items were identified in Step 2, populate Section 9.7 Open Items with each unresolved question and its owner/impact.
+- If explicit priority orderings were identified in Step 2, render them as numbered lists — never unordered. Place in Section 7 Constraints (implementation/platform priority) or Section 9.3 acceptance criteria (channel/feature priority). "A first, B second, C third" → "1. A, 2. B, 3. C."
 - When incorporating data from multiple sources (document, interview, research), note the provenance of key figures and claims — especially distinguish client-stated facts from inferred or researched data.
 
 **Step 5: Validate**
