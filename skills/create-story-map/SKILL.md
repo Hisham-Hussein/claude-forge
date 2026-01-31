@@ -39,6 +39,7 @@ Both consume BUSINESS-CASE.md. Use together: map for vision, backlog for executi
 4. Places stories vertically by priority under each task
 5. Asks user to define release boundaries (MVP, R2, R3)
 6. Generates compact STORY-MAP.md
+7. Offers to resolve identified gaps interactively or leave as documentation
 
 **Output:** `.charter/STORY-MAP.md` with:
 - Release overview table (quick reference)
@@ -431,7 +432,60 @@ From Section 7 constraints and any unresolved questions.
 
 Write output to `.charter/STORY-MAP.md`.
 
+Proceed to Phase 5b.
+
 </phase_5_generate_output>
+
+<phase_5b_resolve_gaps>
+**Phase 5b: Resolve Gaps and Questions**
+
+During phases 1-5, gaps and unresolved questions accumulate (ambiguous requirements, missing data source decisions, unclear UX patterns, undefined taxonomies, etc.). These are written to the "Gaps and Questions" section of the output file. This phase gives the user the option to resolve them interactively before finalizing.
+
+**5b.1 Collect Gaps**
+
+Gather all gaps and questions identified during the mapping process into a numbered list. Each gap should have:
+- A short title
+- A one-sentence description of what's unclear and why it matters for implementation
+
+**5b.2 Present Resolution Choice**
+
+If there are gaps, use AskUserQuestion:
+
+```
+"I identified [N] gaps and questions while building the story map. How would you like to handle them?"
+
+Options:
+- "Resolve interactively" — Walk through each gap one-by-one with suggested options
+- "Leave as documentation" — Keep them as-is in the Gaps and Questions section of STORY-MAP.md
+```
+
+**If "Leave as documentation":** Skip to Phase 6. The gaps remain in the output file for later resolution.
+
+**If "Resolve interactively":**
+
+**5b.3 Walk Through Each Gap**
+
+For each gap, use AskUserQuestion with 2-4 concrete options based on common patterns and the project context. For example:
+
+```
+Gap: "Data source strategy"
+Options:
+- "Static JSON file" — Hardcode hooks in a JSON seed file, update manually
+- "GitHub API at build time" — Fetch from GitHub repos during next build, static at runtime
+- "Runtime API fetch" — Query GitHub API on page load (rate limits apply)
+```
+
+Each question should offer actionable choices, not open-ended prompts. The options should reflect realistic trade-offs informed by the project's constraints.
+
+**5b.4 Update Story Map**
+
+After resolving gaps:
+1. Update the "Gaps and Questions" section in `.charter/STORY-MAP.md`:
+   - Move resolved gaps to a "Resolved" subsection with the chosen answer
+   - Keep unresolved gaps (if the user skipped any) in the original section
+2. If any resolution changes the story map itself (e.g., a resolved gap adds a new story, changes a task, or affects release slicing), update the affected sections of the output file accordingly
+
+</phase_5b_resolve_gaps>
 
 <phase_6_completion>
 **Phase 6: Completion**
@@ -479,5 +533,7 @@ Story map generation is complete when:
 - [ ] Each release delivers end-to-end value
 - [ ] All stories have BR-XX traceability
 - [ ] Compact output written to `.charter/STORY-MAP.md` (no full story cards, no duplicate traceability)
+- [ ] Gaps offered for interactive resolution (user chose to resolve or defer)
+- [ ] If resolved: answers incorporated into STORY-MAP.md and affected sections updated
 - [ ] User confirmed or adjusted output
 </success_criteria>
