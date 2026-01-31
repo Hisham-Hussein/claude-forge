@@ -1,5 +1,5 @@
 ---
-name: fix-drift
+name: fix-drifts
 description: Use when fixing contract drifts between directives and scripts, correcting misalignments after running contract verification, or resolving detected drift issues. Triggers include "fix drift", "correct drift", "resolve misalignment", "fix contract", or when drift has been detected by contract-driven-integration skill.
 ---
 

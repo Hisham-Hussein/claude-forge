@@ -1,5 +1,5 @@
 ---
-name: fork-terminal
+name: fork-terminals
 description: Use when distributing independent tasks across multiple AI coding assistants in parallel. Triggers include "fork this work", "spawn agents", "run in parallel", "distribute tasks", or when multiple independent tasks would benefit from concurrent execution.
 ---
 

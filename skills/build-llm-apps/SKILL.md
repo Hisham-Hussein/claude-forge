@@ -1,5 +1,5 @@
 ---
-name: build-llm-app
+name: build-llm-apps
 description: Guide building LLM applications with pattern selection, tool design, context engineering, and safety guardrails. Use when building agents, designing agent tools, adding RAG, creating LLM-powered features, or asking how to structure an AI application.
 ---
 

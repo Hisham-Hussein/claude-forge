@@ -1,5 +1,5 @@
 ---
-name: create-business-case
+name: create-business-cases
 description: Use when starting a new project, justifying an investment, or when a research document exists but no formal business case. Triggers include "create business case", "write BRD", "business requirements", "justify this project", or when scope is unclear and needs structured exploration.
 ---
 

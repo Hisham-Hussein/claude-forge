@@ -1,5 +1,5 @@
 ---
-name: create-story-map
+name: create-story-maps
 description: Use when user needs story mapping, MVP planning, journey visualization, release slicing, or walking skeleton planning from a business case. Transforms BUSINESS-CASE.md into a journey-organized story map with release slices. Complements /create-requirements (domain-organized backlog).
 ---
 

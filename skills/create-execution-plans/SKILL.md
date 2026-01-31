@@ -1,5 +1,5 @@
 ---
-name: create-execution-plan
+name: create-execution-plans
 description: Use when you have architecture documents and user stories ready and need to plan implementation phases. Invoke after design docs are complete, before coding begins, or when asked to create an execution plan, project roadmap, or phase breakdown.
 ---
 

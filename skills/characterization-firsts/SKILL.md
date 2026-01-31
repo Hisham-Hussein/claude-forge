@@ -1,5 +1,5 @@
 ---
-name: characterization-first
+name: characterization-firsts
 description: Use when refactoring existing code, modifying legacy code, or about to change code behavior. Use when terms like "characterization test", "golden master", "capture behavior", or "safe refactoring" are mentioned. Enforces discipline of capturing current behavior before any code changes.
 ---
 

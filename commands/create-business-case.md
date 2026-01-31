@@ -1,7 +1,7 @@
 ---
 description: Create a business case with BRD from research docs or structured interview
 argument-hint: [path to research doc (optional)]
-allowed-tools: Skill(create-business-case)
+allowed-tools: Skill(create-business-cases)
 ---
 
-Invoke the create-business-case skill for: $ARGUMENTS
+Invoke the create-business-cases skill for: $ARGUMENTS

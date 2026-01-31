@@ -1,5 +1,5 @@
 ---
-name: create-roadmap
+name: create-roadmaps
 description: Transform STORY-MAP.md and ARCHITECTURE-DOC.md into a phased project roadmap with vertical slices and wave-based parallelism. Use when user needs release planning, slice ordering, delivery sequencing, or wants to organize stories into an implementable roadmap.
 ---
 

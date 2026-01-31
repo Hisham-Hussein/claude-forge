@@ -1,5 +1,5 @@
 ---
-name: brainstorm-userstories-ac
+name: brainstorm-userstories-acs
 description: Use when reviewing or enhancing acceptance criteria for user stories. Applies systematic methodology to ensure comprehensive AC coverage across all 6 categories.
 context: fork
 agent: general-purpose
