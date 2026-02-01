@@ -58,6 +58,8 @@ This skill works best with structured requirements artifacts:
 - **User Stories** — Epic/Feature/Story hierarchy (format from `/create-requirements` or similar)
 - **SRS/REQUIREMENTS.md** — Functional requirements (FR-XX), Non-functional requirements (NFR-XX)
 - **BUSINESS-CASE.md** — Business context, stakeholders, constraints
+- **Data Models** (optional) — SQL DDL, Prisma/Drizzle schemas, ORM definitions, ER diagrams
+- **API Specifications** (optional) — OpenAPI/Swagger, GraphQL schemas, gRPC protobuf, tRPC routers
 
 **Technology-Agnostic Architecture:**
 
@@ -143,6 +145,7 @@ Route based on selection:
 | `references/methodology.md` | Phase 1 | Google Design Docs, arc42, C4 Model, ADRs overview |
 | `references/domain-modeling.md` | Phase 3 | Entity extraction, aggregate boundaries, DDD patterns |
 | `references/clean-architecture.md` | Phase 4 | Layer definitions, dependency rule, interface design |
+| `references/data-api-extraction.md` | Phase 1 (when data models or API specs provided) | Extracting from SQL/ORM schemas, OpenAPI/GraphQL/gRPC specs, reconciliation |
 
 **Output Templates:**
 

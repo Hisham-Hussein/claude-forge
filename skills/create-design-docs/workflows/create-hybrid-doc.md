@@ -5,7 +5,8 @@
 1. references/methodology.md — Google Design Docs + C4 + ADRs
 2. references/domain-modeling.md — Entity extraction, aggregates
 3. references/clean-architecture.md — Layer definitions, dependency rule
-4. templates/hybrid-template.md — Output template to fill
+4. references/data-api-extraction.md — **Read IF** input files include data models (SQL, Prisma, ORM) or API specs (OpenAPI, GraphQL, gRPC)
+5. templates/hybrid-template.md — Output template to fill
 </required_reading>
 
 <context>
@@ -24,12 +25,30 @@ It is a single document that tells the complete architectural story.
 Follow the same analysis as both workflows:
 
 1. Read all provided input files thoroughly
-2. Extract:
+2. Extract from requirements (user stories, SRS, business case):
    - **Actors** — From "As a [role]" patterns in user stories
    - **Capabilities** — From "I want to" patterns and functional requirements
    - **Constraints** — From non-functional requirements and business case
    - **Entities** — Nouns that have identity and lifecycle
    - **Quality Attributes** — Performance, security, scalability requirements
+
+3. Extract from data models (if provided — see `references/data-api-extraction.md`):
+   - **Entity candidates** — Tables/model classes with identity and lifecycle
+   - **Value Object candidates** — Enums, constrained columns, composite keys
+   - **Aggregate boundary signals** — Foreign key clusters, cascade rules
+   - **Relationship entities** — Join tables with extra columns
+
+4. Extract from API specifications (if provided — see `references/data-api-extraction.md`):
+   - **Use case candidates** — Endpoints/operations → Application layer
+   - **Interface contracts** — Request/response schemas → Use Case I/O
+   - **Quality attribute signals** — Auth schemes, rate limits, error patterns
+   - **Bounded context signals** — Endpoint groupings, service definitions
+
+5. Reconcile sources:
+   - Requirements are the source of domain truth
+   - Data models validate and enrich entity attributes
+   - API specs validate and enrich interface contracts
+   - Flag discrepancies for Constraints/Risks (Phase 10)
 
 Create a structured extraction document before proceeding.
 

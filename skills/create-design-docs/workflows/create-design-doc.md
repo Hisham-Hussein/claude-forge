@@ -3,7 +3,8 @@
 <required_reading>
 **Read these reference files NOW:**
 1. references/methodology.md — Google Design Docs structure, Goals/Non-Goals pattern
-2. templates/design-doc-template.md — Output template to fill
+2. references/data-api-extraction.md — **Read IF** input files include data models or API specs (informs Design Overview and Alternatives)
+3. templates/design-doc-template.md — Output template to fill
 </required_reading>
 
 <context>
@@ -32,6 +33,11 @@ It is NOT a comprehensive architecture spec. Keep it 10-20 pages.
    - Stakeholders and their concerns
    - Business constraints
    - Success metrics
+5. Extract from data models or API specs (if provided — see `references/data-api-extraction.md`):
+   - Key data entities and relationships → informs Design Overview components
+   - API contract boundaries → informs key interfaces in Design Overview
+   - Auth schemes, rate limits, constraints → informs Cross-Cutting Concerns
+   - Discrepancies between specs and requirements → candidates for Alternatives Considered
 
 ## Phase 2: Define Goals and Non-Goals
 

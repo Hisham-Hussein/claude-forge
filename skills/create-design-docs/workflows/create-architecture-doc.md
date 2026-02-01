@@ -5,7 +5,8 @@
 1. references/methodology.md — C4 Model, arc42 sections, ADR format
 2. references/domain-modeling.md — Entity extraction, aggregates, DDD patterns
 3. references/clean-architecture.md — Layer definitions, dependency rule
-4. templates/architecture-doc-template.md — Output template to fill
+4. references/data-api-extraction.md — **Read IF** input files include data models (SQL, Prisma, ORM) or API specs (OpenAPI, GraphQL, gRPC)
+5. templates/architecture-doc-template.md — Output template to fill
 </required_reading>
 
 <context>
@@ -41,6 +42,28 @@ It is NOT decision-focused (that's a Design Doc). Focus on **structure and inter
 - Stakeholders → System users and personas
 - Business rules → Domain logic candidates
 - Success metrics → Quality requirements
+
+**From Data Models (if provided):**
+- Tables/model classes → Entity candidates (verify identity + lifecycle from requirements)
+- Foreign key clusters → Aggregate boundary signals
+- Enums and constrained columns → Value Object candidates
+- Join tables → Relationship entities or domain services
+- Indexes → Performance quality attribute signals
+- See `references/data-api-extraction.md` for full extraction patterns
+
+**From API Specifications (if provided):**
+- Endpoints/operations → Use case candidates and adapter-layer interfaces
+- Request schemas → Use Case Input structures
+- Response schemas → Use Case Output structures; confirm entity attributes
+- Auth schemes, rate limits → Security and performance quality attributes
+- Endpoint groupings (tags, services) → Bounded context signals
+- See `references/data-api-extraction.md` for format-specific patterns
+
+**Reconciliation (when data models or API specs are provided):**
+- Requirements take precedence over data model structure
+- Flag tables/endpoints with no matching requirement as potential out-of-scope
+- Flag requirements with no matching table/endpoint as new or missing implementation
+- Document discrepancies in a reconciliation note for Phase 7 (Risks)
 
 ## Phase 2: Extract Domain Model
 
