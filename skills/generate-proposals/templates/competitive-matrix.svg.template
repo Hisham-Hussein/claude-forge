@@ -1,0 +1,249 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <!--
+  COMPETITIVE MATRIX TEMPLATE (16:9 - Large Cards & Text)
+  ========================================================
+  Design tokens are FIXED. Replace {{VARIABLES}}.
+
+  WINNER: {{WINNER_NAME}}, {{WINNER_LOGO_ABBREV}}, {{WINNER_PRICE}}
+          {{WINNER_FEATURE_1}}, {{WINNER_FEATURE_2}}
+          {{BADGE_LINE_1}}, {{BADGE_LINE_2}}
+
+  AXES:   {{X_LEFT_LABEL}}/{{X_LEFT_DETAIL}} ← → {{X_RIGHT_LABEL}}/{{X_RIGHT_DETAIL}}
+          {{Y_TOP_LABEL}}/{{Y_TOP_DETAIL}} ↑ ↓ {{Y_BOTTOM_LABEL}}/{{Y_BOTTOM_DETAIL}}
+
+  QUADRANTS: {{QUADRANT_TOP_LEFT}}, {{QUADRANT_TOP_RIGHT}},
+             {{QUADRANT_BOTTOM_LEFT}}, {{QUADRANT_BOTTOM_RIGHT}}
+
+  COMPETITORS (16:9 coordinates - LARGER cards):
+  - Bottom-left (worst): X=350-420, Y=650-910
+  - Top-left (medium): X=450-520, Y=350-420
+  - Winner fixed at: (1450, 320)
+  - Axis crossing: (960, 540)
+  - Card sizes: 340x190 (main), 310x160 (secondary)
+
+  {{COMPETITOR_N_NAME}}, {{COMPETITOR_N_PRICE}}, {{COMPETITOR_N_LIMITATION}}
+  {{COMPETITOR_N_X}}, {{COMPETITOR_N_Y}}, {{COMPETITOR_N_COLOR}}, {{COMPETITOR_N_TEXT_COLOR}}
+
+  {{TITLE}}, {{SAVINGS_TEXT}}, {{SOURCE_TEXT}}
+  -->
+
+  <defs>
+    <filter id="glass" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+      <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo"/>
+    </filter>
+
+    <filter id="glow-blue" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="20" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="glow-soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="15" stdDeviation="25" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+
+    <!-- Gradients (FIXED - iSemantics brand) -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0f"/>
+      <stop offset="50%" style="stop-color:#0d0d1a"/>
+      <stop offset="100%" style="stop-color:#050510"/>
+    </linearGradient>
+
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3A5AFF"/>
+      <stop offset="100%" style="stop-color:#92E6FD"/>
+    </linearGradient>
+
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="50%" style="stop-color:#FFA500"/>
+      <stop offset="100%" style="stop-color:#FF8C00"/>
+    </linearGradient>
+
+    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff87"/>
+      <stop offset="100%" style="stop-color:#60efff"/>
+    </linearGradient>
+
+    <linearGradient id="topRightQuadrant" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00ff87;stop-opacity:0"/>
+      <stop offset="100%" style="stop-color:#00ff87;stop-opacity:0.12"/>
+    </linearGradient>
+
+    <linearGradient id="bottomLeftQuadrant" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:0"/>
+      <stop offset="100%" style="stop-color:#ff6b6b;stop-opacity:0.08"/>
+    </linearGradient>
+
+    <radialGradient id="orbBlue" cx="30%" cy="30%">
+      <stop offset="0%" style="stop-color:#3A5AFF;stop-opacity:0.35"/>
+      <stop offset="100%" style="stop-color:#3A5AFF;stop-opacity:0"/>
+    </radialGradient>
+
+    <radialGradient id="orbCyan" cx="70%" cy="70%">
+      <stop offset="0%" style="stop-color:#92E6FD;stop-opacity:0.25"/>
+      <stop offset="100%" style="stop-color:#92E6FD;stop-opacity:0"/>
+    </radialGradient>
+
+    <radialGradient id="spotlightGreen" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#00ff87;stop-opacity:0.3"/>
+      <stop offset="50%" style="stop-color:#00ff87;stop-opacity:0.1"/>
+      <stop offset="100%" style="stop-color:#00ff87;stop-opacity:0"/>
+    </radialGradient>
+
+    <linearGradient id="glassCard" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.1)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0.02)"/>
+    </linearGradient>
+
+    <marker id="arrowRight" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ffffff" opacity="0.6"/>
+    </marker>
+    <marker id="arrowLeft" markerWidth="12" markerHeight="9" refX="1" refY="4.5" orient="auto">
+      <polygon points="12 0, 0 4.5, 12 9" fill="#ffffff" opacity="0.6"/>
+    </marker>
+    <marker id="arrowUp" markerWidth="9" markerHeight="12" refX="4.5" refY="1" orient="auto">
+      <polygon points="0 12, 4.5 0, 9 12" fill="#ffffff" opacity="0.6"/>
+    </marker>
+    <marker id="arrowDown" markerWidth="9" markerHeight="12" refX="4.5" refY="11" orient="auto">
+      <polygon points="0 0, 4.5 12, 9 0" fill="#ffffff" opacity="0.6"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bgGradient)"/>
+
+  <!-- Ambient orbs (pushed to edges) -->
+  <ellipse cx="100" cy="900" rx="300" ry="250" fill="url(#orbBlue)"/>
+  <ellipse cx="1820" cy="180" rx="350" ry="280" fill="url(#orbCyan)"/>
+
+  <!-- Quadrant backgrounds (expanded) -->
+  <rect x="960" y="100" width="920" height="440" fill="url(#topRightQuadrant)"/>
+  <rect x="40" y="540" width="920" height="500" fill="url(#bottomLeftQuadrant)"/>
+
+  <!-- Title (larger text) -->
+  <text x="960" y="40" font-family="Poppins, sans-serif" font-size="18" font-weight="300" fill="#92E6FD" text-anchor="middle" letter-spacing="4" opacity="0.9">COMPETITIVE LANDSCAPE</text>
+  <text x="960" y="85" font-family="Poppins, sans-serif" font-size="48" font-weight="300" fill="#ffffff" text-anchor="middle">{{TITLE}}</text>
+
+  <!-- AXES (edge-to-edge) -->
+  <line x1="40" y1="540" x2="1880" y2="540" stroke="#ffffff" stroke-width="2" opacity="0.5" marker-start="url(#arrowLeft)" marker-end="url(#arrowRight)"/>
+  <line x1="960" y1="100" x2="960" y2="1040" stroke="#ffffff" stroke-width="2" opacity="0.5" marker-start="url(#arrowUp)" marker-end="url(#arrowDown)"/>
+
+  <!-- Axis Labels (larger, more visible) -->
+  <text x="100" y="580" font-family="Poppins, sans-serif" font-size="20" fill="#ff6b6b" opacity="1">{{X_LEFT_LABEL}}</text>
+  <text x="100" y="605" font-family="Roboto, sans-serif" font-size="15" fill="#ffffff" opacity="0.6">{{X_LEFT_DETAIL}}</text>
+
+  <text x="1820" y="580" font-family="Poppins, sans-serif" font-size="20" fill="#00ff87" text-anchor="end" opacity="1">{{X_RIGHT_LABEL}}</text>
+  <text x="1820" y="605" font-family="Roboto, sans-serif" font-size="15" fill="#ffffff" text-anchor="end" opacity="0.6">{{X_RIGHT_DETAIL}}</text>
+
+  <text x="990" y="135" font-family="Poppins, sans-serif" font-size="20" fill="#00ff87" opacity="1">{{Y_TOP_LABEL}}</text>
+  <text x="990" y="158" font-family="Roboto, sans-serif" font-size="15" fill="#ffffff" opacity="0.6">{{Y_TOP_DETAIL}}</text>
+
+  <text x="990" y="1010" font-family="Poppins, sans-serif" font-size="20" fill="#ff6b6b" opacity="1">{{Y_BOTTOM_LABEL}}</text>
+  <text x="990" y="1033" font-family="Roboto, sans-serif" font-size="15" fill="#ffffff" opacity="0.6">{{Y_BOTTOM_DETAIL}}</text>
+
+  <!-- Quadrant Labels (more visible) -->
+  <g font-family="Poppins, sans-serif" font-size="16" fill="#ffffff">
+    <text x="480" y="320" text-anchor="middle" opacity="0.25">{{QUADRANT_TOP_LEFT}}</text>
+    <text x="1440" y="320" text-anchor="middle" fill="#00ff87" opacity="0.4">{{QUADRANT_TOP_RIGHT}}</text>
+    <text x="480" y="760" text-anchor="middle" fill="#ff6b6b" opacity="0.4">{{QUADRANT_BOTTOM_LEFT}}</text>
+    <text x="1440" y="760" text-anchor="middle" opacity="0.25">{{QUADRANT_BOTTOM_RIGHT}}</text>
+  </g>
+
+  <!-- COMPETITOR 1 (LARGE CARD - 340x190) -->
+  <g transform="translate({{COMPETITOR_1_X}}, {{COMPETITOR_1_Y}})" filter="url(#shadow)">
+    <rect x="-170" y="-95" width="340" height="190" rx="24" fill="rgba(255,255,255,0.04)" stroke="{{COMPETITOR_1_COLOR}}" stroke-width="2"/>
+    <rect x="-170" y="-95" width="340" height="190" rx="24" fill="url(#glassCard)" opacity="0.5"/>
+    <text x="0" y="-35" font-family="Poppins, sans-serif" font-size="26" font-weight="400" fill="#ffffff" text-anchor="middle">{{COMPETITOR_1_NAME}}</text>
+    <text x="0" y="5" font-family="Roboto, sans-serif" font-size="18" fill="{{COMPETITOR_1_TEXT_COLOR}}" text-anchor="middle">{{COMPETITOR_1_PRICE}}</text>
+    <line x1="-145" y1="40" x2="145" y2="40" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <text x="0" y="70" font-family="Roboto, sans-serif" font-size="15" fill="rgba(255,255,255,0.7)" text-anchor="middle">{{COMPETITOR_1_LIMITATION}}</text>
+  </g>
+
+  <!-- COMPETITOR 2 (MEDIUM CARD - 310x160) -->
+  <g transform="translate({{COMPETITOR_2_X}}, {{COMPETITOR_2_Y}})" filter="url(#shadow)">
+    <rect x="-155" y="-80" width="310" height="160" rx="22" fill="rgba(255,255,255,0.04)" stroke="{{COMPETITOR_2_COLOR}}" stroke-width="2"/>
+    <rect x="-155" y="-80" width="310" height="160" rx="22" fill="url(#glassCard)" opacity="0.5"/>
+    <text x="0" y="-25" font-family="Poppins, sans-serif" font-size="24" font-weight="400" fill="#ffffff" text-anchor="middle">{{COMPETITOR_2_NAME}}</text>
+    <text x="0" y="10" font-family="Roboto, sans-serif" font-size="17" fill="{{COMPETITOR_2_TEXT_COLOR}}" text-anchor="middle">{{COMPETITOR_2_PRICE}}</text>
+    <text x="0" y="55" font-family="Roboto, sans-serif" font-size="15" fill="rgba(255,255,255,0.7)" text-anchor="middle">{{COMPETITOR_2_LIMITATION}}</text>
+  </g>
+
+  <!-- COMPETITOR 3 (LARGE CARD - 340x190) -->
+  <g transform="translate({{COMPETITOR_3_X}}, {{COMPETITOR_3_Y}})" filter="url(#shadow)">
+    <rect x="-170" y="-95" width="340" height="190" rx="24" fill="rgba(255,255,255,0.04)" stroke="{{COMPETITOR_3_COLOR}}" stroke-width="2"/>
+    <rect x="-170" y="-95" width="340" height="190" rx="24" fill="url(#glassCard)" opacity="0.5"/>
+    <text x="0" y="-35" font-family="Poppins, sans-serif" font-size="26" font-weight="400" fill="#ffffff" text-anchor="middle">{{COMPETITOR_3_NAME}}</text>
+    <text x="0" y="5" font-family="Roboto, sans-serif" font-size="18" fill="{{COMPETITOR_3_TEXT_COLOR}}" text-anchor="middle">{{COMPETITOR_3_PRICE}}</text>
+    <line x1="-145" y1="40" x2="145" y2="40" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <text x="0" y="70" font-family="Roboto, sans-serif" font-size="15" fill="rgba(255,255,255,0.7)" text-anchor="middle">{{COMPETITOR_3_LIMITATION}}</text>
+  </g>
+
+  <!-- Spotlight for Winner -->
+  <ellipse cx="1450" cy="320" rx="300" ry="260" fill="url(#spotlightGreen)"/>
+
+  <!-- WINNER CARD (LARGER - 420x300) -->
+  <g transform="translate(1450, 320)" filter="url(#glow-blue)">
+    <circle cx="0" cy="0" r="190" fill="none" stroke="url(#accentGradient)" stroke-width="2" opacity="0.3"/>
+    <circle cx="0" cy="0" r="210" fill="none" stroke="url(#greenGradient)" stroke-width="1" opacity="0.2"/>
+
+    <rect x="-210" y="-150" width="420" height="300" rx="32" fill="rgba(0,255,135,0.1)" stroke="url(#greenGradient)" stroke-width="2"/>
+    <rect x="-210" y="-150" width="420" height="300" rx="32" fill="url(#glassCard)"/>
+
+    <!-- Badge (larger) -->
+    <g transform="translate(155, -120)">
+      <circle cx="0" cy="0" r="42" fill="url(#goldGradient)" filter="url(#glow-soft)"/>
+      <text x="0" y="0" font-family="Poppins, sans-serif" font-size="14" font-weight="600" fill="#000" text-anchor="middle">{{BADGE_LINE_1}}</text>
+      <text x="0" y="16" font-family="Poppins, sans-serif" font-size="12" font-weight="600" fill="#000" text-anchor="middle">{{BADGE_LINE_2}}</text>
+    </g>
+
+    <!-- Logo (larger) -->
+    <circle cx="-130" cy="-55" r="52" fill="rgba(45,167,255,0.2)"/>
+    <text x="-130" y="-42" font-family="Poppins, sans-serif" font-size="38" font-weight="300" fill="url(#accentGradient)" text-anchor="middle">{{WINNER_LOGO_ABBREV}}</text>
+
+    <text x="20" y="-70" font-family="Poppins, sans-serif" font-size="38" font-weight="400" fill="#ffffff">{{WINNER_NAME}}</text>
+    <text x="20" y="-28" font-family="Roboto, sans-serif" font-size="22" fill="url(#greenGradient)">{{WINNER_PRICE}}</text>
+
+    <line x1="-180" y1="20" x2="180" y2="20" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+
+    <g transform="translate(-175, 70)">
+      <circle cx="18" cy="0" r="18" fill="rgba(0,255,135,0.2)"/>
+      <polyline points="9,-5 17,4 27,-7" fill="none" stroke="#00ff87" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="50" y="7" font-family="Roboto, sans-serif" font-size="20" fill="#ffffff">{{WINNER_FEATURE_1}}</text>
+    </g>
+    <g transform="translate(-175, 120)">
+      <circle cx="18" cy="0" r="18" fill="rgba(0,255,135,0.2)"/>
+      <polyline points="9,-5 17,4 27,-7" fill="none" stroke="#00ff87" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="50" y="7" font-family="Roboto, sans-serif" font-size="20" fill="#ffffff">{{WINNER_FEATURE_2}}</text>
+    </g>
+  </g>
+
+  <!-- Connection lines -->
+  <g opacity="0.3">
+    <line x1="1240" y1="320" x2="{{COMPETITOR_3_X}}" y2="{{COMPETITOR_3_Y}}" stroke="#92E6FD" stroke-width="1.5" stroke-dasharray="6,6"/>
+    <line x1="1240" y1="380" x2="{{COMPETITOR_1_X}}" y2="{{COMPETITOR_1_Y}}" stroke="#92E6FD" stroke-width="1.5" stroke-dasharray="6,6"/>
+    <line x1="1240" y1="440" x2="{{COMPETITOR_2_X}}" y2="{{COMPETITOR_2_Y}}" stroke="#92E6FD" stroke-width="1.5" stroke-dasharray="6,6"/>
+  </g>
+
+  <!-- Savings callout (larger) -->
+  <g transform="translate(1450, 680)">
+    <rect x="-140" y="-60" width="280" height="120" rx="22" fill="rgba(0,255,135,0.08)" stroke="url(#greenGradient)" stroke-width="1.5"/>
+    <text x="0" y="-22" font-family="Poppins, sans-serif" font-size="16" fill="#00ff87" text-anchor="middle" opacity="0.9">POTENTIAL SAVINGS</text>
+    <text x="0" y="30" font-family="Poppins, sans-serif" font-size="42" font-weight="300" fill="#ffffff" text-anchor="middle">{{SAVINGS_TEXT}}</text>
+  </g>
+
+  <!-- Legend -->
+  <text x="1880" y="1055" font-family="Roboto, sans-serif" font-size="13" fill="rgba(255,255,255,0.5)" text-anchor="end">{{SOURCE_TEXT}}</text>
+</svg>

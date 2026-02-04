@@ -38,7 +38,7 @@
 
 ### Wave 1 (sequential -- foundation)
 
-#### Slice 1: [Name -- Walking Skeleton]
+#### PHASE-1: [Name -- Walking Skeleton]
 
 [Brief description: what end-to-end capability this slice delivers]
 
@@ -50,7 +50,7 @@
 
 ### Wave 2 (parallel -- independent slices)
 
-#### Slice 2: [Name]
+#### PHASE-2: [Name]
 
 [Brief description of what this slice adds]
 
@@ -59,7 +59,7 @@
 | SM-XXX | [Story title] | BR-XX |
 | SM-XXX | [Story title] | BR-XX |
 
-#### Slice 3: [Name]
+#### PHASE-3: [Name]
 
 [Brief description of what this slice adds]
 
@@ -70,7 +70,7 @@
 
 ### Wave 3 (sequential -- integration)
 
-#### Slice 4: [Name]
+#### PHASE-4: [Name]
 
 [Brief description of what this slice integrates or validates]
 
@@ -99,7 +99,7 @@
 
 ### Wave 1 (sequential -- foundation)
 
-#### Slice N: [Name]
+#### PHASE-N: [Name]
 
 [Brief description]
 
@@ -109,7 +109,7 @@
 
 ### Wave 2 (parallel -- independent slices)
 
-#### Slice N+1: [Name]
+#### PHASE-N+1: [Name]
 
 [Brief description]
 
@@ -117,7 +117,7 @@
 |----------|-------|--------|
 | SM-XXX | [Story title] | BR-XX |
 
-#### Slice N+2: [Name]
+#### PHASE-N+2: [Name]
 
 [Brief description]
 
