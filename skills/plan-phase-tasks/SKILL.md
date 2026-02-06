@@ -32,7 +32,7 @@ Transform one roadmap phase into an implementable PHASE-N-PLAN.md using Feature-
 /create-requirements → USER-STORIES.md
 /create-design-doc → ARCHITECTURE-DOC.md
                           ↓ (all three)
-              /plan-phase-tasks N [--has-ui]
+              /plan-phase-task N [--has-ui]
                           ↓
               .charter/PHASE-N-PLAN.md
                           ↓
@@ -43,8 +43,8 @@ Transform one roadmap phase into an implementable PHASE-N-PLAN.md using Feature-
 <quick_start>
 **Usage:**
 ```
-/plan-phase-tasks 1
-/plan-phase-tasks 3 --has-ui
+/plan-phase-task 1
+/plan-phase-task 3 --has-ui
 ```
 
 - First argument (required): Phase number (1-based, sequential across all releases)
@@ -210,7 +210,8 @@ Check if `.charter/design-os-export/` directory exists.
    If generation fails (e.g., missing `OPENAI_API_KEY`): emit error "Design OS export found but manifest.json generation failed. Ensure OPENAI_API_KEY is exported in your shell environment, then retry." **Stop execution — do not proceed to Phase 4.**
 3. Read `manifest.json` and look up which sections contain US-XXX IDs from the trace script output
 4. For each matched section, note the section directory path (e.g., `design-os-export/sections/hook-catalog/`)
-5. Do NOT load any Design OS content at planning time — only reference section paths
+5. **Note:** The manifest only maps stories present in the UX-FLOWS.md traceability matrix. For R2/Future phases, the matrix may need updating with new story mappings before invoking with `--has-ui`. If no sections match, the traceability fallback (3.3) applies.
+6. Do NOT load any Design OS content at planning time — only reference section paths
 6. Set metadata: `UX Inputs Loaded: Yes — Design OS export (sections: {matched-section-names})`
 7. UX docs and DESIGN-TOKENS.md are skipped — the export supersedes them
 
