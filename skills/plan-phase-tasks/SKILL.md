@@ -167,6 +167,7 @@ Use `Grep` to find `#### PHASE-{N}:` heading, then `Read` with offset/limit to l
 - Its containing `### Wave` header (wave number, parallel/sequential label)
 - The parent release's Transitions and Definition of Done sections
 - The Quick Reference table at the top of the file
+- The `## Cross-Release Dependencies` table (phase-to-phase dependency chains across releases)
 
 Skip: Other releases, sibling phases in other waves.
 
@@ -206,7 +207,7 @@ Check if `.charter/design-os-export/` directory exists.
        --ux-flows .charter/UX-FLOWS.md \
        --output .charter/design-os-export/manifest.json
    ```
-   If generation fails (e.g., missing `OPENAI_API_KEY`): emit error "Design OS export found but manifest.json generation failed. Ensure OPENAI_API_KEY is exported in your shell environment, then retry."
+   If generation fails (e.g., missing `OPENAI_API_KEY`): emit error "Design OS export found but manifest.json generation failed. Ensure OPENAI_API_KEY is exported in your shell environment, then retry." **Stop execution — do not proceed to Phase 4.**
 3. Read `manifest.json` and look up which sections contain US-XXX IDs from the trace script output
 4. For each matched section, note the section directory path (e.g., `design-os-export/sections/hook-catalog/`)
 5. Do NOT load any Design OS content at planning time — only reference section paths
@@ -306,7 +307,7 @@ Within each story, tasks are always sequential (Domain → Application → Adapt
 
 **6.1 Read Template**
 
-Read `templates/phase-plan-template.md` from this skill's directory.
+Read `~/.claude/plugins/marketplaces/claude-forge/skills/plan-phase-tasks/templates/phase-plan-template.md`.
 
 **6.2 Fill Template**
 
