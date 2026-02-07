@@ -74,7 +74,12 @@ Branch: feat/phase-{N}-{slugified-phase-name}
 - Current group number and its stories (from Parallelism Analysis section)
 - `UX Inputs Loaded` field from Metadata section
 
-**Output:**
+**Ask the user:** Which prompt version to use?
+- **V1 (original)** — presents the phase plan's FDD tasks as the spec
+- **V2 (transform)** — presents the phase plan as context to transform
+
+<prompt_v1>
+**Output (V1 — original):**
 ```
 Next step: Create TDD implementation plan for Execution Group {G}.
 
@@ -91,6 +96,28 @@ Focus on these stories: {story-ids with names}.
 Include the story ID prefix in each commit message
 (e.g., "feat(US-001): add HeroBanner component").
 ```
+</prompt_v1>
+
+<prompt_v2>
+**Output (V2 — transform):**
+```
+Next step: Create TDD implementation plan for Execution Group {G}.
+
+/superpowers:writing-plans
+
+Spec: .charter/PHASE-{N}-PLAN.md
+Architecture: .charter/ARCHITECTURE-DOC.md
+{UI_REFERENCE_LINE}
+
+Plan Execution Group {G} stories only: {story-list}.
+The phase plan has FDD context per task (I/O/Test, file paths, layers,
+Design OS refs). Use it as reference, not as a task list — transform
+the decomposition into your own plan per your skill instructions.
+Focus on these stories: {story-ids with names}.
+Include the story ID prefix in each commit message
+(e.g., "feat(US-001): add HeroBanner component").
+```
+</prompt_v2>
 
 **UI Reference line rule:** Only include `UI Reference: .charter/design-os-export/` when `UX Inputs Loaded` contains "Design OS export" (i.e., `.charter/design-os-export/` exists). For all other values — fallback UX path, "No", or "N/A" — omit the line entirely. In the fallback case, plan-phase-tasks already embedded UX specs inline in task Input fields.
 </state_2>
