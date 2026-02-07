@@ -27,27 +27,33 @@
 
 {FDD-style task trees. One tree per US-XXX story, ordered by story dependency (independent stories first, then stories that depend on their outputs). Document order is the default sequential execution order — superpowers:writing-plans processes stories top-to-bottom. The Parallelism Analysis section below may override this by grouping independent stories for simultaneous dispatch. Within each story, tasks follow layer order: Domain -> Application -> Adapters.}
 
-Story US-XXX: {Story Name}
-├── Layer: Domain
-│   └── Task 1: {Create [Entity/Value Object]}
-│       ├── Input: {Requirements from acceptance criteria}
-│       ├── Output: {Tested domain object}
-│       └── Test: {Unit tests for validation rules}
-│
-├── Layer: Application
-│   └── Task 2: {Create [Use Case/Handler]}
-│       ├── Input: {Domain objects, interface contracts}
-│       ├── Output: {Working use case}
-│       └── Test: {Unit tests with mocked dependencies}
-│
-└── Layer: Adapters
-    └── Task 3: {Create [Adapter Implementation]}
-        ├── Input: {Interface contract from domain}
-        ├── Output: {Working adapter}
-        ├── Test: {Integration tests}
-        └── Reference: {design-os-export/sections/[section-name]/ (if UI task with Design OS export)}
+### Story US-XXX: {Story Name}
 
-{Repeat for each US-XXX in this phase. Not every story touches all three layers. UI-only stories may have only Adapters tasks; data pipeline stories may skip Application. Omit layers not needed.}
+#### Layer: Domain
+
+**Task 1: {Create [Entity/Value Object]}** (`{file path}`)
+- **Input:** {Requirements from acceptance criteria}
+- **Output:** {Tested domain object}
+- **Test:** {Unit tests for validation rules}
+
+#### Layer: Application
+
+**Task 2: {Create [Use Case/Handler]}** (`{file path}`)
+- **Input:** {Domain objects, interface contracts}
+- **Output:** {Working use case}
+- **Test:** {Unit tests with mocked dependencies}
+
+#### Layer: Adapters
+
+**Task 3: {Create [Adapter Implementation]}** (`{file path}`)
+- **Input:** {Interface contract from domain}
+- **Output:** {Working adapter}
+- **Test:** {Integration tests}
+- **Reference:** {design-os-export/sections/[section-name]/ (if UI task with Design OS export)}
+
+---
+
+{Repeat for each US-XXX in this phase. Not every story touches all three layers. UI-only stories may have only Adapters tasks; data pipeline stories may skip Application. Omit layers not needed. Separate each story with a horizontal rule (---).}
 
 {For UI tasks when --has-ui is set and Design OS export exists: include Reference field pointing to the relevant section directory. For UI tasks when --has-ui is set but no export: omit Reference field and embed UX specs (component layout, interaction patterns, accessibility requirements) directly in the task Input field.}
 

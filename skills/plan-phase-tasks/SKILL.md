@@ -65,24 +65,30 @@ Transform one roadmap phase into an implementable PHASE-N-PLAN.md using Feature-
 
 Each story decomposes into tasks following Clean Architecture layer order. Not every story touches all three layers — the structure is a maximum, not a mandate:
 
-```
-Story US-XXX: [Story Name]
-├── Layer: Domain
-│   └── Task 1: Create [Entity/Value Object]
-│       ├── Input: Requirements from acceptance criteria
-│       ├── Output: Tested domain object
-│       └── Test: Unit tests for validation rules
-├── Layer: Application
-│   └── Task 2: Create [Use Case/Handler]
-│       ├── Input: Domain objects, interface contracts
-│       ├── Output: Working use case
-│       └── Test: Unit tests with mocked dependencies
-└── Layer: Adapters
-    └── Task 3: Create [Adapter Implementation]
-        ├── Input: Interface contract from domain
-        ├── Output: Working adapter
-        ├── Test: Integration tests
-        └── Reference: design-os-export/sections/[section-name]/
+```markdown
+### Story US-XXX: [Story Name]
+
+#### Layer: Domain
+
+**Task 1: Create [Entity/Value Object]** (`lib/domain/entity.ts`)
+- **Input:** Requirements from acceptance criteria
+- **Output:** Tested domain object
+- **Test:** Unit tests for validation rules
+
+#### Layer: Application
+
+**Task 2: Create [Use Case/Handler]** (`lib/application/use-case.ts`)
+- **Input:** Domain objects, interface contracts
+- **Output:** Working use case
+- **Test:** Unit tests with mocked dependencies
+
+#### Layer: Adapters
+
+**Task 3: Create [Adapter Implementation]** (`lib/adapters/adapter.ts`)
+- **Input:** Interface contract from domain
+- **Output:** Working adapter
+- **Test:** Integration tests
+- **Reference:** design-os-export/sections/[section-name]/
 ```
 
 - UI-only stories may have only Adapters tasks
