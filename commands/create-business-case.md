@@ -4,4 +4,4 @@ argument-hint: [path to research doc (optional)]
 allowed-tools: Skill(create-business-cases)
 ---
 
-Invoke the create-business-cases skill for: $ARGUMENTS
+Invoke the create-business-cases (in claude-forge plugin) skill for: $ARGUMENTS
