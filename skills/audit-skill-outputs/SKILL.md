@@ -1,5 +1,5 @@
 ---
-name: audit-skill-output
+name: audit-skill-outputs
 description: Use when a skill's output seems incomplete, inaccurate, or missing details from the input. Also use when reviewing skill quality after any skill invocation.
 allowed-tools: Read, Glob, Grep, Task, Write, TodoWrite, AskUserQuestion
 ---

@@ -9,7 +9,7 @@ allowed-tools:
   - Write
   - TodoWrite
   - AskUserQuestion
-  - Skill(audit-skill-output)
+  - Skill(audit-skill-outputs)
 ---
 
-Invoke the audit-skill-output skill for: $ARGUMENTS
+Invoke the audit-skill-outputs skill for: $ARGUMENTS
