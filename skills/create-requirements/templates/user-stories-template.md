@@ -31,6 +31,8 @@
 
 **Parent:** SM-XXX (STORY-MAP.md) [Include in story-map mode. Omit in business-case mode.]
 **Source:** BR-XX (BUSINESS-CASE.md, Section 9.3)
+**Epic:** [Activity name from story map] [Include in story-map mode. Omit in business-case mode.]
+**Feature:** [Task name from story map] [Include in story-map mode. Omit in business-case mode.]
 **Release:** [exact release label from story map] [Include in story-map mode. Omit in business-case mode.]
 
 As a [role],

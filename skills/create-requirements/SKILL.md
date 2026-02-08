@@ -723,7 +723,7 @@ Requirements generation complete.
 2. Split large stories further?
 3. Add requirements I may have missed?
 4. Proceed to `/create-design-doc`?
-5. Proceed to `/plan-project-roadmap`? [if story map was used]"
+5. Proceed to `/create-roadmap`? [if story map was used]"
 
 </phase_8_completion>
 
