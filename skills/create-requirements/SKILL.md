@@ -20,7 +20,7 @@ Transform business case documents into formal, traceable software requirements s
 
 **Two modes:**
 - **Business Case only:** Derives Epic/Feature/Story hierarchy from BR-XX groupings
-- **Story Map + Business Case:** Inherits hierarchy from story map (Activity→Epic, Task→Feature, SM-XXX→US-XXX parent), each US-XXX traces to exactly one SM-XXX
+- **Story Map + Business Case:** Inherits hierarchy from story map (Activity→Epic, Task→Feature, SM-XXX→US-XXX parent), each SM-XXX produces one or more US-XXX
 
 **Core principle:** Skill 1 already extracted stakeholders, constraints, and business requirements. This skill TRANSFORMS business requirements (BR-XX) into software requirements — it doesn't re-extract.
 </objective>
@@ -503,7 +503,7 @@ Epic: [Activity name from story map]  (Activity goal + persona)
         └── User Story: US-XXX [from SM-XXX]  (one US per SM story)
 ```
 
-Each SM-XXX in the story map produces exactly one US-XXX. The US-XXX inherits:
+Each SM-XXX produces one or more US-XXX stories. When an SM-XXX is too large to pass INVEST (particularly "S" for Small), split into multiple US-XXX stories that each retain `**Parent:** SM-XXX`. Use sequential numbering (US-014, US-015, etc.) — the Parent field provides traceability. The US-XXX inherits:
 - **Epic** from the SM-XXX's parent Activity
 - **Feature** from the SM-XXX's parent Task
 - **Release** from the SM-XXX's release assignment (MVP, R2, etc.)
@@ -741,8 +741,7 @@ Requirements generation is complete when:
 
 **Additional checks for story-map mode:**
 - [ ] STORY-MAP.md parsed (Activities, Tasks, SM-XXX IDs, releases)
-- [ ] Every SM-XXX has exactly one US-XXX child story
-- [ ] Every US-XXX has exactly one SM-XXX parent (in `Parent:` field)
+- [ ] Every SM-XXX has **at least one** US-XXX child story
 - [ ] Epic names match Activity names from story map
 - [ ] Feature names match Task names from story map
 - [ ] Release assignments preserved from story map

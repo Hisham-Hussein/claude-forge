@@ -72,7 +72,8 @@ So that [benefit].
 | SM-XXX | BR-XX | Activity → Task | US-XXX | Release |
 |--------|-------|-----------------|--------|---------|
 | SM-1.1-01 | BR-02 | Discovery → Hashtag Search | US-001 | MVP |
-| SM-1.1-02 | BR-02 | Discovery → Hashtag Search | US-002 | MVP |
-[...]
+| SM-1.1-01 | BR-02 | Discovery → Hashtag Search | US-002 | MVP |
+| SM-1.1-02 | BR-02 | Discovery → Hashtag Search | US-003 | MVP |
+[...one SM-XXX may map to multiple US-XXX rows when split for INVEST sizing]
 
 **Coverage:** [X]/[Y] SM-XXX stories expanded to US-XXX | [X]/[Y] BR-XX requirements covered
