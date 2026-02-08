@@ -259,30 +259,22 @@ Parse the story map's hierarchical organization:
 
 **1c.2 Extract SM-XXX Registry**
 
-Build a registry of all story map stories:
+Build a registry of all story map stories. Use the Traceability table as the primary source (each row maps SM-XXX to Title, BR-XX, and Release):
 
 For each SM-XXX entry, capture:
 - SM-XXX ID
 - Title
-- Parent Activity and Task
-- Release assignment (MVP, R2, R3, Future, etc.)
-- Source BR-XX reference(s)
+- Parent Activity and Task (from the Detailed Map heading structure)
+- Release assignment (from Traceability table's Release column)
+- Source BR-XX reference(s) (from Traceability table's BR-XX column)
 
-**1c.3 Extract Release Assignments**
-
-From the story map's release overview table or detailed sections, capture which SM-XXX stories belong to which release. These release assignments flow into USER-STORIES.md.
-
-**1c.4 Extract Walking Skeleton**
-
-Identify SM-XXX stories marked as walking skeleton (typically the first MVP slice). These inform priority in Phase 5.
-
-**1c.5 Cross-Reference with Business Case**
+**1c.4 Cross-Reference with Business Case**
 
 Verify that BR-XX references in the story map exist in the business case's Section 9.3. Flag any mismatches:
 - SM-XXX references a BR-XX not in the business case → warn
 - BR-XX in business case has no SM-XXX coverage → note as gap (may be intentional deferral)
 
-**1c.6 Present Story Map Parsing Summary**
+**1c.5 Present Story Map Parsing Summary**
 
 ```
 ## Story Map Parsing Summary
@@ -290,7 +282,6 @@ Verify that BR-XX references in the story map exist in the business case's Secti
 **Activities found:** [count] ([list names])
 **Tasks found:** [count]
 **Stories (SM-XXX):** [count] (MVP: X, R2: X, R3: X, Future: X)
-**Walking skeleton stories:** [count]
 **BR-XX coverage:** [X]/[Y] business requirements mapped to SM-XXX stories
 **Gaps:** [list any BR-XX without SM-XXX coverage]
 
@@ -321,6 +312,8 @@ Only ask questions that the BUSINESS-CASE.md doesn't answer. Skip questions if t
 Only ask if Must-haves exceed 60%.
 
 **2.3 User Story Specifics (if User Stories selected)**
+
+Skip in story-map mode — hierarchy is inherited from the story map.
 
 "For User Story output, should I:"
 - Group by Epic (feature area) — Recommended
@@ -500,7 +493,7 @@ Epic: [Major capability area from BR-XX groupings]
 ```
 Epic: [Activity name from story map]  (Activity goal + persona)
   └── Feature: [Task name from story map]  (Task under that Activity)
-        └── User Story: US-XXX [from SM-XXX]  (one US per SM story)
+        └── User Story: US-XXX [from SM-XXX]  (one or more US per SM story)
 ```
 
 Each SM-XXX produces one or more US-XXX stories. When an SM-XXX is too large to pass INVEST (particularly "S" for Small), split into multiple US-XXX stories that each retain `**Parent:** SM-XXX`. Use sequential numbering (US-014, US-015, etc.) — the Parent field provides traceability. The US-XXX inherits:
@@ -513,8 +506,9 @@ Each SM-XXX produces one or more US-XXX stories. When an SM-XXX is too large to 
 ```
 Epic: Influencer Discovery (Activity: "Discover Influencers")
   └── Feature: Platform Discovery (Task: "Search by Hashtag")
-        └── US-001: TikTok hashtag discovery  (Parent: SM-1.1-01, Source: BR-02)
-        └── US-002: Discovery progress tracking  (Parent: SM-1.1-02, Source: BR-02)
+        └── US-001: TikTok hashtag discovery  (Parent: SM-001, Source: BR-02)
+        └── US-002: TikTok discovery rate limiting  (Parent: SM-001, Source: BR-02)
+        └── US-003: Discovery progress tracking  (Parent: SM-002, Source: BR-02)
 ```
 
 **4.2 Story Format**
@@ -531,7 +525,7 @@ As a [role from Section 4 stakeholders],
 I want [specific capability derived from BR-XX],
 So that [benefit — often from BR-XX or Section 5].
 
-### Acceptance Criteria
+**Acceptance Criteria:**
 - [ ] [Criterion derived from BR-XX acceptance criteria or Section 6 KPIs]
 - [ ] [Additional testable criterion]
 - [ ] [Edge case handling]
@@ -551,11 +545,13 @@ As a [role from Section 4 stakeholders],
 I want [specific capability — elaborated from SM-XXX title using BR-XX detail],
 So that [benefit — from BR-XX or Section 5].
 
-### Acceptance Criteria
+**Acceptance Criteria:**
 - [ ] [Criterion derived from BR-XX acceptance criteria or Section 6 KPIs]
 - [ ] [Additional testable criterion]
 - [ ] [Edge case handling]
 ```
+
+> **Format note:** The `**Parent:** SM-XXX` field is machine-parsed by downstream tools. Preserve the format exactly — bold markers must wrap `Parent:` including the colon.
 
 **Key difference:** In story-map mode, the story title and capability come from the SM-XXX story in the map, but the full "As a/I want/So that" card and acceptance criteria are ELABORATED here — the story map only had compact IDs and titles, not full specification cards.
 
@@ -575,7 +571,7 @@ Flag stories that fail INVEST and suggest splits.
 
 **Use Checklist format** for simple stories:
 ```markdown
-### Acceptance Criteria
+**Acceptance Criteria:**
 - [ ] User can select niche from dropdown
 - [ ] Results update within 2 seconds
 - [ ] Empty state shows "No matches found"
@@ -583,7 +579,7 @@ Flag stories that fail INVEST and suggest splits.
 
 **Use Given/When/Then** for complex scenarios:
 ```markdown
-### Acceptance Criteria
+**Acceptance Criteria:**
 
 **Scenario: Filter by multiple niches**
 Given I am on the influencer search page
