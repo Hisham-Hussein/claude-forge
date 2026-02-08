@@ -111,7 +111,7 @@ Two companion scripts handle text-matching operations. The LLM never searches US
 | Script | Purpose | When Run |
 |--------|---------|----------|
 | `trace-phase-stories.py` | ROADMAP.md phase → filtered user stories | Every invocation |
-| `generate-section-manifest.py` | Design OS sections → US-XXX story IDs | Auto if manifest.json missing |
+| `generate-section-manifest.py` | Design OS sections → US-XXX story IDs | **MUST run** if manifest.json missing (requires OPENAI_API_KEY) |
 
 Scripts are co-located at: `~/.claude/plugins/marketplaces/claude-forge/skills/plan-phase-tasks/scripts/`
 
@@ -137,6 +137,7 @@ Input documents can total 2,400+ lines combined. Never read entire files. Use ta
    - `.charter/design-os-export/` directory (preferred)
    - OR `.charter/UX-DESIGN-PLAN.md` (fallback)
    - If neither: warn user and continue without UX inputs
+5. If `--has-ui` set AND `.charter/design-os-export/` exists AND `.charter/design-os-export/manifest.json` does NOT exist: verify `OPENAI_API_KEY` is set in the environment. If missing: "OPENAI_API_KEY is required to generate the Design OS manifest. Export it and retry." Stop execution.
 
 Proceed to Phase 1.
 
@@ -203,23 +204,31 @@ Skip this entire phase if `--has-ui` was not provided. Set metadata: `UX Inputs 
 
 Check if `.charter/design-os-export/` directory exists.
 
-**If export exists:**
+**If export exists — generate or load the section manifest:**
 
-1. Check for `manifest.json` in the export directory
-2. If `manifest.json` is missing, auto-generate it:
-   ```bash
-   python3 ~/.claude/plugins/marketplaces/claude-forge/skills/plan-phase-tasks/scripts/generate-section-manifest.py \
-       --export-dir .charter/design-os-export \
-       --ux-flows .charter/UX-FLOWS.md \
-       --output .charter/design-os-export/manifest.json
-   ```
-   If generation fails (e.g., missing `OPENAI_API_KEY`): emit error "Design OS export found but manifest.json generation failed. Ensure OPENAI_API_KEY is exported in your shell environment, then retry." **Stop execution — do not proceed to Phase 4.**
-3. Read `manifest.json` and look up which sections contain US-XXX IDs from the trace script output
-4. For each matched section, note the section directory path (e.g., `design-os-export/sections/hook-catalog/`)
-5. **Note:** The manifest only maps stories present in the UX-FLOWS.md traceability matrix. For R2/Future phases, the matrix may need updating with new story mappings before invoking with `--has-ui`. If no sections match, the traceability fallback (3.3) applies.
-6. Do NOT load any Design OS content at planning time — only reference section paths
-6. Set metadata: `UX Inputs Loaded: Yes — Design OS export (sections: {matched-section-names})`
-7. UX docs and DESIGN-TOKENS.md are skipped — the export supersedes them
+**Step 1: Ensure manifest.json exists.** Check if `.charter/design-os-export/manifest.json` is present.
+
+If manifest.json is **missing**, you MUST run the generation script. NEVER infer section-to-story mappings manually — the script uses LLM-based semantic matching against the UX-FLOWS.md traceability matrix that cannot be replicated by reasoning about directory names.
+
+```bash
+python3 ~/.claude/plugins/marketplaces/claude-forge/skills/plan-phase-tasks/scripts/generate-section-manifest.py \
+    --export-dir .charter/design-os-export \
+    --ux-flows .charter/UX-FLOWS.md \
+    --output .charter/design-os-export/manifest.json
+```
+
+If the script fails: emit error "Design OS export found but manifest.json generation failed. Ensure OPENAI_API_KEY is exported in your shell environment, then retry." **Stop execution — do not proceed to Phase 4.**
+
+**Verify success:** Confirm `.charter/design-os-export/manifest.json` now exists. If it does not, **stop execution**.
+
+**Step 2: Read the manifest.** Once manifest.json is confirmed present (whether pre-existing or just generated):
+
+1. Read `manifest.json` and look up which sections contain US-XXX IDs from the trace script output
+2. For each matched section, note the section directory path (e.g., `design-os-export/sections/hook-catalog/`)
+3. **Note:** The manifest only maps stories present in the UX-FLOWS.md traceability matrix. For R2/Future phases, the matrix may need updating with new story mappings before invoking with `--has-ui`. If no sections match, the traceability fallback (3.3) applies.
+4. Do NOT load any Design OS content at planning time — only reference section paths
+5. Set metadata: `UX Inputs Loaded: Yes — Design OS export (sections: {matched-section-names})`
+6. UX docs and DESIGN-TOKENS.md are skipped — the export supersedes them
 
 **3.2 UX Docs Fallback (When Export Does Not Exist)**
 
