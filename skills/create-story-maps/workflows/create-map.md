@@ -152,9 +152,9 @@ Task: Apply filters
 
 **3.4 Assign Story IDs**
 
-Use format: `SM-[Activity#].[Task#]-[Seq]`
-- SM-1.2-01 = Activity 1, Task 2, Story 1
-- Or use simple sequential: SM-001, SM-002, ...
+Use simple sequential format: SM-001, SM-002, SM-003, ...
+
+Do not use hierarchical formats (e.g., SM-1.2-01). The Activity/Task parentage is already captured by the Detailed Map heading structure — encoding it in the ID is redundant and complicates downstream parsing.
 
 **3.5 Track Traceability**
 

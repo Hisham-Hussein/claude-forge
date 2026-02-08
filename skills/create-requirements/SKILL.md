@@ -264,9 +264,11 @@ Build a registry of all story map stories. Use the Traceability table as the pri
 For each SM-XXX entry, capture:
 - SM-XXX ID
 - Title
-- Parent Activity and Task (from the Detailed Map heading structure)
+- Parent Activity and Task — locate the SM-XXX in the `## Detailed Map` section; it sits under an `#### Task` heading, whose parent `### Activity` heading is the Activity. The Traceability table does not contain Activity/Task columns, so this must come from the heading structure.
 - Release assignment (from Traceability table's Release column)
 - Source BR-XX reference(s) (from Traceability table's BR-XX column)
+
+Preserve SM-XXX IDs exactly as they appear in the story map. Do not renumber or reformat them.
 
 **1c.4 Cross-Reference with Business Case**
 
@@ -281,7 +283,7 @@ Verify that BR-XX references in the story map exist in the business case's Secti
 
 **Activities found:** [count] ([list names])
 **Tasks found:** [count]
-**Stories (SM-XXX):** [count] (MVP: X, R2: X, R3: X, Future: X)
+**Stories (SM-XXX):** [count] ([for each release label found: label: count])
 **BR-XX coverage:** [X]/[Y] business requirements mapped to SM-XXX stories
 **Gaps:** [list any BR-XX without SM-XXX coverage]
 
@@ -529,6 +531,8 @@ So that [benefit — often from BR-XX or Section 5].
 - [ ] [Criterion derived from BR-XX acceptance criteria or Section 6 KPIs]
 - [ ] [Additional testable criterion]
 - [ ] [Edge case handling]
+
+**Priority:** [Must/Should/Could] | **Size:** [S/M/L] | **INVEST:** ✓
 ```
 
 **Story-map mode** — adds Parent and Release fields:
@@ -539,7 +543,7 @@ So that [benefit — often from BR-XX or Section 5].
 **Source:** BR-XX (BUSINESS-CASE.md, Section 9.3)
 **Epic:** [Activity name from story map]
 **Feature:** [Task name from story map]
-**Release:** [MVP | R2 | R3 | Future]
+**Release:** [exact release label from story map — e.g., MVP, R2, R3, R4]
 
 As a [role from Section 4 stakeholders],
 I want [specific capability — elaborated from SM-XXX title using BR-XX detail],
@@ -549,9 +553,11 @@ So that [benefit — from BR-XX or Section 5].
 - [ ] [Criterion derived from BR-XX acceptance criteria or Section 6 KPIs]
 - [ ] [Additional testable criterion]
 - [ ] [Edge case handling]
+
+**Priority:** [Must/Should/Could] | **Size:** [S/M/L] | **INVEST:** ✓
 ```
 
-> **Format note:** The `**Parent:** SM-XXX` field is machine-parsed by downstream tools. Preserve the format exactly — bold markers must wrap `Parent:` including the colon.
+> **Format note:** The `**Parent:** SM-XXX` field is machine-parsed by downstream tools (trace-phase-stories.py). It is the primary traceability contract — the Traceability table at the end of USER-STORIES.md is for human reference only. Both must be present and consistent. Preserve the format exactly — bold markers must wrap `Parent:` including the colon.
 
 **Key difference:** In story-map mode, the story title and capability come from the SM-XXX story in the map, but the full "As a/I want/So that" card and acceptance criteria are ELABORATED here — the story map only had compact IDs and titles, not full specification cards.
 
