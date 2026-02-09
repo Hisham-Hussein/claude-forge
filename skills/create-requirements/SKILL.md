@@ -32,6 +32,8 @@ Transform business case documents into formal, traceable software requirements s
 /create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md
 /create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md artifacts/research/api-specs.md
 /create-requirements .charter/BUSINESS-CASE.md .charter/STORY-MAP.md
+/create-requirements --agent-team .charter/BUSINESS-CASE.md
+/create-requirements --agent-team .charter/BUSINESS-CASE.md .charter/STORY-MAP.md
 ```
 
 **What happens:**
@@ -121,6 +123,7 @@ This sequence matters because acceptance criteria methodology references story c
 **Arguments:**
 - First argument (required): Path to BUSINESS-CASE.md
 - Additional arguments (optional): STORY-MAP.md and/or reference documents
+- Flag (optional): `--agent-team` — orchestrates requirements generation using an agent team (3 teammates: Requirements Analyst, Story Writer, Quality Reviewer) with adversarial quality review
 
 **Examples:**
 ```
@@ -128,13 +131,16 @@ This sequence matters because acceptance criteria methodology references story c
 /create-requirements .charter/BUSINESS-CASE.md assets/CLIENT-BRIEF.md
 /create-requirements .charter/BUSINESS-CASE.md .charter/STORY-MAP.md
 /create-requirements .charter/BUSINESS-CASE.md .charter/STORY-MAP.md assets/CLIENT-BRIEF.md
+/create-requirements --agent-team .charter/BUSINESS-CASE.md
+/create-requirements --agent-team .charter/BUSINESS-CASE.md .charter/STORY-MAP.md
 ```
 
 **Parsing:**
-1. Split `$ARGUMENTS` by spaces
-2. First path = business case document
-3. For remaining paths: detect STORY-MAP.md by checking for `SM-` IDs or `## Detailed Map` heading. If detected, store as story map document. All other remaining paths = explicit reference documents (store for Phase 1b).
-4. If no arguments provided, check if `.charter/BUSINESS-CASE.md` exists. Also check if `.charter/STORY-MAP.md` exists — if so, ask user whether to use it.
+1. Check if `$ARGUMENTS` contains `--agent-team`. If so, strip it and set `agent_team_mode = true`. Otherwise `agent_team_mode = false`.
+2. Split remaining arguments by spaces
+3. First path = business case document
+4. For remaining paths: detect STORY-MAP.md by checking for `SM-` IDs or `## Detailed Map` heading. If detected, store as story map document. All other remaining paths = explicit reference documents (store for Phase 1b).
+5. If no arguments provided, check if `.charter/BUSINESS-CASE.md` exists. Also check if `.charter/STORY-MAP.md` exists — if so, ask user whether to use it.
 
 **Mode detection:**
 - If story map detected → **story-map mode** (hierarchy inherited from map)
@@ -159,7 +165,14 @@ Options:
 
 In story-map mode, pre-select "User Stories only" as the recommended option since the story map's structure maps naturally to Agile hierarchy. SRS is still available if explicitly requested.
 
-Proceed to Phase 1 with the user's choice.
+**Agent-team mode redirect:**
+
+If `agent_team_mode` is true, do NOT proceed to Phase 1 directly. Instead:
+1. Read `workflows/agent-team.md`
+2. Follow the agent-team orchestration workflow defined there
+3. The workflow handles Phases 1–8 using a coordinated agent team
+
+If `agent_team_mode` is false, proceed to Phase 1 with the user's choice (standard mode).
 
 </intake>
 
@@ -676,7 +689,13 @@ After verifying individual requirements, check document-level consistency:
 
 **Read template:** `templates/srs-template.md`
 
-Write to `.charter/REQUIREMENTS.md` using the template structure. Fill in all placeholders with transformed requirements from previous phases.
+**Output path:**
+- Standard mode → `.charter/REQUIREMENTS.md`
+- Agent-team mode → `.charter/REQUIREMENTS-agent-team.md`
+
+In agent-team mode, Phase 7 is an assembly step — the lead reads draft files from teammates (`.charter/.tmp/requirements-draft.md`) and writes the final document using the template.
+
+Write to the appropriate output path using the template structure. Fill in all placeholders with transformed requirements from previous phases.
 
 </phase_7_output_srs>
 
@@ -685,7 +704,13 @@ Write to `.charter/REQUIREMENTS.md` using the template structure. Fill in all pl
 
 **Read template:** `templates/user-stories-template.md`
 
-Write to `.charter/USER-STORIES.md` using the template structure. Fill in all placeholders with user stories from previous phases.
+**Output path:**
+- Standard mode → `.charter/USER-STORIES.md`
+- Agent-team mode → `.charter/USER-STORIES-agent-team.md`
+
+In agent-team mode, Phase 7 is an assembly step — the lead reads draft files from teammates (`.charter/.tmp/stories-draft.md`) and writes the final document using the template.
+
+Write to the appropriate output path using the template structure. Fill in all placeholders with user stories from previous phases.
 
 </phase_7_output_stories>
 
@@ -699,6 +724,7 @@ Report to user:
 Requirements generation complete.
 
 **Mode:** [business-case | story-map]
+**Production method:** [standard | agent-team]
 **Files written:**
 - .charter/REQUIREMENTS.md ([X] functional, [Y] non-functional requirements) [if selected]
 - .charter/USER-STORIES.md ([Z] stories across [N] epics) [if selected]
@@ -714,6 +740,10 @@ Requirements generation complete.
 
 **Traceability:** All requirements link to source BR-XX IDs.
 [Story-map mode: All US-XXX link to parent SM-XXX IDs.]
+
+[Agent-team mode only:]
+**Team size:** 3 teammates (Requirements Analyst, Story Writer, Quality Reviewer)
+**Quality review:** Adversarial (inter-agent messaging)
 ```
 
 **8.2 Offer Refinement**

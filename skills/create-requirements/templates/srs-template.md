@@ -3,6 +3,7 @@
 > Generated from: .charter/BUSINESS-CASE.md
 > Generated on: [date]
 > Methodology: BABOK v3 + ISO/IEC 25010:2023
+> Production method: [standard | agent-team]
 
 ## 1. Introduction
 

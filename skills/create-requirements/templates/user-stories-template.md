@@ -4,6 +4,7 @@
 > Generated on: [date]
 > Mode: [business-case | story-map]
 > Methodology: INVEST + MoSCoW + Vertical Slicing
+> Production method: [standard | agent-team]
 
 ## Overview
 
