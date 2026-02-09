@@ -1,7 +1,6 @@
 ---
 name: create-design-docs
 description: Transform requirements into software architecture documentation. Use when user has requirements specs, user stories, or business cases and needs design documents, architecture documentation, or ADRs. Use when user mentions "design doc", "architecture doc", "system design", or "technical design".
-argument-hint: [user-stories.md] [requirements.md] [additional-files...]
 ---
 
 <objective>
