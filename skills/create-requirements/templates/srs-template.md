@@ -41,13 +41,16 @@
 ### 3.3 Security (ISO 25010: Security)
 [...]
 
-### 3.4 Scalability (ISO 25010: Flexibility)
+### 3.4 Flexibility (ISO 25010: Flexibility)
 [...]
 
-### 3.5 Interaction Capability (ISO 25010: Usability)
+### 3.5 Interaction Capability (ISO 25010: Interaction Capability)
 [...]
 
 ### 3.6 Maintainability (ISO 25010: Maintainability)
+[...]
+
+### 3.7 Compatibility (ISO 25010: Compatibility)
 [...]
 
 ## 4. Transition Requirements
@@ -65,7 +68,7 @@
 
 | BR-XX | Functional Reqs | NFRs | User Stories |
 |-------|-----------------|------|--------------|
-| BR-01 | FR-DISC-01, FR-DISC-02 | NFR-PERF-01 | US-01, US-02 |
+| BR-01 | FR-DISC-01, FR-DISC-02 | NFR-PERF-01 | US-001, US-002 |
 [...]
 
 ## 6.5 Data Model Coverage
