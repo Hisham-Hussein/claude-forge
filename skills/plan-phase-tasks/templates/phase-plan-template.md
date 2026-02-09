@@ -7,7 +7,7 @@
 - **Source Stories:** {SM-XXX, SM-XXX, SM-XXX (from ROADMAP.md)}
 - **Derived User Stories:** {US-XXX, US-XXX, US-XXX (from trace script)}
 - **Date Generated:** {YYYY-MM-DD}
-- **Architecture Layers Touched:** {e.g., Domain, Application, Adapters}
+- **Architecture Layers Touched:** {e.g., Domain, Application, Adapters — or include Infrastructure, Cross-Cutting for foundational phases}
 - **UX Inputs Loaded:** {one of:}
   - `Yes — Design OS export (sections: X, Y, Z)` — when `--has-ui` set and export exists
   - `Yes — UX-DESIGN-PLAN.md, UX-COMPONENTS.md, UX-INTERACTIONS.md, UX-FLOWS.md, DESIGN-TOKENS.md (filtered via traceability matrix); Design OS export not available` — when `--has-ui` set, no export, traceability has matches
@@ -25,7 +25,7 @@
 
 ## Task Decomposition
 
-{FDD-style task trees. One tree per US-XXX story, ordered by story dependency (independent stories first, then stories that depend on their outputs). Document order is the default sequential execution order — superpowers:writing-plans processes stories top-to-bottom. The Parallelism Analysis section below may override this by grouping independent stories for simultaneous dispatch. Within each story, tasks follow layer order: Domain -> Application -> Adapters.}
+{FDD-style task trees. One tree per US-XXX story, ordered by story dependency (independent stories first, then stories that depend on their outputs). Document order is the default sequential execution order — superpowers:writing-plans processes stories top-to-bottom. The Parallelism Analysis section below may override this by grouping independent stories for simultaneous dispatch. Within each story, tasks follow layer order: Domain -> Application -> Adapters (-> Infrastructure/Cross-Cutting when applicable).}
 
 ### Story US-XXX: {Story Name}
 
@@ -51,9 +51,23 @@
 - **Test:** {Integration tests}
 - **Reference:** {design-os-export/sections/[section-name]/ (if UI task with Design OS export)}
 
+#### Layer: Infrastructure (foundational phases only)
+
+**Task 4: {Configure [Deployment/Scaling]}** (`{file path}`)
+- **Input:** {Adapter outputs that define what gets deployed, Deployment View specs}
+- **Output:** {Working deployment configuration}
+- **Test:** {Deployment smoke tests}
+
+#### Layer: Cross-Cutting (when pattern spans multiple layers)
+
+**Task 5: {Set up [Auth/Logging/Error Handling]}** (`{file path}`)
+- **Input:** {Layer implementations that the pattern wraps, Cross-Cutting Concerns specs}
+- **Output:** {Working cross-cutting mechanism}
+- **Test:** {Integration tests verifying pattern applies across layers}
+
 ---
 
-{Repeat for each US-XXX in this phase. Not every story touches all three layers. UI-only stories may have only Adapters tasks; data pipeline stories may skip Application. Omit layers not needed. Separate each story with a horizontal rule (---).}
+{Repeat for each US-XXX in this phase. Not every story touches all layers. UI-only stories may have only Adapters tasks; data pipeline stories may skip Application. Omit layers not needed. Separate each story with a horizontal rule (---).}
 
 {For UI tasks when --has-ui is set and Design OS export exists: include Reference field pointing to the relevant section directory. For UI tasks when --has-ui is set but no export: omit Reference field and embed UX specs (component layout, interaction patterns, accessibility requirements) directly in the task Input field.}
 

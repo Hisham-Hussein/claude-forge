@@ -6,7 +6,7 @@ description: Use when breaking a roadmap phase into implementable tasks with FDD
 <objective>
 **Phase Task Decomposition Skill**
 
-Transform one roadmap phase into an implementable PHASE-N-PLAN.md using Feature-Driven Development (FDD) task decomposition with explicit Input/Output/Test per task, ordered Domain → Application → Adapters.
+Transform one roadmap phase into an implementable PHASE-N-PLAN.md using Feature-Driven Development (FDD) task decomposition with explicit Input/Output/Test per task, ordered Domain → Application → Adapters (with Infrastructure/Cross-Cutting for foundational phases).
 
 **Invocation:** Once per phase. Each invocation is self-contained — reads shared upstream artifacts and produces one `.charter/PHASE-N-PLAN.md`. Phases within the same wave can be planned in parallel.
 
@@ -54,7 +54,7 @@ Transform one roadmap phase into an implementable PHASE-N-PLAN.md using Feature-
 1. Runs `trace-phase-stories.py` to get this phase's user stories from ROADMAP.md → USER-STORIES.md
 2. Progressively loads relevant sections from ROADMAP.md and ARCHITECTURE-DOC.md
 3. If `--has-ui`: loads Design OS export sections (preferred) or UX docs (fallback)
-4. Decomposes each user story into FDD tasks (Domain → Application → Adapters)
+4. Decomposes each user story into FDD tasks (Domain → Application → Adapters; Infrastructure/Cross-Cutting when applicable)
 5. Analyzes story independence for parallel execution
 6. Writes `.charter/PHASE-N-PLAN.md` using the template
 </quick_start>
@@ -63,7 +63,7 @@ Transform one roadmap phase into an implementable PHASE-N-PLAN.md using Feature-
 
 **FDD Task Decomposition Pattern**
 
-Each story decomposes into tasks following Clean Architecture layer order. Not every story touches all three layers — the structure is a maximum, not a mandate:
+Each story decomposes into tasks following Clean Architecture layer order. Not every story touches all layers — the three core layers (Domain, Application, Adapters) are the primary structure, with Infrastructure and Cross-Cutting added for foundational phases:
 
 ```markdown
 ### Story US-XXX: [Story Name]
@@ -89,6 +89,20 @@ Each story decomposes into tasks following Clean Architecture layer order. Not e
 - **Output:** Working adapter
 - **Test:** Integration tests
 - **Reference:** design-os-export/sections/[section-name]/
+
+#### Layer: Infrastructure (foundational phases only)
+
+**Task 4: {Configure [Deployment/Scaling]}** (`{infra path}`)
+- **Input:** Adapter outputs that define what gets deployed
+- **Output:** Working deployment configuration
+- **Test:** Deployment smoke tests
+
+#### Layer: Cross-Cutting (when pattern spans multiple layers)
+
+**Task 5: {Set up [Auth/Logging/Error Handling]}** (`{cross-cutting path}`)
+- **Input:** Layer implementations that the pattern wraps
+- **Output:** Working cross-cutting mechanism
+- **Test:** Integration tests verifying pattern applies across layers
 ```
 
 - UI-only stories may have only Adapters tasks
@@ -362,7 +376,7 @@ Phase plan is complete when:
 - All Metadata fields are populated (no placeholders)
 - Every US-XXX from the trace script appears in the Task Decomposition
 - Every task has Input, Output, and Test fields
-- Tasks follow layer order (Domain → Application → Adapters) within each story
+- Tasks follow layer order (Domain → Application → Adapters → Infrastructure/Cross-Cutting) within each story
 - UI tasks have `Reference:` fields (when Design OS export exists) or embedded UX specs in `Input:` (when fallback)
 - Parallelism Analysis identifies independent story groups
 - Recommended Execution Order is provided
