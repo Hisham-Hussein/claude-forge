@@ -189,9 +189,11 @@ Use `Grep` for `^##` headers, then `Read` only:
 - **Architecture Layers** — layer separation rules
 - **External Interfaces** — the `###` subsection under System Context
 - **Key Interfaces** — contracts between layers
+- **Deployment View** — container-to-infrastructure mapping, scaling approach
+- **Cross-Cutting Concerns** — system-wide patterns (security, error handling, logging, validation)
 - **Constraints** — technical limits
 
-Skip: C4 diagrams, ADRs, Quality Attributes, full implementation details.
+Skip: C4 diagrams, ADRs, Quality Attributes, Data Flow, full implementation details.
 
 </phase_2_progressive_loading>
 
@@ -263,8 +265,10 @@ Read the story's acceptance criteria carefully. Determine which architecture lay
 - **Domain** — new entities, value objects, validation rules, business logic
 - **Application** — use cases, handlers, orchestration, interface definitions
 - **Adapters** — UI components, API routes, data fetching, external service integrations
+- **Infrastructure** — deployment configuration, scaling setup (from Deployment View)
+- **Cross-Cutting** — auth middleware, error handling, logging setup (from Cross-Cutting Concerns)
 
-Not every story needs all three layers. Assign only the layers that are genuinely needed.
+Not every story needs all three core layers. Infrastructure and cross-cutting tasks typically appear in foundational phases (walking skeleton, early slices) rather than feature phases.
 
 **4.2 Decompose into Tasks**
 
@@ -278,10 +282,12 @@ For each layer the story touches, create one or more tasks following the FDD pat
 
 **4.3 Layer Ordering**
 
-Within each story, tasks follow dependency order: Domain → Application → Adapters. This respects Clean Architecture dependency rules:
+Within each story, tasks follow dependency order: Domain → Application → Adapters → Infrastructure/Cross-Cutting. This respects Clean Architecture dependency rules:
 - Domain has no dependencies
 - Application depends on Domain
 - Adapters depend on Application and Domain
+- Infrastructure tasks (deployment config) come after adapters that define what gets deployed
+- Cross-cutting tasks (auth, logging setup) come when the pattern spans multiple layers in this story
 
 **4.4 Task Sizing**
 

@@ -101,7 +101,7 @@ Input documents can total 1,000-1,500+ lines combined. Do NOT read entire files.
 | Input | Sections to Read | Sections to Skip |
 |-------|-----------------|-----------------|
 | **STORY-MAP.md** | Release Overview table, Walking Skeleton, Traceability table, Cross-Cutting Concerns, Gaps and Open Questions | Visual Mermaid diagram, Detailed Map narrative |
-| **ARCHITECTURE-DOC.md** | Domain model dependencies, Layer architecture, External interfaces, Constraints | C4 diagrams, ADRs, full implementation details |
+| **ARCHITECTURE-DOC.md** | Domain model dependencies, Layer architecture, External interfaces, Deployment view, Cross-cutting concerns, Constraints | C4 diagrams, ADRs, Quality Attributes, full implementation details |
 
 **Phase = Slice**
 
@@ -173,6 +173,8 @@ Read only:
 - **Domain model** -- Entity relationships and dependencies
 - **Layer architecture** -- Dependency rules (which layers build on which)
 - **External interfaces** -- APIs, services, third-party integrations
+- **Deployment View** -- Container-to-infrastructure mapping, scaling approach
+- **Cross-Cutting Concerns** -- System-wide patterns (security, error handling, logging, validation)
 - **Constraints** -- Technical blockers and limitations
 
 **1.5 Present Parsing Summary**
@@ -190,6 +192,8 @@ Read only:
 - Domain entities: [count]
 - Key dependencies: [list critical ones]
 - External interfaces: [count]
+- Deployment nodes: [count]
+- Cross-cutting concerns: [count]
 - Constraints: [count]
 
 Ready to build roadmap.
@@ -262,6 +266,8 @@ For each pair of slices within a release, determine if one depends on the other:
 - Does Slice B require domain entities established in Slice A?
 - Does Slice B consume an external service set up in Slice A?
 - Does Slice B's application layer depend on Slice A's infrastructure?
+- Does Slice B require deployment infrastructure (nodes, scaling) provisioned in Slice A?
+- Does Slice B depend on a cross-cutting concern (auth, logging) that Slice A establishes?
 
 **3.2 Order Slices**
 
@@ -290,9 +296,10 @@ Label each wave:
 
 **3.4 Validate Business Constraints Against Waves**
 
-Check cross-cutting concerns (loaded in Phase 1) against proposed wave groupings:
+Check cross-cutting concerns from both STORY-MAP.md (business constraints) and ARCHITECTURE-DOC.md (architectural strategies) against proposed wave groupings:
 - Do any parallel slices share rate-limited resources (API budgets, external service quotas)?
 - Do any business constraints gate specific slices (regulatory approvals, external dependency timelines)?
+- Do any slices depend on shared infrastructure (deployment nodes) or cross-cutting patterns (auth middleware, logging framework) that must be established first?
 - If constraints conflict with proposed parallelism, downgrade from parallel to sequential or flag to user.
 
 **3.5 Reconciliation Conflicts**
