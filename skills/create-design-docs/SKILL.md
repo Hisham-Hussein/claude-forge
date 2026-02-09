@@ -103,8 +103,16 @@ Level 4: Code            — Class diagrams (Rarely needed — code is the truth
 
 **Parse Arguments:**
 1. If arguments provided, use them as paths to input files
-2. If no arguments, use AskUserQuestion to prompt for input paths:
-   - "Please provide paths to your requirements files (user stories, SRS, business case)"
+2. If no arguments, guide the user interactively:
+   a. Use AskUserQuestion to ask which documents to consume (multiSelect: true):
+      - "Which documents should this architecture doc consume?"
+      - Options:
+        1. SRS + Story Map (Recommended) — SRS provides functional/non-functional requirements and constraints. Story Map provides release phasing (MVP/R2/R3/R4) and scope boundaries. Together these cover what the architect needs.
+        2. SRS only — Sufficient if release phasing is not relevant or the system ships as a single release.
+        3. Business Case — Adds stakeholder context and high-level constraints. Only needed if the SRS doesn't capture these.
+        4. User Stories — Epics/features/stories with acceptance criteria. Usually too detailed for architecture; prefer the SRS.
+      - Note: If the SRS does not capture the architecturally significant data model aspects (entities, relationships, data sensitivity/PII classifications, query/filter patterns, and workflow-driving enums), also include whichever document does.
+   b. Ask the user to provide paths for each selected document type
 3. Validate all provided files exist before proceeding
 
 **After loading inputs, ask document type:**
