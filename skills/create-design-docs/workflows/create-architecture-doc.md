@@ -14,8 +14,10 @@ An Architecture Document is a **comprehensive** specification of system structur
 - **Domain Model** — Entities, value objects, aggregates, domain services
 - **Architecture Layers** — How components are organized (Clean/Hexagonal/Onion)
 - **Key Interfaces** — Repository interfaces, use case boundaries, APIs
-- **Quality Attributes** — How NFRs map to architecture decisions
 - **C4 Diagrams** — Context, Container, and optionally Component views
+- **Deployment View** — How containers map to infrastructure nodes
+- **Quality Attributes** — How NFRs map to architecture decisions
+- **Cross-Cutting Concerns** — System-wide patterns (security, error handling, logging)
 
 It is NOT decision-focused (that's a Design Doc). Focus on **structure and interfaces**.
 </context>
@@ -63,7 +65,7 @@ It is NOT decision-focused (that's a Design Doc). Focus on **structure and inter
 - Requirements take precedence over data model structure
 - Flag tables/endpoints with no matching requirement as potential out-of-scope
 - Flag requirements with no matching table/endpoint as new or missing implementation
-- Document discrepancies in a reconciliation note for Phase 7 (Risks)
+- Document discrepancies in a reconciliation note for Phase 9 (Risks)
 
 ## Phase 2: Extract Domain Model
 
@@ -200,7 +202,39 @@ Shows major technical building blocks:
 
 Use Mermaid C4 syntax or standard flowcharts.
 
-## Phase 6: Map Quality Attributes
+## Phase 6: Document Deployment View
+
+Map containers from Phase 5 to their deployment environment. This captures WHERE the system runs, not WHAT it does.
+
+### 6.1 Identify Deployment Nodes
+
+From requirements, extract infrastructure signals:
+- Availability NFRs (e.g., 99.9%) --> redundancy, failover nodes
+- Performance NFRs (e.g., latency < 200ms) --> geographic placement, CDN
+- Constraints mentioning cloud/on-premise --> environment type
+- Data residency or compliance requirements --> geographic node placement
+- Scaling requirements (concurrent users) --> horizontal vs vertical
+
+### 6.2 Create Deployment Diagram
+
+Create a Mermaid diagram showing:
+- Infrastructure nodes (servers, cloud services, CDNs)
+- Which containers (from C4 Level 2) run on which nodes
+- Communication paths between nodes
+
+Use technology-agnostic terms ("Application Server", not "AWS EC2"). Specific technology choices belong in ADRs.
+
+### 6.3 Document Environment Mapping
+
+Create a table mapping containers to environments:
+
+| Container | Environment | Scaling | Notes |
+|-----------|-------------|---------|-------|
+| [Container] | [Where it runs] | [How it scales] | [Key constraints] |
+
+**If requirements don't specify infrastructure:** State assumptions and flag as an open question in Risks.
+
+## Phase 7: Map Quality Attributes
 
 | Quality Attribute | Requirement | Architecture Decision |
 |-------------------|-------------|----------------------|
@@ -208,7 +242,32 @@ Use Mermaid C4 syntax or standard flowcharts.
 | Modifiability | Swap database in < 1 day | Repository abstraction |
 | Performance | Search < 500ms | Database indexing, caching |
 
-## Phase 7: Document Constraints and Risks
+## Phase 8: Document Cross-Cutting Concerns
+
+Identify patterns and strategies that apply uniformly across all architecture layers. These are NOT layer-specific (those belong in Architecture Layers) and NOT individual NFR targets (those belong in Quality Attributes).
+
+### 8.1 Identify Cross-Cutting Concerns
+
+From requirements and quality attributes, extract system-wide concerns:
+- Security NFRs or API auth schemes --> Security concern
+- Error codes or failure scenario ACs --> Error Handling concern
+- Audit trail or observability requirements --> Logging & Monitoring concern
+- Acceptance criteria with validation rules --> Data Validation concern
+
+### 8.2 Document Each Concern
+
+For each applicable concern, describe the architectural approach in 1-3 sentences. Summarize in a table:
+
+| Concern | Approach | Applies To |
+|---------|----------|------------|
+| Security | [Auth model, data protection strategy] | [Which layers/components] |
+| Error Handling | [Propagation and recovery strategy] | [Which layers/components] |
+| Logging & Monitoring | [Observability approach] | [Which layers/components] |
+| Data Validation | [Where and how validated] | [Which layers/components] |
+
+Include optional concerns (i18n, caching, transaction management) only when requirements warrant them.
+
+## Phase 9: Document Constraints and Risks
 
 **Constraints:**
 - Technical constraints (platform, language)
@@ -220,14 +279,14 @@ Use Mermaid C4 syntax or standard flowcharts.
 - Integration risks
 - Technical debt
 
-## Phase 8: Write Output
+## Phase 10: Write Output
 
 1. Read `templates/architecture-doc-template.md`
-2. Fill in all sections with content from phases 2-7
+2. Fill in all sections with content from phases 2-9
 3. Write to output location (same directory as primary input)
 4. Filename: `ARCHITECTURE-DOC.md`
 
-## Phase 9: Validate Output
+## Phase 11: Validate Output
 
 Review the generated document against these checks:
 
@@ -238,9 +297,11 @@ Review the generated document against these checks:
    - At least 1 aggregate with root identified
 3. **Layer coverage**: All three layers (Domain, Application, Adapters) have content
 4. **Interface coverage**: Repository interface exists for each aggregate root
-5. **Diagram validation**: Confirm Mermaid diagrams have valid syntax (no broken references)
+5. **Diagram validation**: Confirm Mermaid diagrams have valid syntax (no broken references) — includes Context, Container, Data Flow, and Deployment diagrams
 6. **Quality attributes**: Each NFR from requirements maps to an architecture decision
-7. **Traceability**: Domain concepts trace back to user story nouns/verbs
+7. **Deployment view coverage**: Deployment diagram exists; each container from C4 Container diagram appears in the environment mapping table
+8. **Cross-cutting concerns**: At least 2 concerns documented (security and error handling at minimum); each states an architectural approach, not just a label
+9. **Traceability**: Domain concepts trace back to user story nouns/verbs
 
 **If validation fails:**
 - Return to the relevant phase and fix the issue
@@ -257,7 +318,9 @@ Architecture Document is complete when:
 - [ ] Use case interfaces documented for major operations
 - [ ] C4 Context diagram shows system in its environment
 - [ ] C4 Container diagram shows major technical blocks
+- [ ] Deployment view maps containers to infrastructure nodes
 - [ ] Quality attributes mapped to architecture decisions
+- [ ] Cross-cutting concerns documented (security, error handling at minimum)
 - [ ] Constraints and risks documented
 - [ ] Document is 20-40 pages (comprehensive but not bloated)
 - [ ] Written to output location

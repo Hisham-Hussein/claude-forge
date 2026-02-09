@@ -6,6 +6,8 @@ This reference covers architecture documentation methodologies: Google Design Do
 - C4 Model — Visual architecture at 4 zoom levels
 - arc42 — Structured template with 12 optional sections
 - ADRs — Capture single decisions with rationale
+- Deployment View — Mapping containers to infrastructure nodes
+- Cross-Cutting Concerns — System-wide architectural strategies
 - Recommended Approach — Combining methodologies for Agile teams
 </overview>
 
@@ -111,6 +113,67 @@ graph TB
 **When arc42 is overkill:** MVPs, small projects, tight deadlines. Use Google Design Doc instead.
 
 </arc42>
+
+<deployment_view>
+
+**Purpose:** Map software containers to infrastructure nodes. Shows WHERE the system runs, complementing the Container diagram (WHAT the system contains).
+
+**When to include:** Always for architecture documents. Skip only for pure design docs or when infrastructure is entirely undetermined.
+
+**What to capture:**
+
+| Element | Description | Example |
+|---------|-------------|---------|
+| Infrastructure nodes | Physical or virtual hosts, cloud services | "Application Server", "CDN", "Managed Database" |
+| Container-to-node mapping | Which container runs where | "API Server runs on Application Server" |
+| Communication paths | Protocols and connections between nodes | "HTTPS between CDN and App Server" |
+| Scaling approach | How each node scales | "Horizontal auto-scaling", "Single instance" |
+
+**Extraction signals from requirements:**
+- Availability NFRs (99.9%) --> redundancy in deployment
+- Performance NFRs (latency < 200ms) --> geographic placement, CDN
+- Constraints mentioning cloud providers --> environment type
+- Data residency requirements --> geographic node placement
+- Scaling requirements (concurrent users) --> horizontal vs vertical
+
+**Diagram format:** Use Mermaid `graph TB` with nested `subgraph` blocks for infrastructure boundaries. Place containers (from C4 Level 2) inside the nodes they run on.
+
+**Technology-agnostic principle:** Use generic terms ("Application Server", "Data Tier", "CDN") rather than specific products ("AWS EC2", "CloudFront", "RDS"). Specific technology choices belong in ADRs.
+
+</deployment_view>
+
+<cross_cutting_concerns>
+
+**Purpose:** Document architectural patterns and strategies that apply uniformly across all layers. These are system-wide decisions, not layer-specific details.
+
+**When to include:** Always for architecture documents. These span all layers and affect implementation consistency.
+
+**Core concerns to address:**
+
+| Concern | What to document | Extraction source |
+|---------|-----------------|-------------------|
+| **Security** | Authentication model, authorization strategy, data protection | NFRs tagged security; API spec auth schemes |
+| **Error Handling** | Error propagation across layers, user-facing error strategy | API spec error responses; failure scenario ACs |
+| **Logging & Monitoring** | Structured logging approach, metrics, alerting strategy | Observability NFRs; audit trail requirements |
+| **Data Validation** | Where validation occurs, validation strategy | ACs with constraints; domain value object rules |
+
+**Optional concerns (include when requirements warrant):**
+
+| Concern | Include when |
+|---------|-------------|
+| Internationalization (i18n) | Multi-language or multi-locale requirements |
+| Caching | Performance NFRs requiring response time optimization |
+| Transaction Management | Complex writes spanning multiple aggregates |
+| Configuration Management | Environment-specific behavior requirements |
+
+**Relationship to other sections:**
+- Quality Attributes define TARGETS (e.g., "response time < 500ms")
+- Cross-Cutting Concerns define STRATEGIES to meet those targets uniformly (e.g., "caching at adapter boundary")
+- Architecture Layers define WHERE components live; Cross-Cutting Concerns define patterns that SPAN those layers
+
+**Format:** 1-3 sentences per concern plus a summary table. Captures the strategy, not implementation details.
+
+</cross_cutting_concerns>
 
 <adrs>
 

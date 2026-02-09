@@ -220,7 +220,43 @@ sequenceDiagram
 
 ---
 
-## 7. Quality Attributes
+## 7. Deployment View
+
+### Deployment Diagram
+
+```mermaid
+graph TB
+    subgraph Production["Production Environment"]
+        subgraph AppTier["Application Tier"]
+            API[API Server]
+            Worker[Background Worker]
+        end
+        subgraph DataTier["Data Tier"]
+            DB[(Primary Database)]
+        end
+    end
+    subgraph External["External"]
+        CDN[CDN / Static Assets]
+        ExtAPI[External API]
+    end
+
+    User --> CDN
+    CDN --> API
+    API --> DB
+    Worker --> DB
+    API --> ExtAPI
+```
+
+### Environment Mapping
+
+| Container | Environment | Scaling | Notes |
+|-----------|-------------|---------|-------|
+| [Container 1] | [Where it runs] | [Horizontal/Vertical/None] | [Key constraints] |
+| [Container 2] | [Where it runs] | [Horizontal/Vertical/None] | [Key constraints] |
+
+---
+
+## 8. Quality Attributes
 
 | Attribute | Requirement | Architecture Decision |
 |-----------|-------------|----------------------|
@@ -232,7 +268,18 @@ sequenceDiagram
 
 ---
 
-## 8. Constraints
+## 9. Cross-Cutting Concerns
+
+| Concern | Approach | Applies To |
+|---------|----------|------------|
+| Security | [Authentication/authorization strategy] | [All layers / specific components] |
+| Error Handling | [Error propagation and recovery strategy] | [All layers / specific components] |
+| Logging & Monitoring | [Observability approach] | [All layers / specific components] |
+| Data Validation | [Validation strategy and placement] | [Domain + Adapters layers] |
+
+---
+
+## 10. Constraints
 
 ### Technical Constraints
 
@@ -251,7 +298,7 @@ sequenceDiagram
 
 ---
 
-## 9. Architecture Decisions
+## 11. Architecture Decisions
 
 | ADR | Decision | Status | Date |
 |-----|----------|--------|------|
@@ -262,7 +309,7 @@ See `docs/adr/` for detailed decision records.
 
 ---
 
-## 10. Risks and Technical Debt
+## 12. Risks and Technical Debt
 
 ### Risks
 
@@ -278,7 +325,7 @@ See `docs/adr/` for detailed decision records.
 
 ---
 
-## 11. Glossary
+## 13. Glossary
 
 | Term | Definition |
 |------|------------|
@@ -287,7 +334,7 @@ See `docs/adr/` for detailed decision records.
 
 ---
 
-## 12. References
+## 14. References
 
 - [Requirements document]
 - [Business case]
