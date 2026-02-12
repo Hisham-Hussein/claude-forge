@@ -74,6 +74,13 @@ Branch: feat/phase-{N}-{slugified-phase-name}
 - Current group number and its stories (from Parallelism Analysis section)
 - `UX Inputs Loaded` field from Metadata section
 
+**Detect tech stack file:** Check for a tech stack document in `.charter/` by testing these filenames in order (first match wins):
+- `.charter/TECH-DECISIONS.md`
+- `.charter/TECH-STACK.md`
+- `.charter/tech-decisions.md`
+
+If found, set `{TECH_STACK_LINE}` to `Tech Stack: .charter/{matched-filename}`. If none found, set `{TECH_STACK_LINE}` to empty (omit entirely).
+
 **Ask the user:** Which prompt version to use?
 - **V1 (original)** — presents the phase plan's FDD tasks as the spec
 - **V2 (transform)** — presents the phase plan as context to transform
@@ -88,6 +95,7 @@ Next step: Create TDD implementation plan for Execution Group {G}.
 Spec: .charter/PHASE-{N}-PLAN.md
 Architecture: .charter/ARCHITECTURE-DOC.md
 {UI_REFERENCE_LINE}
+{TECH_STACK_LINE}
 
 Plan Execution Group {G} stories only: {story-list}.
 The phase plan has the full FDD task decomposition with I/O/Test
@@ -108,6 +116,7 @@ Next step: Create TDD implementation plan for Execution Group {G}.
 Spec: .charter/PHASE-{N}-PLAN.md
 Architecture: .charter/ARCHITECTURE-DOC.md
 {UI_REFERENCE_LINE}
+{TECH_STACK_LINE}
 
 Plan Execution Group {G} stories only: {story-list}.
 The phase plan has FDD context per task (I/O/Test, file paths, layers,
@@ -120,6 +129,8 @@ Include the story ID prefix in each commit message
 </prompt_v2>
 
 **UI Reference line rule:** Only include `UI Reference: .charter/design-os-export/` when `UX Inputs Loaded` contains "Design OS export" (i.e., `.charter/design-os-export/` exists). For all other values — fallback UX path, "No", or "N/A" — omit the line entirely. In the fallback case, plan-phase-tasks already embedded UX specs inline in task Input fields.
+
+**Tech Stack line rule:** Check `.charter/` for a tech stack file (`TECH-DECISIONS.md`, `TECH-STACK.md`, or `tech-decisions.md` — first match wins). Only include `Tech Stack: .charter/{filename}` when a matching file exists. If no match, omit the line entirely. This gives `writing-plans` concrete technology choices (frameworks, libraries, database) to use when translating design references into implementation code.
 </state_2>
 
 <state_3 title="Current group planned, needs execution">
@@ -263,10 +274,10 @@ git worktree list | grep "phase-{N}"
 ```
 
 **Execution group parsing:**
-Parse the phase plan's `## Parallelism Analysis` section. Match BOTH heading patterns (plan-phase-tasks output varies):
+Parse the phase plan's `## Parallelism Analysis` section. Match heading patterns:
 ```
-### Execution Group N (description)
-### Parallel Group N (description)
+### Execution Group N (description)     # standard format
+### Parallel Group N (description)      # deprecated, backward compat
 ```
 Regex: `### (?:Execution Group|Parallel Group) (\d+)`. Story list is bullet items below each heading.
 
