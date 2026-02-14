@@ -127,10 +127,10 @@ def parse_traceability_matrix(ux_flows_path: Path) -> list[TraceabilityRow]:
         ux_element = cells[0]
         source_id = cells[2] if len(cells) > 2 else ""
 
-        # Extract US-XXX from "SM-XXX / US-XXX" format
-        us_match = re.search(r"US-(\d{3})", source_id)
-        if us_match:
-            story_id = f"US-{us_match.group(1)}"
+        # Extract all US-XXX from source ID (may contain multiple, e.g. "SM-007, US-017, US-018")
+        us_matches = re.findall(r"US-(\d{3})", source_id)
+        for us_num in us_matches:
+            story_id = f"US-{us_num}"
             rows.append(TraceabilityRow(
                 ux_element=ux_element,
                 story_id=story_id

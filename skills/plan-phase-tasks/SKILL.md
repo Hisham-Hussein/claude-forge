@@ -322,17 +322,15 @@ Stories should be INVEST-independent per upstream `/create-requirements`. Verify
 - Do any stories depend on another story's output entity or interface?
 - Are there shared infrastructure concerns (e.g., database schema, shared types)?
 
-**5.2 Group Stories**
+**5.2 Assign Execution Groups**
 
-- **Parallel groups:** Stories with no mutual dependencies → can run simultaneously via `superpowers:dispatching-parallel-agents`
-- **Sequential dependencies:** Story A must complete before Story B because B uses A's output
+Create numbered `### Execution Group N` headings (N = 1, 2, 3...) in execution order:
+- **Multi-story groups:** Stories with no mutual dependencies → can run simultaneously
+- **Single-story groups:** Stories that depend on prior groups' outputs → must wait
 
-**5.3 Recommend Execution Order**
+Example: Group 1 (US-001, US-004 — independent), Group 2 (US-002 — depends on Group 1), Group 3 (US-003, US-005 — independent of each other, depend on Group 2).
 
-Present the recommended dispatch order:
-1. First parallel group — dispatch to parallel agents
-2. Sequential dependencies — after relevant group completes
-3. Next parallel group — dispatch to parallel agents
+Do NOT create separate "Sequential Dependencies" or "Recommended Execution Order" sections — the group numbering IS the execution order. Every story must appear under exactly one `### Execution Group N` heading.
 
 Within each story, tasks are always sequential (Domain → Application → Adapters) executed by one agent.
 
@@ -351,7 +349,7 @@ Populate all template sections with the data gathered in Phases 1-5:
 - **Metadata:** Phase number, release, wave (from ROADMAP.md progressive load), source/derived story IDs, date, layers touched, UX inputs status
 - **Story Summary:** Table of stories with layer coverage and task counts
 - **Task Decomposition:** FDD task trees for each story
-- **Parallelism Analysis:** Groups, dependencies, recommended execution order
+- **Parallelism Analysis:** Numbered execution groups with story assignments
 
 **6.3 Write Output**
 
@@ -378,8 +376,7 @@ Phase plan is complete when:
 - Every task has Input, Output, and Test fields
 - Tasks follow layer order (Domain → Application → Adapters → Infrastructure/Cross-Cutting) within each story
 - UI tasks have `Reference:` fields (when Design OS export exists) or embedded UX specs in `Input:` (when fallback)
-- Parallelism Analysis identifies independent story groups
-- Recommended Execution Order is provided
+- Parallelism Analysis assigns every story to a numbered `### Execution Group N` heading
 - No extraneous content — the plan is the input to `superpowers:writing-plans`, not a narrative document
 </success_criteria>
 
@@ -396,7 +393,11 @@ This skill depends on specific output formats from upstream skills:
 
 **Downstream Format Contract**
 
-`superpowers:writing-plans` accepts any markdown spec as input. The FDD task tree maps directly:
+`charter-to-superpowers` (intermediate consumer) parses execution groups with regex:
+`### (?:Execution Group|Parallel Group) (\d+)` — story list is bullet items below each heading.
+New plans MUST use `### Execution Group N` headings. Every story must be under a numbered group.
+
+`superpowers:writing-plans` (terminal consumer) receives the phase plan as freeform spec. The FDD task tree maps directly:
 - `Input:` → dependencies and context for writing the test
 - `Output:` → deliverable the implementation must produce
 - `Test:` → becomes the RED step (write the failing test first)

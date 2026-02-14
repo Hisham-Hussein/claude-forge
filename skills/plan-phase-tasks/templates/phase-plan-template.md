@@ -73,25 +73,25 @@
 
 ## Parallelism Analysis
 
-{Stories are INVEST-independent per upstream /create-requirements. This section confirms independence and flags any implementation-level conflicts (e.g., multiple stories modifying the same file).}
+{Stories are INVEST-independent per upstream /create-requirements. This section confirms independence and flags any implementation-level conflicts (e.g., multiple stories modifying the same file).
 
-### Parallel Group 1 (can run simultaneously)
+Groups are numbered sequentially and execute in order. Multi-story groups can run in parallel; single-story groups represent sequential dependencies that must wait for prior groups to complete.}
+
+### Execution Group 1
 - US-XXX: {Story Name} — {why independent}
 - US-XXX: {Story Name} — {why independent}
 
-### Sequential Dependencies (if any)
-- US-XXX must complete before US-XXX because {reason}
+### Execution Group 2
+- US-XXX: {Story Name} — depends on Group 1: {reason}
 
-### Recommended Execution Order
-1. {Parallel Group 1 stories} — dispatch to parallel agents
-2. {Sequential story} — after group 1 completes
-3. {Parallel Group 2 stories} — dispatch to parallel agents
+### Execution Group 3
+- US-XXX: {Story Name} — {why independent}
+- US-XXX: {Story Name} — {why independent}
 
-> **For Claude — superpowers:writing-plans:**
-> This PHASE-N-PLAN.md is the spec input for `superpowers:writing-plans`.
-> Feed the Task Decomposition section (story by story) into `writing-plans`
-> to produce a detailed implementation plan with TDD steps
-> (RED-GREEN-REFACTOR) baked into each task. The Parallelism Analysis
-> section determines agent dispatch order via
-> `superpowers:dispatching-parallel-agents`. Do not modify the Metadata
-> or Story Summary sections — they are reference context, not work items.
+> **For Claude — charter-to-superpowers:**
+> This PHASE-N-PLAN.md is consumed by `charter-to-superpowers`, which
+> parses `### Execution Group N` headings to determine dispatch order.
+> Each group's story list (bullet items) is passed to
+> `superpowers:writing-plans` for TDD implementation planning.
+> Do not modify the Metadata or Story Summary sections — they are
+> reference context, not work items.

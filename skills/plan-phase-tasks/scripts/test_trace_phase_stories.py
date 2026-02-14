@@ -1,6 +1,7 @@
 """Unit tests for trace-phase-stories.py"""
 
 import importlib
+import re
 import sys
 from pathlib import Path
 
@@ -2145,3 +2146,557 @@ Content after underscores.
         assert result.us_ids == ["US-001"]
         assert "Content after asterisks" in result.stories[0]
         assert "Content after underscores" in result.stories[0]
+
+
+# ===========================================================================
+# Boom Influencer System — Real Data Integration Tests
+# ===========================================================================
+
+BOOM_ROADMAP = Path("/home/hisham/client-work/boom-influencer-system/.charter/ROADMAP.md")
+BOOM_USER_STORIES = Path("/home/hisham/client-work/boom-influencer-system/.charter/USER-STORIES.md")
+
+
+@pytest.mark.skipif(
+    not BOOM_ROADMAP.exists() or not BOOM_USER_STORIES.exists(),
+    reason="Boom Influencer System artifacts not available",
+)
+class TestBoomIntegration:
+    """
+    Integration tests against the Boom Influencer System's real
+    ROADMAP.md and USER-STORIES.md.
+
+    These hardcode the expected SM-XXX → US-XXX mappings per phase,
+    so they serve as regression tests: if someone changes the roadmap
+    or user stories, these tests surface the impact on tracing.
+    """
+
+    @pytest.fixture(autouse=True)
+    def load_artifacts(self):
+        self.roadmap = BOOM_ROADMAP.read_text()
+        self.user_stories = BOOM_USER_STORIES.read_text()
+
+    # -- Ground truth: SM-XXX IDs per phase (from ROADMAP.md) --
+
+    EXPECTED_SM_IDS = {
+        1: ["SM-001", "SM-002", "SM-003"],
+        2: ["SM-004", "SM-005", "SM-006", "SM-007"],
+        3: ["SM-013"],
+        4: ["SM-008", "SM-009", "SM-010", "SM-011", "SM-012"],
+        5: ["SM-014", "SM-016", "SM-018"],
+        6: ["SM-015", "SM-017", "SM-019"],
+        7: ["SM-033"],
+        8: ["SM-022", "SM-023"],
+        9: ["SM-029", "SM-030"],
+        10: ["SM-024", "SM-025", "SM-026", "SM-027"],
+        11: ["SM-020", "SM-021", "SM-028"],
+        12: ["SM-031", "SM-032"],
+    }
+
+    # -- Ground truth: US-XXX IDs per phase (derived from Parent mappings) --
+
+    EXPECTED_US_IDS = {
+        1: ["US-001", "US-004", "US-007", "US-008", "US-009", "US-010"],
+        2: ["US-011", "US-014", "US-015", "US-016", "US-017", "US-018"],
+        3: ["US-037"],
+        4: ["US-019", "US-020", "US-024", "US-025", "US-026", "US-028", "US-029"],
+        5: ["US-002", "US-005", "US-012"],
+        6: ["US-003", "US-006", "US-013"],
+        7: ["US-045"],
+        8: ["US-021", "US-022", "US-027"],
+        9: ["US-041", "US-042"],
+        10: ["US-030", "US-031", "US-032", "US-033", "US-034"],
+        11: ["US-035", "US-036", "US-038", "US-039", "US-040"],
+        12: ["US-023", "US-043", "US-044"],
+    }
+
+    # -- Ground truth: complete US→SM Parent mapping --
+
+    EXPECTED_US_TO_SM = {
+        "US-001": "SM-001", "US-002": "SM-014", "US-003": "SM-015",
+        "US-004": "SM-002", "US-005": "SM-016", "US-006": "SM-017",
+        "US-007": "SM-002", "US-008": "SM-003", "US-009": "SM-003",
+        "US-010": "SM-003", "US-011": "SM-004", "US-012": "SM-018",
+        "US-013": "SM-019", "US-014": "SM-005", "US-015": "SM-005",
+        "US-016": "SM-006", "US-017": "SM-007", "US-018": "SM-007",
+        "US-019": "SM-008", "US-020": "SM-009", "US-021": "SM-022",
+        "US-022": "SM-022", "US-023": "SM-031", "US-024": "SM-010",
+        "US-025": "SM-010", "US-026": "SM-011", "US-027": "SM-023",
+        "US-028": "SM-012", "US-029": "SM-012", "US-030": "SM-024",
+        "US-031": "SM-025", "US-032": "SM-026", "US-033": "SM-027",
+        "US-034": "SM-027", "US-035": "SM-028", "US-036": "SM-028",
+        "US-037": "SM-013", "US-038": "SM-020", "US-039": "SM-021",
+        "US-040": "SM-021", "US-041": "SM-029", "US-042": "SM-030",
+        "US-043": "SM-032", "US-044": "SM-032", "US-045": "SM-033",
+    }
+
+    # ── SM-XXX extraction tests (one per phase) ──────────────────────
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_sm_ids_per_phase(self, phase):
+        """SM-XXX IDs extracted from ROADMAP.md match expected for each phase."""
+        result = extract_sm_ids(phase, self.roadmap)
+        assert result == self.EXPECTED_SM_IDS[phase], (
+            f"Phase {phase}: expected {self.EXPECTED_SM_IDS[phase]}, got {result}"
+        )
+
+    # ── US-XXX derivation tests (one per phase) ─────────────────────
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_us_ids_per_phase(self, phase):
+        """US-XXX stories traced from ROADMAP→USER-STORIES match expected for each phase."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        assert sorted(result.us_ids) == self.EXPECTED_US_IDS[phase], (
+            f"Phase {phase}: expected {self.EXPECTED_US_IDS[phase]}, got {sorted(result.us_ids)}"
+        )
+
+    # ── Full coverage: 100% SM-XXX coverage per phase ────────────────
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_full_sm_coverage_per_phase(self, phase):
+        """Every SM-XXX in the phase has at least one matching US-XXX (no missing)."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        assert result.found_sm_ids == set(sm_ids), (
+            f"Phase {phase}: missing SM-XXX coverage: "
+            f"{set(sm_ids) - result.found_sm_ids}"
+        )
+
+    # ── Traceability: each matched US→SM points back to phase SM ─────
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_traceability_integrity_per_phase(self, phase):
+        """Every US-XXX returned by the script traces back to an SM-XXX in this phase."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        sm_set = set(sm_ids)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        for us_id in result.us_ids:
+            expected_parent = self.EXPECTED_US_TO_SM.get(us_id)
+            assert expected_parent is not None, (
+                f"{us_id} has no known Parent mapping"
+            )
+            assert expected_parent in sm_set, (
+                f"{us_id} Parent={expected_parent} but that SM is NOT in PHASE-{phase}"
+            )
+
+    # ── Global: total counts ─────────────────────────────────────────
+
+    def test_total_phases_is_12(self):
+        """ROADMAP.md contains exactly 12 phases."""
+        found_phases = set()
+        for line in self.roadmap.splitlines():
+            m = re.match(r"^####\s+PHASE-(\d+):", line)
+            if m:
+                found_phases.add(int(m.group(1)))
+        assert found_phases == set(range(1, 13))
+
+    def test_total_sm_ids_is_33(self):
+        """33 unique SM-XXX IDs across all phases (per roadmap overview table)."""
+        all_sm = set()
+        for sm_list in self.EXPECTED_SM_IDS.values():
+            all_sm.update(sm_list)
+        assert len(all_sm) == 33
+
+    def test_total_us_ids_is_45(self):
+        """45 unique US-XXX stories across all phases."""
+        all_us = set()
+        for us_list in self.EXPECTED_US_IDS.values():
+            all_us.update(us_list)
+        assert len(all_us) == 45
+
+    def test_no_us_in_multiple_phases(self):
+        """No US-XXX story appears in more than one phase."""
+        seen: dict[str, int] = {}
+        for phase, us_list in self.EXPECTED_US_IDS.items():
+            for us_id in us_list:
+                assert us_id not in seen, (
+                    f"{us_id} appears in both PHASE-{seen[us_id]} and PHASE-{phase}"
+                )
+                seen[us_id] = phase
+
+    def test_every_us_with_parent_is_in_a_phase(self):
+        """Every US-XXX in USER-STORIES.md with a Parent field is assigned to a phase."""
+        all_phase_us = set()
+        for us_list in self.EXPECTED_US_IDS.values():
+            all_phase_us.update(us_list)
+        for us_id in self.EXPECTED_US_TO_SM:
+            assert us_id in all_phase_us, (
+                f"{us_id} (Parent: {self.EXPECTED_US_TO_SM[us_id]}) "
+                f"has a Parent but is not in any phase"
+            )
+
+    # ── Content preservation: story blocks are intact ────────────────
+
+    def test_phase1_story_blocks_have_required_fields(self):
+        """Phase 1 story blocks preserve header, Parent, AC, and Priority."""
+        sm_ids = extract_sm_ids(1, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        for us_id, block in zip(result.us_ids, result.stories):
+            assert f"#### {us_id}:" in block, f"{us_id}: missing header"
+            assert "**Parent:**" in block, f"{us_id}: missing Parent"
+            assert "**Priority:**" in block, f"{us_id}: missing Priority"
+            assert (
+                "**Acceptance Criteria:**" in block or "- [ ]" in block
+            ), f"{us_id}: missing Acceptance Criteria"
+
+    def test_phase4_story_blocks_have_required_fields(self):
+        """Phase 4 (Search, Filter & Export) story blocks are intact."""
+        sm_ids = extract_sm_ids(4, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        for us_id, block in zip(result.us_ids, result.stories):
+            assert f"#### {us_id}:" in block, f"{us_id}: missing header"
+            assert "**Parent:**" in block, f"{us_id}: missing Parent"
+            assert "- [ ]" in block, f"{us_id}: missing AC checkboxes"
+
+    def test_phase10_story_blocks_have_required_fields(self):
+        """Phase 10 (Outreach Pipeline) story blocks are intact."""
+        sm_ids = extract_sm_ids(10, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        for us_id, block in zip(result.us_ids, result.stories):
+            assert f"#### {us_id}:" in block, f"{us_id}: missing header"
+            assert "**Parent:**" in block, f"{us_id}: missing Parent"
+
+    # ── One-to-many: SM-XXX → multiple US-XXX ────────────────────────
+
+    def test_sm002_maps_to_two_stories(self):
+        """SM-002 (Discover TikTok profiles) maps to US-004 and US-007."""
+        result = extract_matching_stories(["SM-002"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-004", "US-007"]
+
+    def test_sm003_maps_to_three_stories(self):
+        """SM-003 (View discovery run summary) maps to US-008, US-009, US-010."""
+        result = extract_matching_stories(["SM-003"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-008", "US-009", "US-010"]
+
+    def test_sm005_maps_to_two_stories(self):
+        """SM-005 (Auto-classify niche) maps to US-014, US-015."""
+        result = extract_matching_stories(["SM-005"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-014", "US-015"]
+
+    def test_sm007_maps_to_two_stories(self):
+        """SM-007 (Review classifications) maps to US-017, US-018."""
+        result = extract_matching_stories(["SM-007"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-017", "US-018"]
+
+    def test_sm010_maps_to_two_stories(self):
+        """SM-010 (Paginated result list) maps to US-024, US-025."""
+        result = extract_matching_stories(["SM-010"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-024", "US-025"]
+
+    def test_sm012_maps_to_two_stories(self):
+        """SM-012 (Export results) maps to US-028, US-029."""
+        result = extract_matching_stories(["SM-012"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-028", "US-029"]
+
+    def test_sm022_maps_to_two_stories(self):
+        """SM-022 (Advanced filters) maps to US-021, US-022."""
+        result = extract_matching_stories(["SM-022"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-021", "US-022"]
+
+    def test_sm027_maps_to_two_stories(self):
+        """SM-027 (Track outreach) maps to US-033, US-034."""
+        result = extract_matching_stories(["SM-027"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-033", "US-034"]
+
+    def test_sm028_maps_to_two_stories(self):
+        """SM-028 (Escalate reply) maps to US-035, US-036."""
+        result = extract_matching_stories(["SM-028"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-035", "US-036"]
+
+    def test_sm021_maps_to_two_stories(self):
+        """SM-021 (Data freshness) maps to US-039, US-040."""
+        result = extract_matching_stories(["SM-021"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-039", "US-040"]
+
+    def test_sm032_maps_to_two_stories(self):
+        """SM-032 (Track collector/reviewer) maps to US-043, US-044."""
+        result = extract_matching_stories(["SM-032"], self.user_stories)
+        assert sorted(result.us_ids) == ["US-043", "US-044"]
+
+    # ── One-to-one: SM-XXX → exactly one US-XXX ─────────────────────
+
+    def test_sm001_maps_to_one_story(self):
+        """SM-001 (Configure TikTok discovery) maps to exactly US-001."""
+        result = extract_matching_stories(["SM-001"], self.user_stories)
+        assert result.us_ids == ["US-001"]
+
+    def test_sm013_maps_to_one_story(self):
+        """SM-013 (Set status) maps to exactly US-037."""
+        result = extract_matching_stories(["SM-013"], self.user_stories)
+        assert result.us_ids == ["US-037"]
+
+    def test_sm033_maps_to_one_story(self):
+        """SM-033 (Authenticate) maps to exactly US-045."""
+        result = extract_matching_stories(["SM-033"], self.user_stories)
+        assert result.us_ids == ["US-045"]
+
+    # ── MatchResult invariants on real data ───────────────────────────
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_us_count_equals_len_us_ids(self, phase):
+        """us_count field matches len(us_ids) for every phase."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        assert result.us_count == len(result.us_ids), (
+            f"Phase {phase}: us_count={result.us_count} but len(us_ids)={len(result.us_ids)}"
+        )
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_stories_len_equals_us_ids_len(self, phase):
+        """Number of story blocks matches number of US-XXX IDs for every phase."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        assert len(result.stories) == len(result.us_ids), (
+            f"Phase {phase}: {len(result.stories)} story blocks but {len(result.us_ids)} US IDs"
+        )
+
+    # ── Cross-phase isolation ────────────────────────────────────────
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_no_stories_from_other_phases(self, phase):
+        """Stories returned for a phase must NOT include US-XXX from other phases."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        this_phase_expected = set(self.EXPECTED_US_IDS[phase])
+        other_phase_us = set()
+        for p, us_list in self.EXPECTED_US_IDS.items():
+            if p != phase:
+                other_phase_us.update(us_list)
+        leaked = set(result.us_ids) & other_phase_us
+        assert leaked == set(), (
+            f"Phase {phase}: leaked stories from other phases: {sorted(leaked)}"
+        )
+
+    def test_mvp_stories_disjoint_from_r2(self):
+        """MVP (phases 1-4) and R2 (phases 5-7) share no user stories."""
+        mvp_us = set()
+        for p in range(1, 5):
+            mvp_us.update(self.EXPECTED_US_IDS[p])
+        r2_us = set()
+        for p in range(5, 8):
+            r2_us.update(self.EXPECTED_US_IDS[p])
+        assert mvp_us & r2_us == set()
+
+    def test_r2_stories_disjoint_from_r3(self):
+        """R2 (phases 5-7) and R3 (phases 8-11) share no user stories."""
+        r2_us = set()
+        for p in range(5, 8):
+            r2_us.update(self.EXPECTED_US_IDS[p])
+        r3_us = set()
+        for p in range(8, 12):
+            r3_us.update(self.EXPECTED_US_IDS[p])
+        assert r2_us & r3_us == set()
+
+    def test_r3_stories_disjoint_from_r4(self):
+        """R3 (phases 8-11) and R4 (phase 12) share no user stories."""
+        r3_us = set()
+        for p in range(8, 12):
+            r3_us.update(self.EXPECTED_US_IDS[p])
+        r4_us = set(self.EXPECTED_US_IDS[12])
+        assert r3_us & r4_us == set()
+
+    # ── Story block integrity ────────────────────────────────────────
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_each_story_block_has_exactly_one_us_header(self, phase):
+        """Each story block contains exactly one #### US-XXX: header."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        for i, block in enumerate(result.stories):
+            headers = re.findall(r"^####\s+US-\d+:", block, re.MULTILINE)
+            assert len(headers) == 1, (
+                f"Phase {phase}, block {i}: expected 1 US header, "
+                f"found {len(headers)}: {headers}"
+            )
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_story_block_header_matches_us_id(self, phase):
+        """The US-XXX header inside each story block matches the reported us_id."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        for us_id, block in zip(result.us_ids, result.stories):
+            assert f"#### {us_id}:" in block, (
+                f"Phase {phase}: us_id={us_id} but header not found in block"
+            )
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_every_story_has_at_least_one_ac_checkbox(self, phase):
+        """Every user story in every phase has at least one AC checkbox."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        for us_id, block in zip(result.us_ids, result.stories):
+            assert "- [ ]" in block, (
+                f"Phase {phase}, {us_id}: no AC checkboxes (- [ ]) found"
+            )
+
+    # ── Parent field content verification ────────────────────────────
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_parent_field_in_block_matches_expected(self, phase):
+        """The **Parent:** field inside each story block matches our ground truth mapping."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        for us_id, block in zip(result.us_ids, result.stories):
+            expected_sm = self.EXPECTED_US_TO_SM[us_id]
+            parent_match = re.search(r"\*\*Parent:\*\*\s+(SM-\d+)", block)
+            assert parent_match is not None, (
+                f"Phase {phase}, {us_id}: no **Parent:** field found in block"
+            )
+            assert parent_match.group(1) == expected_sm, (
+                f"Phase {phase}, {us_id}: block has Parent={parent_match.group(1)} "
+                f"but expected {expected_sm}"
+            )
+
+    # ── Negative / boundary tests ────────────────────────────────────
+
+    def test_nonexistent_phase_13_returns_empty(self):
+        """Phase 13 does not exist — extract_sm_ids should return empty list."""
+        result = extract_sm_ids(13, self.roadmap)
+        assert result == []
+
+    def test_nonexistent_phase_0_returns_empty(self):
+        """Phase 0 does not exist — extract_sm_ids should return empty list."""
+        result = extract_sm_ids(0, self.roadmap)
+        assert result == []
+
+    def test_bogus_sm_id_returns_no_stories(self):
+        """An SM-XXX that doesn't exist in USER-STORIES.md returns no matches."""
+        result = extract_matching_stories(["SM-999"], self.user_stories)
+        assert result.us_ids == []
+        assert result.us_count == 0
+        assert result.stories == []
+
+    def test_empty_sm_list_returns_no_stories(self):
+        """Empty SM-XXX list returns no matches."""
+        result = extract_matching_stories([], self.user_stories)
+        assert result.us_ids == []
+        assert result.us_count == 0
+
+    # ── Document order preservation ──────────────────────────────────
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_us_ids_are_in_document_order(self, phase):
+        """US-XXX IDs are returned in the order they appear in USER-STORIES.md."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        # Verify order by checking positions in the document
+        positions = []
+        for us_id in result.us_ids:
+            pos = self.user_stories.find(f"#### {us_id}:")
+            assert pos != -1, f"{us_id} not found in USER-STORIES.md"
+            positions.append(pos)
+        assert positions == sorted(positions), (
+            f"Phase {phase}: US IDs not in document order. "
+            f"Got {result.us_ids} but positions are {positions}"
+        )
+
+    # ── format_output on real data ───────────────────────────────────
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_format_output_header_has_correct_phase(self, phase):
+        """format_output produces a header with the correct phase number."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        output = format_output(phase, sm_ids, result)
+        assert f"# Phase {phase} — Traced User Stories" in output
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_format_output_lists_all_sm_ids(self, phase):
+        """format_output header lists all SM-XXX IDs for the phase."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        output = format_output(phase, sm_ids, result)
+        for sm_id in sm_ids:
+            assert sm_id in output, f"Phase {phase}: {sm_id} missing from format_output"
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_format_output_lists_all_us_ids(self, phase):
+        """format_output header lists all US-XXX IDs for the phase."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        output = format_output(phase, sm_ids, result)
+        for us_id in result.us_ids:
+            assert us_id in output, f"Phase {phase}: {us_id} missing from format_output"
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_format_output_has_no_missing_warning(self, phase):
+        """Boom data has full coverage — no 'Warning' in format_output for any phase."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        output = format_output(phase, sm_ids, result)
+        assert "Warning" not in output, (
+            f"Phase {phase}: unexpected Warning in output — some SM-XXX have no US-XXX?"
+        )
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_format_output_trace_summary_counts_match(self, phase):
+        """Trace summary in format_output shows correct SM and US counts."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        output = format_output(phase, sm_ids, result)
+        assert f"- **SM-XXX IDs:** {len(sm_ids)}" in output
+        assert f"- **US-XXX stories found:** {result.us_count}" in output
+
+    # ── Story content spot checks ────────────────────────────────────
+
+    def test_us001_mentions_tiktok(self):
+        """US-001 (Configure TikTok discovery) should mention TikTok."""
+        result = extract_matching_stories(["SM-001"], self.user_stories)
+        assert "TikTok" in result.stories[0], "US-001 should mention TikTok"
+
+    def test_us045_mentions_authenticate(self):
+        """US-045 (Authenticate team members) should mention authentication."""
+        result = extract_matching_stories(["SM-033"], self.user_stories)
+        block = result.stories[0]
+        assert "authenticat" in block.lower() or "log in" in block.lower(), (
+            "US-045 should mention authentication or login"
+        )
+
+    def test_us030_mentions_outreach(self):
+        """US-030 (Queue for outreach) should mention outreach."""
+        result = extract_matching_stories(["SM-024"], self.user_stories)
+        block = result.stories[0]
+        assert "outreach" in block.lower(), "US-030 should mention outreach"
+
+    def test_us041_mentions_mawthouq(self):
+        """US-041 (Mawthouq licence) should mention Mawthouq."""
+        result = extract_matching_stories(["SM-029"], self.user_stories)
+        block = result.stories[0]
+        assert "Mawthouq" in block or "mawthouq" in block.lower(), (
+            "US-041 should mention Mawthouq"
+        )
+
+    def test_us023_mentions_arabic(self):
+        """US-023 (Bilingual UI) should mention Arabic."""
+        result = extract_matching_stories(["SM-031"], self.user_stories)
+        block = result.stories[0]
+        assert "Arabic" in block, "US-023 should mention Arabic"
+
+    # ── SM-XXX count per phase matches roadmap table ─────────────────
+
+    EXPECTED_SM_COUNT_PER_PHASE = {
+        1: 3, 2: 4, 3: 1, 4: 5, 5: 3, 6: 3, 7: 1, 8: 2, 9: 2, 10: 4, 11: 3, 12: 2,
+    }
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_sm_count_per_phase(self, phase):
+        """Number of SM-XXX IDs extracted matches the expected count."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        assert len(sm_ids) == self.EXPECTED_SM_COUNT_PER_PHASE[phase], (
+            f"Phase {phase}: expected {self.EXPECTED_SM_COUNT_PER_PHASE[phase]} SM IDs, "
+            f"got {len(sm_ids)}"
+        )
+
+    EXPECTED_US_COUNT_PER_PHASE = {
+        1: 6, 2: 6, 3: 1, 4: 7, 5: 3, 6: 3, 7: 1, 8: 3, 9: 2, 10: 5, 11: 5, 12: 3,
+    }
+
+    @pytest.mark.parametrize("phase", range(1, 13))
+    def test_us_count_per_phase(self, phase):
+        """Number of US-XXX stories traced matches the expected count."""
+        sm_ids = extract_sm_ids(phase, self.roadmap)
+        result = extract_matching_stories(sm_ids, self.user_stories)
+        assert len(result.us_ids) == self.EXPECTED_US_COUNT_PER_PHASE[phase], (
+            f"Phase {phase}: expected {self.EXPECTED_US_COUNT_PER_PHASE[phase]} US IDs, "
+            f"got {len(result.us_ids)}"
+        )
