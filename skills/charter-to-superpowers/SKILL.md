@@ -25,6 +25,8 @@ States 2-4 cycle per execution group. A phase with 3 groups cycles: plan G1 → 
 
 **Why plan per group (not all at once):** writing-plans produces complete code in plans. Group 2 stories depend on Group 1's code existing (e.g., US-004 creates HookGrid.tsx, then US-003 imports it). Planning per group after prior groups are implemented gives writing-plans real code to reference.
 
+**Optional verification checkpoints:** States 3, 4, and 5 include optional verification prompts. These are choices, not requirements. Use them when you want extra confidence in plan completeness or test coverage before proceeding.
+
 <state_0 title="No phase plan">
 **Check:** `.charter/PHASE-{N}-PLAN.md` does not exist.
 
@@ -145,6 +147,53 @@ Include the story ID prefix in each commit message
 
 **Extract:** Stories in current group. Whether group has 1 story or 2+.
 
+<verify_plan_coverage title="Optional: Verify plan coverage before execution">
+**Present this option before the execution prompt.** Ask the user:
+
+> Before executing, would you like to verify plan coverage? (Optional)
+> - **Yes** — spawn a verification subagent first
+> - **No** — proceed directly to execution
+
+**If user chooses Yes, spawn a subagent with this task:**
+
+```
+Apply /superpowers:verification-before-completion discipline.
+
+Review the implementation plan against the phase plan requirements:
+
+Plan file: docs/plans/{plan-filename}
+Phase plan: .charter/PHASE-{N}-PLAN.md
+Architecture: .charter/ARCHITECTURE-DOC.md
+User stories: .charter/USER-STORIES.md
+Stories in this group: {story-ids with names}
+
+Verify line by line:
+1. REQUIREMENTS — Every FDD task listed in the phase plan for
+   these stories has a corresponding task in the implementation
+   plan. Flag any phase plan task with no matching plan task.
+2. ACCEPTANCE CRITERIA — Every AC from the user story definitions
+   is addressed by at least one task in the plan. Flag any AC
+   with no corresponding plan task.
+3. TEST STRATEGY — Read the project's testing documentation
+   (e.g., .charter/TECH-DECISIONS.md, ARCHITECTURE-DOC.md) to
+   learn what test types the project requires per layer. For
+   each architecture layer the plan touches, verify the plan
+   includes the test types that the project's docs specify for
+   that layer. Also check that boundary/contract tests are
+   planned where the docs require them. Flag any touched layer
+   with no planned tests or missing required test types.
+
+Output one of:
+- PLAN COMPLETE: All requirements, ACs, and test strategy covered.
+  Cite the mapping for each.
+- GAPS FOUND: List each gap with its story ID and what's missing.
+```
+
+**After subagent reports:**
+- If PLAN COMPLETE → proceed to execution (show execution prompt).
+- If GAPS FOUND → present gaps to user. User decides: update the plan or proceed as-is.
+</verify_plan_coverage>
+
 <single_story>
 **If current group has 1 story:**
 
@@ -231,6 +280,100 @@ Replace `[skill-name]` with `subagent-driven-development` (Option A / single sto
 <state_4 title="Current group done, more groups remain">
 **Check:** All stories in current group have commits. More groups exist in the phase plan.
 
+<verify_test_coverage title="Optional: Verify test coverage before next group">
+**Present this option before the "next group" prompt.** Ask the user:
+
+> Before moving to the next group, would you like to verify test coverage for Group {G}? (Optional)
+> - **Yes** — spawn a verification subagent first
+> - **No** — proceed to next group
+
+**If user chooses Yes, spawn a subagent with this task:**
+
+```
+Apply /superpowers:verification-before-completion discipline.
+NO completion claims without fresh verification evidence.
+
+Stories implemented: {story-ids with names}
+Architecture: .charter/ARCHITECTURE-DOC.md
+User stories: .charter/USER-STORIES.md
+
+0. LEARN THE PROJECT'S TESTING REQUIREMENTS — Before auditing,
+   read the project's testing documentation. Check:
+   - .charter/TECH-DECISIONS.md (or similar tech stack doc)
+   - Testing sections in .charter/ARCHITECTURE-DOC.md
+   - Test configuration files (vitest.config, playwright.config, etc.)
+   Build a checklist of ALL test types the project requires,
+   their tools, what each covers, any specific procedures,
+   and any documented anti-patterns. This checklist is your
+   rubric for all subsequent steps.
+
+1. INVENTORY WHAT WAS BUILT — Review git log and diff for this
+   group's commits. List every new or modified file. Cross-reference
+   with ARCHITECTURE-DOC.md to map each file to its architecture
+   layer.
+
+2. EXTRACT ACCEPTANCE CRITERIA — Read the user stories for this
+   group (from .charter/USER-STORIES.md or the phase plan). List
+   every AC that should be verified by tests.
+
+3. AUDIT TEST COVERAGE PER LAYER — For each layer touched:
+   a. List every new/modified function, component, mutation,
+      query, or endpoint in that layer.
+   b. For each one, find the corresponding test(s). If no test
+      exists, flag it as a gap.
+   c. Check that tests cover BOTH happy paths AND error/edge
+      cases (validation failures, empty states, boundary
+      conditions, error handling).
+   d. Verify the test TYPE matches what the project's testing
+      docs require for that layer. Use the checklist from
+      step 0 — not assumptions about what's needed.
+
+4. AUDIT BOUNDARY / CONTRACT COVERAGE — Check whether the
+   project's testing docs define contract tests, boundary
+   tests, or cross-layer shape validation procedures. If so,
+   verify that every new boundary crossed by this group's code
+   (e.g., domain→database, database→UI, code→external API)
+   has the required contract/boundary tests per the documented
+   procedures and checklists.
+
+5. AUDIT E2E / CROSS-LAYER COVERAGE — For each user story in
+   this group, check whether an end-to-end test exists that
+   exercises the complete user workflow across layers. If the
+   story adds a user-facing flow and no E2E test covers it,
+   flag it as a gap.
+
+6. CHECK AC COVERAGE — Cross-reference the acceptance criteria
+   from step 2 against the tests found in steps 3-5. For each
+   AC, identify which test(s) verify it. Flag any AC with no
+   corresponding test.
+
+7. RUN ALL VERIFICATION COMMANDS — Execute ALL of the project's
+   verification commands, not just the test runner. Check
+   package.json scripts, CI config, and the testing docs from
+   step 0 for the full list (e.g., test suites, type checking,
+   linting). Read the FULL output of each command. Count passes
+   and failures. Do NOT extrapolate from partial runs.
+
+Output one of:
+- COVERAGE COMPLETE: All layers, all ACs, all test types
+  covered, all verification commands pass. Cite evidence.
+- GAPS FOUND: List specifically:
+  - Functions/components with no tests
+  - ACs with no corresponding test
+  - Layers missing required test types (per step 0 checklist)
+  - Boundaries missing contract/boundary tests
+  - User flows missing E2E coverage
+  - Missing error/edge case tests
+  - Anti-patterns found (per step 0 checklist)
+- FAILURES: List failing tests/commands with names and errors.
+```
+
+**After subagent reports:**
+- If COVERAGE COMPLETE → proceed to next group (show next-group prompt).
+- If GAPS FOUND → present gaps to user. User decides: fix gaps or proceed as-is.
+- If FAILURES → present failures to user. User decides: fix or proceed (risky).
+</verify_test_coverage>
+
 **Output:**
 ```
 Execution Group {G} complete ({completed-stories}).
@@ -246,6 +389,19 @@ This loops back to State 2 for the next execution group.
 
 <state_5 title="All execution groups complete">
 **Check:** All stories from all groups in the phase plan have been implemented.
+
+<verify_test_coverage_final title="Optional: Verify test coverage before finishing">
+**Present this option before the "finish branch" prompt.** Ask the user:
+
+> All groups are complete. Before finishing the branch, would you like to verify test coverage? (Optional)
+> - **Yes, last group only** — verify the final execution group
+> - **Yes, full phase** — verify all stories across all groups
+> - **No** — proceed to finish branch
+
+**If user chooses Yes, spawn a subagent with the same verification task as State 4's `<verify_test_coverage>`**, adjusting the stories list to match the chosen scope (last group or all groups in the phase).
+
+**After subagent reports:** Same handling as State 4. User decides to fix or proceed.
+</verify_test_coverage_final>
 
 **Output:**
 ```
@@ -328,6 +484,9 @@ git branch --merged main | grep "phase-{N}"
 6. **Option B merge needed:** After parallel execution, story branches must merge into the phase branch before next group can be planned.
 7. **Deleted plan file:** Re-detect as State 2. writing-plans regenerates.
 8. **Mid-execution re-invoke:** Cannot detect partial task completion. Ask: "Are you resuming execution or starting fresh?"
+9. **Verification subagent fails/times out:** Present the error to the user. They can retry verification or skip it and proceed to the next step.
+10. **Re-invoke after verification at State 3:** State 3 fires again (plan exists, not executed). The plan verification question appears again — user answers No to proceed to execution.
+11. **Verification finds gaps but user proceeds anyway:** This is allowed — checkpoints are optional. The gaps are logged in the conversation for awareness but do not block progress.
 </edge_cases>
 
 <anti_patterns>
@@ -344,4 +503,8 @@ git branch --merged main | grep "phase-{N}"
 - Plan file matched by content (story IDs), not filename
 - WARNING included when current group is not the last
 - Edge cases handled gracefully (ask user when detection is ambiguous)
+- Optional plan verification offered at State 3 (before execution options)
+- Optional test coverage verification offered at State 4 (before next group) and State 5 (before finishing)
+- Verification subagent follows verification-before-completion discipline
+- User can always skip verification and proceed
 </success_criteria>
