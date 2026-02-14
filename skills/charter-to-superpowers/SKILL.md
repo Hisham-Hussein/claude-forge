@@ -25,7 +25,7 @@ States 2-4 cycle per execution group. A phase with 3 groups cycles: plan G1 → 
 
 **Why plan per group (not all at once):** writing-plans produces complete code in plans. Group 2 stories depend on Group 1's code existing (e.g., US-004 creates HookGrid.tsx, then US-003 imports it). Planning per group after prior groups are implemented gives writing-plans real code to reference.
 
-**Optional verification checkpoints:** States 3, 4, and 5 include optional verification prompts. These are choices, not requirements. Use them when you want extra confidence in plan completeness or test coverage before proceeding.
+**Optional verification checkpoints:** States 3, 4, and 5 include optional verification prompts for plan coverage, test coverage, and product acceptance testing. These are choices, not requirements. Use them when you want extra confidence before proceeding.
 
 <state_0 title="No phase plan">
 **Check:** `.charter/PHASE-{N}-PLAN.md` does not exist.
@@ -374,6 +374,26 @@ Output one of:
 - If FAILURES → present failures to user. User decides: fix or proceed (risky).
 </verify_test_coverage>
 
+<verify_product_acceptance title="Optional: Verify product works before next group">
+**Present this option AFTER test coverage verification (or as first checkpoint if test coverage was skipped).** Ask the user:
+
+> Would you like to run exploratory acceptance testing for Group {G}? (Optional)
+> This uses live infrastructure (Convex MCP, Playwright MCP) to verify the product actually works — beyond what automated tests check.
+> - **Yes** — run acceptance testing for this group's stories
+> - **No** — proceed to next group
+
+**If user chooses Yes, invoke the acceptance-testing skill:**
+
+```
+/acceptance-test --scope group --plan .charter/PHASE-{N}-PLAN.md --stories {story-ids-csv}
+```
+
+**After acceptance testing reports:**
+- If ACCEPT → proceed to next group (show next-group prompt).
+- If ACCEPT WITH ISSUES → present issues to user. User decides: fix or proceed.
+- If REJECT → present critical issues. User should fix before proceeding.
+</verify_product_acceptance>
+
 **Output:**
 ```
 Execution Group {G} complete ({completed-stories}).
@@ -402,6 +422,25 @@ This loops back to State 2 for the next execution group.
 
 **After subagent reports:** Same handling as State 4. User decides to fix or proceed.
 </verify_test_coverage_final>
+
+<verify_product_acceptance_final title="Optional: Verify product works before finishing">
+**Present this option AFTER test coverage verification (or as first checkpoint if test coverage was skipped).** Ask the user:
+
+> Would you like to run exploratory acceptance testing before finishing the branch? (Optional)
+> - **Yes, last group only** — test the final group's stories
+> - **Yes, full phase** — test all stories across all groups
+> - **No** — proceed to finish branch
+
+**If user chooses Yes, invoke the acceptance-testing skill:**
+
+```
+/acceptance-test --scope {group|phase} --plan .charter/PHASE-{N}-PLAN.md --stories {story-ids-csv}
+```
+
+Adjust `--stories` to match the chosen scope (last group's stories or all phase stories).
+
+**After acceptance testing reports:** Same handling as State 4.
+</verify_product_acceptance_final>
 
 **Output:**
 ```
@@ -487,6 +526,7 @@ git branch --merged main | grep "phase-{N}"
 9. **Verification subagent fails/times out:** Present the error to the user. They can retry verification or skip it and proceed to the next step.
 10. **Re-invoke after verification at State 3:** State 3 fires again (plan exists, not executed). The plan verification question appears again — user answers No to proceed to execution.
 11. **Verification finds gaps but user proceeds anyway:** This is allowed — checkpoints are optional. The gaps are logged in the conversation for awareness but do not block progress.
+12. **Acceptance testing without MCP tools:** The acceptance-testing skill degrades gracefully — runs automated suite gate (Layer 1) even without MCP tools. The charter-to-superpowers checkpoint still offers it; the skill handles the "no MCP" scenario.
 </edge_cases>
 
 <anti_patterns>
@@ -507,4 +547,6 @@ git branch --merged main | grep "phase-{N}"
 - Optional test coverage verification offered at State 4 (before next group) and State 5 (before finishing)
 - Verification subagent follows verification-before-completion discipline
 - User can always skip verification and proceed
+- Optional product acceptance testing offered at State 4 (before next group) and State 5 (before finishing)
+- Acceptance testing invoked with correct scope, plan path, and story list
 </success_criteria>
