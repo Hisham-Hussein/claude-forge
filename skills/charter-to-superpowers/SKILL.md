@@ -98,8 +98,11 @@ Architecture: .charter/ARCHITECTURE-DOC.md
 {TECH_STACK_LINE}
 
 Plan Execution Group {G} stories only: {story-list}.
-The phase plan has the full FDD task decomposition with I/O/Test
-per task and Design OS section references for UI tasks.
+The phase plan has the full FDD task decomposition with I/O/Test per task.
+UI tasks include a `Reference:` field pointing to design-os-export/ .tsx files.
+Read each referenced file — it is the canonical layout and structure.
+Translate its inline styles to shadcn/ui + Tailwind; preserve the component
+hierarchy, section order, and grid/flex layout exactly as authored.
 Focus on these stories: {story-ids with names}.
 Include the story ID prefix in each commit message
 (e.g., "feat(US-001): add HeroBanner component").
@@ -119,9 +122,13 @@ Architecture: .charter/ARCHITECTURE-DOC.md
 {TECH_STACK_LINE}
 
 Plan Execution Group {G} stories only: {story-list}.
-The phase plan has FDD context per task (I/O/Test, file paths, layers,
-Design OS refs). Use it as reference, not as a task list — transform
-the decomposition into your own plan per your skill instructions.
+The phase plan has FDD context per task (I/O/Test, file paths, layers).
+Use it as reference, not as a task list — transform the decomposition
+into your own plan per your skill instructions.
+UI tasks include a `Reference:` field pointing to design-os-export/ .tsx files.
+Read each referenced file — it is the canonical layout and structure.
+Translate its inline styles to shadcn/ui + Tailwind; preserve the component
+hierarchy, section order, and grid/flex layout exactly as authored.
 Focus on these stories: {story-ids with names}.
 Include the story ID prefix in each commit message
 (e.g., "feat(US-001): add HeroBanner component").
