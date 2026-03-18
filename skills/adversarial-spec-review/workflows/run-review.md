@@ -15,7 +15,7 @@ Review Progress:
 - [ ] Step 2: Select the review team (announce to user, get acknowledgment)
 - [ ] Step 3: Identify files for reviewers (spec + source + config + types + tests)
 - [ ] Step 4: Generate focus areas per reviewer (specific questions, not instructions)
-- [ ] Step 5: Create shared tasks and spawn agent team (parallel, opus model)
+- [ ] Step 5: Ask user for mode (Agent Teams vs Parallel Subagents), then spawn reviewers
 - [ ] Step 6: Synthesize with critical judgment (cross-challenge, severity calibration)
 - [ ] Step 7: Present to user and get decision
 - [ ] Step 8: Apply fixes (if approved) → loop back to Step 5
@@ -86,20 +86,64 @@ See templates/reviewer-task.md `<focus_area_generation>` for examples.
 </step_4>
 
 <step_5>
-**Step 5: Create Shared Tasks and Spawn Agent Team**
+**Step 5: Spawn Reviewers**
 
-**IMPORTANT: Use Claude Code Agent Teams (shared task list + inter-agent communication), NOT isolated subagents.** Agent Teams teammates share tasks, can claim work, and see each other's output — this is critical for cross-challenge. Reference: https://code.claude.com/docs/en/agent-teams
+**MANDATORY: Ask the user which mode they want BEFORE spawning.** Present both options clearly and wait for their choice. Do this for EVERY round — including Round 1 and all subsequent rounds. Never assume. Never auto-select. Example:
 
-Setup:
+```
+Before I spawn the reviewers, which mode do you want?
+
+**Mode A: Agent Teams** (preferred) — Teammates share a task list, message each other,
+and challenge findings in real-time. Requires Agent Teams feature enabled in CLI.
+
+**Mode B: Parallel Subagents** (fallback) — Independent agents that report back to me.
+No inter-agent communication. I handle cross-challenge in synthesis.
+```
+
+Two modes are available. They are fundamentally different — do NOT confuse them.
+
+### Mode A: Agent Teams (PREFERRED)
+
+**What it is:** Claude Code Agent Teams — a specific experimental feature where teammates are separate Claude Code sessions that share a task list, have a mailbox for inter-agent messaging, and can see each other's work. Teammates can challenge each other's findings in real-time. This is the best mode for adversarial review because cross-challenge happens DURING the review, not just in synthesis.
+
+**Requirement:** `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` must be set in settings.json or environment. CLI only (not VS Code).
+
+**Reference:** https://code.claude.com/docs/en/agent-teams
+
+**How to use:** Tell Claude (the lead) in natural language to create an agent team. Example:
+
+```
+Create an agent team with {N} teammates for adversarial spec review:
+- Teammate 1: {archetype_name} — {focus description}
+- Teammate 2: {archetype_name} — {focus description}
+- ...
+
+Each teammate should:
+1. Read the spec at {spec_path}
+2. Read their assigned source files
+3. Post findings with severity (Critical/Major/Minor) and section citations
+4. Challenge other teammates' findings when they disagree
+
+Use Opus for each teammate. Require plan approval before they start reviewing.
+```
+
+The lead manages task creation, assignment, and synthesis. Teammates self-coordinate via the shared task list and messaging.
+
+### Mode B: Parallel Subagents (FALLBACK)
+
+**What it is:** Independent Agent tool invocations that run in isolation. Each agent reads files, does its review, and returns results to the orchestrator. Agents CANNOT see each other's work or communicate. Cross-challenge only happens in the orchestrator's synthesis step.
+
+**When to use:** Only when Agent Teams is unavailable (VS Code, feature not enabled, etc.). **You MUST tell the user** before using this mode: "Agent Teams isn't available in this environment. Falling back to parallel subagents — reviewers won't be able to cross-challenge each other directly. I'll handle cross-challenge in synthesis."
+
+**How to use:**
 1. For each reviewer, create a task via TaskCreate with the task description from the template. Note the task ID.
 2. Create a synthesis task (blocked by all reviewer tasks via `addBlockedBy`).
-3. Spawn all reviewers **in parallel** using the Agent tool — each as a teammate that claims their task from the shared task list.
+3. Spawn all reviewers **in parallel** using the Agent tool.
    - Use `model: opus` for each reviewer
-   - Each agent's prompt includes "You are a teammate on an agent team. Claim task #{task_id} from the shared task list and execute it."
    - Each agent's prompt follows the agent_prompt_template from templates/reviewer-task.md with all dynamic fields filled
 4. Wait for all agents to complete.
 
-The shared task list is the coordination mechanism — reviewers post findings as task updates, the synthesis task is unblocked when all reviews complete, and the orchestrator (lead) synthesizes.
+**CRITICAL:** Do NOT use Mode B's mechanics (Agent tool) while claiming to use Mode A (Agent Teams). They are completely different features. If you find yourself typing `Agent tool` invocations, you are in Mode B.
 </step_5>
 
 <step_6>

@@ -41,12 +41,13 @@ These are not separate review items — they are the lens through which all find
 
 <prerequisites>
 
-**Agent Teams is required.** This skill uses Claude Code Agent Teams (shared task list, inter-agent communication). The `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` environment variable is already configured in settings.
+**Two execution modes exist — ask the user which they want before every round:**
 
-**CLI only.** Agent Teams does not work from the VS Code extension. If you are in VS Code, tell the user:
-> "This skill requires Agent Teams, which only works in the Claude Code CLI. Open a new `claude` session from your terminal and run `/review-spec` there."
+- **Mode A: Agent Teams (preferred)** — Teammates share a task list, message each other, and challenge findings in real-time. Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` in settings.json or environment. CLI only (not VS Code).
+- **Mode B: Parallel Subagents (fallback)** — Independent agents that report back to the orchestrator. No inter-agent communication. Use when Agent Teams is unavailable.
 
-Check the environment before proceeding. If you detect you're in VS Code (no Agent Teams capability), stop and show the message above instead of attempting the review.
+If the user chooses Mode A but the environment doesn't support it (VS Code, feature not enabled), tell them:
+> "Agent Teams requires the CLI with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` enabled. Want to switch to Mode B (parallel subagents) instead, or open a CLI session?"
 
 </prerequisites>
 
