@@ -23,6 +23,14 @@ Decision log:
 </context>
 
 <process>
+0. **Check git history for cross-session work** (run BEFORE analyzing conversation):
+   - Run `git log --oneline --since="$(date -d '7 days ago' +%Y-%m-%d)"` to see recent commits
+   - Run `git log --oneline --merges -10` to see recently merged PRs
+   - Compare commits and merged PRs against items in ACTIVE.md and QUEUE.md
+   - Any completed items still listed as "not started" or "in progress" → mark done
+   - Any merged PRs that correspond to QUEUE.md items → remove from queue
+   - This catches work done in other sessions that the current conversation has no visibility into
+
 1. **Analyze the conversation** to identify:
    - Tasks completed in this session
    - New issues, bugs, or improvements discovered
@@ -36,7 +44,7 @@ Decision log:
    - STRICT: Each entry = heading + one short paragraph. No sub-headings, no bullet lists, no "What was done / Impact / Artifacts" structure. Details live in ACTIVE.md and research docs — the log is a scannable index, not a record of everything.
    - Good: "Created custom `/execute-phase` skill (not GSD) because GSD won't enforce our architecture principles. Borrows wave parallelization and deviation rules but adds DOE integration. At `.claude/skills/execute-phase/`."
    - Bad: Multi-paragraph entry with "What was done:", "Key decisions:", "Impact:" sections and 15+ lines
-   - **Queue behavior:** When adding a new entry, ALSO delete the oldest entry (last `## YYYY-MM-DD` section + its paragraph). One in, one out — every time.
+   - **Queue behavior:** Add entry at TOP, remove entry from BOTTOM. Max 10 entries. Push front, shift back — every time.
    - Each entry should be self-contained (make sense without reading others)
 
 3. **Update ACTIVE.md** (safe to trim now — decisions are captured in LOG.md):
@@ -83,7 +91,12 @@ Decision log:
    - If any section contradicts another (e.g., "Current Focus" says X but "How to Continue" says build Y instead), fix before finishing
    - Common inconsistency: updating "How to Continue" but forgetting to update "Current Focus" or "Status"
 
-8. **Present summary** to user:
+8. **Memory sync check**:
+   - If any project-level facts changed (deployment status, table IDs, architecture decisions, feature completions), check if memory files need updating
+   - Common triggers: PRs merged, new tables/fields created, infrastructure changes, key decisions made
+   - Update or create memory files as needed to keep future sessions informed
+
+9. **Present summary** to user:
    - What was updated
    - Items checked off
    - New queue items added
