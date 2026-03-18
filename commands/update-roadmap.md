@@ -37,6 +37,7 @@ Decision log:
    - Progress on items in ACTIVE.md
    - Decisions made that should be logged
    - Any blockers that prevent continuing scheduled work
+   - **User-confirmed manual completions**: Scan for messages like "I did it", "done", "I'm done with X", "I finished X". These indicate work the user completed outside the agent's tools (e.g., UI changes, manual steps). Each confirmation must be reflected as a checked-off success criterion.
 
 2. **Update LOG.md** (do this BEFORE trimming ACTIVE.md — decisions must be captured here first):
    - Add new entry at the TOP for significant decisions/completions
@@ -83,11 +84,14 @@ Decision log:
    - Include any context a fresh agent would need to pick up seamlessly
 
 7. **Verify ACTIVE.md core section alignment** (final consistency check):
-   - After all updates, re-read ACTIVE.md and check that core sections tell the same story:
+   - **Re-read ACTIVE.md from disk** after all edits — do not rely on your memory of what you wrote
+   - Check that core sections tell the same story:
      - **Current Focus** = what we're working on right now
      - **Status** (in Progress section) = where we are in that work
      - **Success Criteria** = includes unchecked items for the current focus
      - **How to Continue** = next steps toward completing the current focus
+   - **Cross-check Success Criteria vs How to Continue**: For every `[x]` checked item in Success Criteria, verify it does NOT still appear in "How to Continue" or "Not Started". Checked-off items must be removed from future action lists.
+   - **Cross-check Success Criteria vs Not Started**: Any item in "Not Started" that has been checked `[x]` must be removed from "Not Started".
    - If any section contradicts another (e.g., "Current Focus" says X but "How to Continue" says build Y instead), fix before finishing
    - Common inconsistency: updating "How to Continue" but forgetting to update "Current Focus" or "Status"
 
