@@ -19,6 +19,9 @@ Reviewers sometimes inflate severity to justify their existence. Apply this test
 **Rule 5: Check if fixes from prior rounds introduced new problems.**
 Each round of fixes can create regressions. Explicitly ask: "Did fixing X break Y?" This is the Devil's Advocate's primary job in rounds 2+.
 
+**Rule 6: Judge goal achievement explicitly.**
+After collecting findings, the orchestrator must answer: "If a developer implements this spec literally, will the stated objective be achieved?" This is not about individual issues — it's a holistic assessment. A spec can have zero individual Critical findings yet still fail to achieve its goal due to cumulative gaps or a flawed overall approach. If the answer is "no" or "probably not," that is a Critical finding even if no single reviewer flagged it.
+
 </cross_challenge_rules>
 
 <severity_calibration>

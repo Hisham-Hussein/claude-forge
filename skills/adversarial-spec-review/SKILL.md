@@ -1,6 +1,6 @@
 ---
-name: adversarial-spec-review
-description: Use when reviewing a design spec, design document, architecture doc, or technical specification for correctness and implementation-readiness. Use when user says "review spec", "review this design", "adversarial review", "spec review", or after creating a design document. Spawns a dynamic team of domain-relevant reviewers that loop until convergence.
+name: reviewing-specs-adversarially
+description: Runs adversarial multi-round review of design specs, architecture docs, and technical specifications for correctness and implementation-readiness. Triggers on "review spec", "review this design", "adversarial review", "spec review", or after creating a design document. Spawns a dynamic team of domain-relevant reviewers that loop until convergence.
 allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Edit
 ---
 
@@ -24,6 +24,18 @@ Minor issues and documentation polish are not blockers. The loop stops when revi
 
 **Principle 5: Always pause for user approval before editing.**
 Spec edits are high-stakes. Never auto-apply fixes. Present findings with your critical assessment, get user approval, then apply fixes. Then re-review.
+
+**Principle 6: For software specs, judge against engineering fundamentals.**
+When the spec describes a software system, every reviewer must evaluate through this lens in addition to their domain expertise:
+- **Goal achievement** — Will the design, if implemented literally, actually achieve the spec's stated objectives? Trace the logic end-to-end.
+- **Logical correctness** — Are there logical gaps, race conditions, or contradictions in the specified behavior?
+- **Maintainability and ease of change** — Does the design support long-term evolution? Are responsibilities cleanly separated (SOLID principles)? Will future developers understand and modify this confidently?
+- **Testability and TDD readiness** — Can each component be tested in isolation? Are dependencies injectable? Does the design make test-driven implementation natural, or does it force awkward test setups?
+- **Deployability** — Can changes be deployed independently and safely? Are there hidden deployment coupling or ordering constraints?
+- **Performance under realistic load** — Are hot paths identified? Are there latent scaling problems at 10x growth?
+- **Observability** — Can the system be debugged in production? Are there logging/monitoring hooks at key decision points? Will operators know when something is wrong and where to look?
+
+These are not separate review items — they are the lens through which all findings are evaluated. A design that works but is untestable, or that's correct but unmaintainable, has Major issues.
 
 </essential_principles>
 

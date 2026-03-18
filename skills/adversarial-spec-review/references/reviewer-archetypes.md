@@ -4,6 +4,17 @@ The orchestrator selects reviewers by scanning the spec for **domain signals** �
 
 The orchestrator MUST NOT default to a fixed count. Select as many reviewers as the spec's dimensions demand, plus the mandatory Devil's Advocate. Typical range: 3-5 total.
 
+## Contents
+- Data Integrity Guardian — field preservation, corruption, audit trails
+- Architecture Critic — module boundaries, interfaces, testability, SOLID
+- Performance Analyst — scalability, rate limits, cost modeling
+- Integration Detective — env vars, deployment, external dependencies
+- Security Auditor — auth, secrets, injection, access control
+- UX Advocate — user-facing workflows, error messages, feedback
+- Domain Expert — business logic, domain rules, edge cases
+- Devil's Advocate (mandatory) — end-to-end flows, contradictions, blind spots
+- Selection Process — how to pick the right team
+
 </catalog>
 
 <archetype id="data-integrity-guardian">
@@ -43,6 +54,8 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - "Separate function vs mode flag" discussions
 - Interface or type changes
 - Mentions of "reuse", "shared", "common"
+- Dependency injection patterns or test setup implications
+- Mentions of "mock", "stub", "testable", "injectable"
 
 **What this reviewer checks:**
 - Is the architectural decision (e.g., separate function vs mode flag) justified?
@@ -50,6 +63,8 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Are interface changes backward-compatible or do they break existing callers?
 - Is the type system design clean (union types, generics, discriminated unions)?
 - Are local/private functions being reused without extraction?
+- Can each component be tested in isolation via TDD? Are dependencies injectable or hardwired?
+- Does the design force awkward test setups (deep mocking, global state, test-only code paths)?
 
 **Files to read:** Existing modules being modified, interface definitions, type files, callers of changed interfaces.
 

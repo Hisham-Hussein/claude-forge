@@ -7,6 +7,21 @@
 
 <process>
 
+Copy this checklist and track progress as you go:
+
+```
+Review Progress:
+- [ ] Step 1: Read and analyze the spec (domain dimensions, referenced files)
+- [ ] Step 2: Select the review team (announce to user, get acknowledgment)
+- [ ] Step 3: Identify files for reviewers (spec + source + config + types + tests)
+- [ ] Step 4: Generate focus areas per reviewer (specific questions, not instructions)
+- [ ] Step 5: Create shared tasks and spawn agent team (parallel, opus model)
+- [ ] Step 6: Synthesize with critical judgment (cross-challenge, severity calibration)
+- [ ] Step 7: Present to user and get decision
+- [ ] Step 8: Apply fixes (if approved) → loop back to Step 5
+- [ ] Step 9: Safety valve (if round 5 reached with open Critical/Major)
+```
+
 <step_1>
 **Step 1: Read and Analyze the Spec**
 

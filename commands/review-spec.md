@@ -12,7 +12,7 @@ allowed-tools:
   - TaskList
   - TaskGet
   - AskUserQuestion
-  - Skill(adversarial-spec-review)
+  - Skill(reviewing-specs-adversarially)
 ---
 
-Invoke the adversarial-spec-review skill for: $ARGUMENTS
+Invoke the reviewing-specs-adversarially skill for: $ARGUMENTS
