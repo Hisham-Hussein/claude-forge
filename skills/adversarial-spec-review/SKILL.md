@@ -41,13 +41,7 @@ These are not separate review items — they are the lens through which all find
 
 <prerequisites>
 
-**Two execution modes exist — ask the user which they want before every round:**
-
-- **Mode A: Agent Teams (preferred)** — Teammates share a task list, message each other, and challenge findings in real-time. Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` in settings.json or environment. CLI only (not VS Code).
-- **Mode B: Parallel Subagents (fallback)** — Independent agents that report back to the orchestrator. No inter-agent communication. Use when Agent Teams is unavailable.
-
-If the user chooses Mode A but the environment doesn't support it (VS Code, feature not enabled), tell them:
-> "Agent Teams requires the CLI with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` enabled. Want to switch to Mode B (parallel subagents) instead, or open a CLI session?"
+Two execution modes exist (Agent Teams vs Parallel Subagents) — see Step 5 of the workflow for details and the critical distinction between them.
 
 </prerequisites>
 

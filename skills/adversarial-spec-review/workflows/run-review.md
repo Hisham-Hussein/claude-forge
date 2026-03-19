@@ -1,10 +1,3 @@
-<required_reading>
-**Read these reference files NOW before proceeding:**
-1. references/reviewer-archetypes.md — reviewer catalog and selection process
-2. references/synthesis-principles.md — cross-challenge rules and convergence criteria
-3. templates/reviewer-task.md — dynamic template for spawning reviewers
-</required_reading>
-
 <process>
 
 Copy this checklist and track progress as you go:
@@ -37,6 +30,8 @@ Output: a mental map of the spec's domain dimensions and which archetypes match.
 
 <step_2>
 **Step 2: Select the Review Team**
+
+**Read `references/reviewer-archetypes.md` now** — it contains the archetype catalog and selection process.
 
 Apply the selection process from reviewer-archetypes.md:
 - Select every archetype with 2+ signal matches
@@ -75,6 +70,8 @@ Each reviewer gets the spec + their domain-relevant files.
 <step_4>
 **Step 4: Generate Focus Areas per Reviewer**
 
+**Read `templates/reviewer-task.md` now** — it contains the prompt template, dynamic fields, and focus area generation guidance.
+
 For each reviewer, generate 3-7 specific QUESTIONS (not instructions) based on:
 - The spec's section structure mapped to the reviewer's expertise
 - The specific concerns that archetype is designed to catch
@@ -83,12 +80,14 @@ For each reviewer, generate 3-7 specific QUESTIONS (not instructions) based on:
 Questions should be specific to THIS spec, not generic. Reference actual section numbers, field names, function names from the spec.
 
 See templates/reviewer-task.md `<focus_area_generation>` for examples.
+
+**Self-check before proceeding:** For each focus area question, verify: (a) it references a specific section number or field name from the spec, (b) it asks the reviewer to TRACE or VERIFY something concrete, not just "check if X is correct." Rewrite any question that fails this test.
 </step_4>
 
 <step_5>
 **Step 5: Spawn Reviewers**
 
-**MANDATORY: Ask the user which mode they want BEFORE spawning.** Present both options clearly and wait for their choice. Do this for EVERY round — including Round 1 and all subsequent rounds. Never assume. Never auto-select. Example:
+**MANDATORY: Ask the user which mode they want BEFORE spawning in Round 1.** Present both options clearly and wait for their choice. For subsequent rounds, confirm briefly: "Continuing with Mode [A/B] — OK, or want to switch?" Example for Round 1:
 
 ```
 Before I spawn the reviewers, which mode do you want?
@@ -106,7 +105,7 @@ Two modes are available. They are fundamentally different — do NOT confuse the
 
 **What it is:** Claude Code Agent Teams — a specific experimental feature where teammates are separate Claude Code sessions that share a task list, have a mailbox for inter-agent messaging, and can see each other's work. Teammates can challenge each other's findings in real-time. This is the best mode for adversarial review because cross-challenge happens DURING the review, not just in synthesis.
 
-**Requirement:** `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` must be set in settings.json or environment. CLI only (not VS Code).
+**Requirement:** `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` must be set in settings.json or environment.
 
 **Reference:** https://code.claude.com/docs/en/agent-teams
 
@@ -133,7 +132,7 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 
 **What it is:** Independent Agent tool invocations that run in isolation. Each agent reads files, does its review, and returns results to the orchestrator. Agents CANNOT see each other's work or communicate. Cross-challenge only happens in the orchestrator's synthesis step.
 
-**When to use:** Only when Agent Teams is unavailable (VS Code, feature not enabled, etc.). **You MUST tell the user** before using this mode: "Agent Teams isn't available in this environment. Falling back to parallel subagents — reviewers won't be able to cross-challenge each other directly. I'll handle cross-challenge in synthesis."
+**When to use:** Only when Agent Teams is unavailable (feature not enabled, etc.). **You MUST tell the user** before using this mode: "Agent Teams isn't available in this environment. Falling back to parallel subagents — reviewers won't be able to cross-challenge each other directly. I'll handle cross-challenge in synthesis."
 
 **How to use:**
 1. For each reviewer, create a task via TaskCreate with the task description from the template. Note the task ID.
@@ -148,6 +147,8 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 
 <step_6>
 **Step 6: Synthesize with Critical Judgment**
+
+**Read `references/synthesis-principles.md` now** — it contains cross-challenge rules, severity calibration, and convergence criteria.
 
 After all reviewers complete, apply synthesis-principles.md:
 

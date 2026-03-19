@@ -8,7 +8,7 @@ Rules for synthesizing reviewer findings into a final issues list. The orchestra
 When 2+ reviewers independently flag the same issue (even with different framing), that's a high-confidence finding. Prioritize these.
 
 **Rule 2: Single-reviewer findings require code verification.**
-If only one reviewer flagged it, the orchestrator MUST verify it against the actual codebase before including it. Read the relevant source file. Check if the concern is real.
+If only one reviewer flagged it, the orchestrator MUST verify it against the actual codebase before including it. Read the relevant source file. Check if the concern is real. If verification is inconclusive (cannot confirm or deny from available evidence), include the finding at one severity level lower than the reviewer assigned, with a note: "Could not verify — flagged for user judgment."
 
 **Rule 3: Discard findings that are implementation details, not design flaws.**
 "The spec doesn't specify the exact function name" is an implementation detail. "The spec says to use upsert but upsert can create ghost records" is a design flaw. Only design flaws matter.
