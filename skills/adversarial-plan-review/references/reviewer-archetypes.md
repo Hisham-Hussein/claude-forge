@@ -74,6 +74,8 @@ Coverage levels:
 - **None** = no task addresses this requirement → Critical finding
 - A plan task with no row in the matrix = potential scope creep → Major finding
 
+**Test traceability:** For each task marked "Full" in the coverage matrix, verify the task's test steps actually assert the spec's required behavior — not just that the code runs without errors. A task that implements a matching engine but only tests "it returns an array" has Full implementation coverage but zero behavioral test coverage → downgrade to Partial.
+
 **Files to read:** The plan, the source spec (CRITICAL — must read the full spec), any referenced design documents.
 
 </archetype>
