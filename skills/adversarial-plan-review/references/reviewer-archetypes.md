@@ -59,6 +59,21 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Check for gold-plating — tasks that add "nice to have" features, extra abstractions, or configurability the spec doesn't call for
 - Verify the plan builds the spec's required outputs (tables, endpoints, fields, workflows) with the correct names, types, and behaviors
 
+**Coverage matrix format:**
+For each ## section in the spec, produce a row:
+
+| Spec Section | Requirement | Plan Task(s) | Coverage |
+|---|---|---|---|
+| Section 1: Schema | Campaigns table with 15 fields | Task 2 | Full |
+| Section 2: Server | Hard Max enforcement | Task 5 | Partial — missing test for exceeds-hardmax case |
+| Section 3: Permissions | 3-tier access model | (none) | None |
+
+Coverage levels:
+- **Full** = task explicitly creates/implements the requirement with correct names, types, and behaviors
+- **Partial** = task covers the happy path but misses edge cases, error handling, or config the spec mentions → Major finding
+- **None** = no task addresses this requirement → Critical finding
+- A plan task with no row in the matrix = potential scope creep → Major finding
+
 **Files to read:** The plan, the source spec (CRITICAL — must read the full spec), any referenced design documents.
 
 </archetype>
@@ -79,10 +94,18 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 **What this reviewer checks:**
 - Can a developer with zero codebase context execute each step without asking questions? Is every file path exact? Is every command runnable?
 - Are tasks atomic — does each task produce a self-contained, committable change? Or do tasks leave the codebase in a broken state between commits?
-- Are steps at the right granularity? Each step should be one action (2-5 minutes). "Write the test, implement the feature, and add error handling" is three steps, not one.
+- Are steps at the right granularity? Each step should be ONE action taking 2-5 minutes. Watch for compound steps that hide hours of work — "Implement the matching engine with 6 filter criteria, 4 sort options, and exclusion logic" is a task, not a step. Break these into individual steps: one filter criterion per step, one sort option per step.
 - Do verification steps have concrete expected outcomes? "Run tests" is insufficient — "Run `npm test path/to/test.ts` — expect 3 tests pass" is verifiable.
 - Are commit messages meaningful? Do they describe what was built, not just "task N complete"?
 - Are code snippets in the plan complete enough to implement from? Or are they pseudocode that requires interpretation?
+
+**Writing-plans format compliance:**
+Each task MUST have these structural elements (flag missing elements as Major):
+- A **Files** block listing Create/Modify/Test with exact paths (not generic like "src/utils.ts")
+- Steps that follow the red-green-commit cycle: write test → run to verify it fails → implement → run to verify it passes → commit
+- Verification steps with exact commands AND expected output (not just "run tests")
+- A commit step with a meaningful message (not "task N done")
+- Code snippets that are complete enough to implement from (not pseudocode or "add validation here")
 
 **Files to read:** The plan, existing source files referenced in the plan (to verify paths exist and interfaces match).
 
