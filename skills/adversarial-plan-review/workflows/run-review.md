@@ -193,7 +193,11 @@ For each approved Critical/Major issue:
 2. Apply the fix using Edit tool
 3. Verify the edit is clean and consistent with surrounding text
 
-After all fixes applied, summarize what changed.
+After all fixes applied:
+4. Summarize what changed (list each fix briefly)
+5. **Commit the round's fixes** as a single commit with message format:
+   `docs: fix N Critical + M Major issues from adversarial review (round R)`
+   Include a body listing each fix for traceability. One commit per round — not per fix — because fixes within a round are semantically coupled and may touch overlapping sections.
 
 Then **automatically proceed to the next round** (back to Step 5) with updated round context:
 - Increment round number
