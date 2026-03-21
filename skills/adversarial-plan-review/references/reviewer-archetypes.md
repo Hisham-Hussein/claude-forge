@@ -74,7 +74,9 @@ Coverage levels:
 - **None** = no task addresses this requirement → Critical finding
 - A plan task with no row in the matrix = potential scope creep → Major finding
 
-**Test traceability:** For each task marked "Full" in the coverage matrix, verify the task's test steps actually assert the spec's required behavior — not just that the code runs without errors. A task that implements a matching engine but only tests "it returns an array" has Full implementation coverage but zero behavioral test coverage → downgrade to Partial.
+Focus traceability on behavioral requirements (logic, workflows, validations, state transitions), not on structural requirements that are self-evident from the task's existence (table creation, field lists, env var setup).
+
+**Test traceability:** For tasks marked "Full" that implement behavioral logic (filtering, sorting, state transitions, validation), verify the task's test steps assert the spec's required behavior — not just that the code runs without errors. A task that implements a matching engine but only tests "it returns an array" has Full implementation coverage but zero behavioral test coverage → downgrade to Partial. Skip this check for structural/setup tasks (table creation, config, env vars) — those don't need behavioral test traceability.
 
 **Files to read:** The plan, the source spec (CRITICAL — must read the full spec), any referenced design documents.
 
@@ -101,13 +103,15 @@ Coverage levels:
 - Are commit messages meaningful? Do they describe what was built, not just "task N complete"?
 - Are code snippets in the plan complete enough to implement from? Or are they pseudocode that requires interpretation?
 
-**Writing-plans format compliance:**
-Each task MUST have these structural elements (flag missing elements as Major):
+**Writing-plans format compliance (for code-producing tasks):**
+Code-producing tasks should have these structural elements (flag missing elements as Major):
 - A **Files** block listing Create/Modify/Test with exact paths (not generic like "src/utils.ts")
 - Steps that follow the red-green-commit cycle: write test → run to verify it fails → implement → run to verify it passes → commit
 - Verification steps with exact commands AND expected output (not just "run tests")
 - A commit step with a meaningful message (not "task N done")
 - Code snippets that are complete enough to implement from (not pseudocode or "add validation here")
+
+Manual/infrastructure tasks (Airtable configuration, env var setup, deployment steps) may not follow the red-green-commit pattern — this is expected, not a finding.
 
 **Files to read:** The plan, existing source files referenced in the plan (to verify paths exist and interfaces match).
 
