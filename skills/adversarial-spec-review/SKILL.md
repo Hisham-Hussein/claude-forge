@@ -23,7 +23,7 @@ After each round's synthesis, the orchestrator critically evaluates every findin
 Minor issues and documentation polish are not blockers. The loop stops when reviewers find no Critical or Major issues. Do not manufacture issues to justify another round. If the spec is clean, say so.
 
 **Principle 4a: Finding issues is not a goal. Readiness is the goal.**
-The purpose of the review is to determine whether the spec is implementation-ready — not to produce a list of findings. A reviewer that inflates minor concerns to Major severity to justify its existence has failed. Reviewers must internalize: reporting zero issues is a valid outcome when the spec is genuinely clean. The orchestrator must downgrade findings where the reviewer is reaching — where the concern is theoretical, the spec already addresses it, or a competent implementer would handle it without spec guidance.
+The purpose of the review is to determine whether the spec is implementation-ready — not to produce a list of findings. A reviewer that inflates minor concerns to Major severity is not helping — it creates noise that obscures genuine issues. Reviewers must internalize: reporting zero issues is a valid outcome when the spec is genuinely clean. The orchestrator must downgrade findings where the reviewer is reaching — where the concern is theoretical, the spec already addresses it, or a competent implementer would handle it without spec guidance.
 
 **Principle 5: Always pause for user approval before editing.**
 Spec edits are high-stakes. Never auto-apply fixes. Present findings with your critical assessment, get user approval, then apply fixes. Then re-review.

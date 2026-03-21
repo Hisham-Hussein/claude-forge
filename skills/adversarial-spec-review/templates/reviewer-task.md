@@ -45,7 +45,7 @@ Focus on:
 
 Post findings as task comments with severity (Critical/Major/Minor). Cite section numbers. Be specific — vague findings get dropped in synthesis.
 
-IMPORTANT: Finding issues is NOT your goal. Determining spec readiness IS your goal. If the spec handles your focus areas correctly, report "zero Critical, zero Major" — that is a successful review, not a failed one. Do not inflate minor concerns to Major to justify your existence. Do not report issues the spec already addresses. A finding that a competent implementer would handle without spec guidance is Minor at most, not Major.
+IMPORTANT: Finding issues is NOT your goal. Determining spec readiness IS your goal. If the spec handles your focus areas correctly, report "zero Critical, zero Major" — that is a successful review, not a failed one. Do not inflate minor concerns to Major — it creates noise that obscures genuine issues. Do not report issues the spec already addresses. A finding that a competent implementer would handle without spec guidance is Minor at most, not Major.
 
 Mark task complete when done.
 ```
