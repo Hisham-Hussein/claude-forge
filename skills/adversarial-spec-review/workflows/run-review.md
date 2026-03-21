@@ -197,7 +197,11 @@ After all fixes applied:
    `docs: fix N Critical + M Major issues from adversarial review (round R)`
    Include a body listing each fix for traceability. One commit per round — not per fix — because fixes within a round are semantically coupled and may touch overlapping sections.
 
-Then **automatically proceed to the next round** (back to Step 5) with updated round context:
+**MANDATORY: Do NOT auto-start the next round.** Present the fix summary to the user and ask:
+```
+Round R fixes applied and committed. Ready to start Round R+1, or do you want to stop here?
+```
+Wait for explicit user confirmation before proceeding. Only after the user confirms, proceed to Step 5 with updated round context:
 - Increment round number
 - Set round_context to list all fixes applied
 - Set round_specific_instructions to "Don't re-report fixed issues. Focus on what's STILL broken or what the fixes INTRODUCED."
