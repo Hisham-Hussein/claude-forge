@@ -22,6 +22,9 @@ After each round's synthesis, the orchestrator critically evaluates every findin
 **Principle 4: Convergence means zero Critical/Major, not zero findings.**
 Minor issues and polish suggestions are not blockers. The loop stops when reviewers find no Critical or Major issues. Do not manufacture issues to justify another round. If the plan is clean, say so.
 
+**Principle 4a: Finding issues is not a goal. Readiness is the goal.**
+The purpose of the review is to determine whether the plan is execution-ready — not to produce a list of findings. Reporting zero issues is a valid outcome when the plan is genuinely clean. The orchestrator must downgrade findings where the reviewer is reaching — where the concern is theoretical, the plan already addresses it, or a competent implementer would handle it on the fly. BE ACCURATE. You do not get points for inflating issues that are minor or cosmetic into Major, and you do not get points for deflating genuine issues to avoid reporting them. The only measure of a good review is accuracy — did you correctly identify what is and is not a problem? When dismissing a concern as "an implementer would handle this," verify: would the implementer KNOW this concern exists without the plan mentioning it? If not, flag it.
+
 **Principle 5: Always pause for user approval before editing.**
 Plan edits are high-stakes — they change what gets built. Never auto-apply fixes. Present findings with your critical assessment, get user approval, then apply fixes. Then re-review.
 
