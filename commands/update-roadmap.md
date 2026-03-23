@@ -64,9 +64,11 @@ Decision log:
 4. **Update QUEUE.md**:
    - Add new discoveries under the appropriate section (Next Up, topic-specific groups, or Backlog)
    - Promote items to "Next Up" if they become urgent
-   - Remove items that were completed
+   - **Remove completed items entirely** — do NOT leave struck-through items in Next Up. A completed item cluttering #1 misleads fresh agents about what to work on next.
+   - If an item was promoted from Backlog to Next Up, replace the Backlog entry with a pointer (e.g., "Promoted to Next Up #1") or remove it entirely. Never have the same item described in both sections.
    - Keep "Next Up" to roughly 5 items
    - **CRITICAL:** If clearing ACTIVE.md, ensure "Next Up" has at least one item (check project directives, strategic docs, or conversation context for logical next steps)
+   - **FRESH-AGENT CHECK (mandatory):** After all QUEUE.md edits, re-read Next Up #1 and ask: "If a fresh agent reads this right now with zero context, will it know exactly what to work on?" If #1 is a completed item, a vague reference, or points to something that doesn't match ACTIVE.md's Current Focus — fix it before proceeding.
 
 5. **Check artifacts index** (if `artifacts/` exists):
    - Scan `artifacts/` for all `.md` files (excluding ARTIFACTS-INDEX.md itself)
