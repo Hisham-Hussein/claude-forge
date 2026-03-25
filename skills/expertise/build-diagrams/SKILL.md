@@ -88,6 +88,34 @@ Skipping this step produces dull, generic diagrams that require multiple iterati
 **Links:** Always style with `linkStyle default stroke:#64748B,stroke-width:1px`
 </defaults>
 
+<principle name="line-breaks-in-nodes">
+**Use `<br>` for line breaks in node labels, NEVER `\n`.** In Mermaid flowcharts, `\n` renders as literal text. Only `<br>` creates actual line breaks. Exception: `block-beta` supports `\n`.
+</principle>
+
+<principle name="diagram-sizing-with-subgraphs">
+**Control diagram size with subgraphs, not just spacing.**
+
+`nodeSpacing` and `rankSpacing` have LIMITED effect on flat diagrams (all nodes at the same level). They only add padding between existing elements — they cannot create vertical/horizontal structure that doesn't exist.
+
+**To make a diagram taller (TD) or wider (LR):** wrap logical groups of nodes in subgraphs, and connect the subgraphs to each other. This forces Mermaid to create distinct sections with boundaries and padding. Once subgraphs provide the structure, THEN use `rankSpacing`/`nodeSpacing` to fine-tune.
+
+**Axis mapping — which spacing controls which direction:**
+
+| Direction | `nodeSpacing` controls | `rankSpacing` controls |
+|-----------|----------------------|----------------------|
+| **TD/TB** (top-down) | Horizontal (between siblings) | Vertical (between levels) |
+| **LR** (left-right) | Vertical (between siblings) | Horizontal (between levels) |
+
+**Sizing recipe:**
+1. Start with subgraphs to create vertical/horizontal structure
+2. Connect subgraphs with arrows (e.g., `source --> endpoints --> processing`)
+3. Use `rankSpacing` to control gap between levels (increase = more space along flow direction)
+4. Use `nodeSpacing` to control gap between siblings (increase = more space perpendicular to flow)
+5. Reduce values to compress if the diagram is too large after adding subgraphs
+
+**Common mistake:** Repeatedly tweaking `nodeSpacing`/`rankSpacing` on a flat diagram expecting it to grow. It won't. Add subgraphs first.
+</principle>
+
 <intake>
 **Invocation modes:**
 
