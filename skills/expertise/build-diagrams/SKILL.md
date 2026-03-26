@@ -89,7 +89,17 @@ Skipping this step produces dull, generic diagrams that require multiple iterati
 </defaults>
 
 <principle name="line-breaks-in-nodes">
-**Use `<br>` for line breaks in node labels, NEVER `\n`.** In Mermaid flowcharts, `\n` renders as literal text. Only `<br>` creates actual line breaks. Exception: `block-beta` supports `\n`.
+**Use actual newlines for line breaks in node labels, NEVER `\n` escape sequences.** In Mermaid, `\n` renders as the literal characters backslash-n — it does NOT create a line break. Instead, put a real newline inside the quoted label:
+
+```
+node1["First Line
+Second Line"]
+```
+
+WRONG: `node1["First Line\nSecond Line"]` — renders as `First Line\nSecond Line`
+RIGHT: Use a literal newline character between the lines inside the quotes.
+
+This applies to flowcharts, block-beta, and all other diagram types.
 </principle>
 
 <principle name="diagram-sizing-with-subgraphs">
