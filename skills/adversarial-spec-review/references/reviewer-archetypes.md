@@ -15,6 +15,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Platform Constraints Reviewer — vendor capabilities, plan limitations, API truth
 - State Machine Reviewer — status transitions, race conditions, concurrent state
 - Operational Readiness Reviewer — monitoring, alerting, debugging, day-2 ops
+- Competitive Coder — regex precision, algorithmic edge cases, parsing correctness
 - Devil's Advocate (mandatory) — end-to-end flows, contradictions, blind spots
 - Selection Process — how to pick the right team
 
@@ -280,6 +281,39 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Are log messages actionable? (Not just "error occurred" but enough context to diagnose)
 
 **Files to read:** Server entry points, existing logging patterns, existing health checks, monitoring/alerting configuration, error handling code.
+
+</archetype>
+
+<archetype id="competitive-coder">
+
+**Competitive Coder**
+
+**Expertise:** Regex precision, algorithmic edge cases, off-by-one errors, parsing correctness, input boundary conditions, greedy vs lazy matching, character class completeness, catastrophic backtracking.
+
+**Selection signals in spec:**
+- Regular expressions (new or modified)
+- String parsing or extraction logic
+- Input normalization or sanitization
+- Character set handling (Unicode, special characters, mixed scripts)
+- Digit/number formatting or validation
+- Pattern matching with multiple branches or fallbacks
+- Edge case lists in test specifications
+- Mentions of "first match wins", "greedy", "contiguous", "separator"
+
+**What this reviewer checks:**
+- Trace every regex character by character — does each group capture exactly what's intended, nothing more, nothing less?
+- Test regex against adversarial inputs: empty strings, max-length strings, inputs that almost-match, inputs with unexpected separators
+- Check for catastrophic backtracking (nested quantifiers on overlapping character classes)
+- Verify greedy vs lazy quantifiers produce correct results at boundaries
+- Check character class completeness — are all valid separators included? Are invalid ones excluded?
+- Verify anchoring: can the regex match in an unintended position (mid-word, inside a URL, inside another number)?
+- Check normalization ordering: does the order of strip → match → normalize steps produce correct results for ALL input variants, not just the examples?
+- Verify digit count constraints match real-world formats — off-by-one in `{8}` vs `{9}` silently drops valid inputs
+- Check for false positives: inputs that shouldn't match but do (e.g., a sequence of digits inside a URL or ID that looks like a phone number)
+- Check for false negatives: valid inputs the spec claims to support but the regex would reject (e.g., less common but valid separators like `/` or `(`)
+- When test cases are specified, verify they are exhaustive: do they cover every regex branch? Every normalization path? Every boundary between "match" and "no match"?
+
+**Files to read:** Source files containing regex/parsing logic, test files with edge cases, any referenced format specifications or standards.
 
 </archetype>
 
