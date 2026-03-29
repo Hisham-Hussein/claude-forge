@@ -12,6 +12,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Integration Sequencing Reviewer — build order, working system at each boundary, merge safety
 - Risk & Blocker Detector — external dependencies, unknowns, assumptions, environmental prerequisites
 - Codebase Alignment Reviewer — existing patterns, interface compatibility, naming conventions
+- Competitive Coder — regex precision, algorithmic edge cases, parsing correctness
 - Devil's Advocate (mandatory) — end-to-end walkthrough, contradictions, blind spots
 
 </catalog>
@@ -214,6 +215,40 @@ Manual/infrastructure tasks (Airtable configuration, env var setup, deployment s
 - If the plan claims to follow an existing pattern ("same as claimRun"), verify the pattern is followed correctly by reading the actual implementation.
 
 **Files to read:** The plan, existing source files being modified, existing files whose patterns should be followed, type definitions, entry points.
+
+</archetype>
+
+<archetype id="competitive-coder">
+
+**Competitive Coder**
+
+**Expertise:** Regex precision, algorithmic edge cases, off-by-one errors, parsing correctness, input boundary conditions, greedy vs lazy matching, character class completeness, catastrophic backtracking.
+
+**Selection signals in plan:**
+- Code snippets containing regular expressions (new or modified)
+- String parsing or URL extraction logic in implementation code
+- Input normalization or sanitization functions
+- Character set handling (Unicode, special characters, mixed scripts)
+- Digit/number formatting or validation
+- Pattern matching with multiple branches or fallbacks (e.g., "first match wins" merge logic)
+- Edge case lists in test code
+- URL classification, routing, or dispatch based on pattern matching
+
+**What this reviewer checks:**
+- Trace every regex character by character — does each group capture exactly what's intended, nothing more, nothing less?
+- Test regex against adversarial inputs: empty strings, max-length strings, inputs that almost-match, inputs with unexpected separators
+- Check for catastrophic backtracking (nested quantifiers on overlapping character classes)
+- Verify greedy vs lazy quantifiers produce correct results at boundaries
+- Check character class completeness — are all valid separators included? Are invalid ones excluded?
+- Verify anchoring: can the regex match in an unintended position (mid-word, inside a URL, inside another number)?
+- Check normalization ordering: does the order of strip → match → normalize steps produce correct results for ALL input variants, not just the examples in the plan?
+- Verify digit count constraints match real-world formats — off-by-one in `{8}` vs `{9}` silently drops valid inputs
+- Check for false positives: inputs that shouldn't match but do (e.g., a sequence of digits inside a URL or ID that looks like a phone number)
+- Check for false negatives: valid inputs the plan claims to support but the regex would reject
+- Trace real-world inputs from diagnostic data or test fixtures through the plan's code snippets — does the classification/parsing produce the correct result for each one?
+- When the plan's code branches on string values returned by another function (e.g., `classification.service === "snapchat"`), verify the branching values match what the called function actually returns by reading its source code
+
+**Files to read:** The plan (focusing on code snippets with regex/parsing), source files containing regex/parsing logic that the plan calls or extends, test files with edge cases, any referenced format specifications or real-world input data.
 
 </archetype>
 
