@@ -6,9 +6,11 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 
 ## Contents
 - Data Integrity Guardian — field preservation, corruption, audit trails
-- Architecture Critic — module boundaries, interfaces, testability, SOLID
+- Architecture Critic — module boundaries, package boundaries, interfaces, testability, SOLID
+- Behavioral Preservation Reviewer — refactoring safety, type widening, default preservation, value tracing
 - Performance Analyst — scalability, rate limits, cost modeling
-- Integration Detective — env vars, deployment, external dependencies
+- Integration & Feasibility Detective — env vars, deployment, file mappings, build viability, scope estimation
+- Deployment Mechanics Reviewer — Dockerfile, shutdown semantics, lock lifecycle, rollback, persistent state
 - Security Auditor — auth, secrets, injection, access control
 - UX Advocate — user-facing workflows, error messages, feedback
 - Domain Expert — business logic, domain rules, edge cases
@@ -50,7 +52,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 
 **Architecture Critic**
 
-**Expertise:** Module boundaries, separation of concerns, code duplication risks, interface contracts, type system design.
+**Expertise:** Module boundaries, package boundaries, separation of concerns, code duplication risks, interface contracts, type system design, public API surface management, dependency direction.
 
 **Selection signals in spec:**
 - New functions or modules being created
@@ -60,6 +62,9 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Mentions of "reuse", "shared", "common"
 - Dependency injection patterns or test setup implications
 - Mentions of "mock", "stub", "testable", "injectable"
+- Monorepo or package extraction (barrel exports, workspace packages, internal vs public types)
+- Adapter or implementation placement decisions (which package owns what)
+- Mentions of "export", "barrel", "index.ts", "public API", "internal"
 
 **What this reviewer checks:**
 - Is the architectural decision (e.g., separate function vs mode flag) justified?
@@ -70,8 +75,42 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Can each component be tested in isolation via TDD? Are dependencies injectable or hardwired?
 - Does the design force awkward test setups (deep mocking, global state, test-only code paths)?
 - Is any mechanism disproportionately complex for the problem it solves? Could the design be significantly simpler while still meeting the stated requirements?
+- Does the dependency graph flow correctly (core → ports ← adapters, apps → packages)? Any circular dependencies?
+- Is the public API surface (barrel export) correct? Are types classified as "internal" that consumers actually need? Are internal types leaking into the public surface?
+- For monorepo specs: can each package be consumed independently? Are adapters placed in the right package (shared vs tenant-specific)?
+- Do port interfaces fully cover the abstraction? Are there hidden couplings where a "generic" interface requires tenant-specific knowledge?
 
-**Files to read:** Existing modules being modified, interface definitions, type files, callers of changed interfaces.
+**Files to read:** Existing modules being modified, interface definitions, type files, callers of changed interfaces, barrel/index files, package.json files (for workspace and dependency declarations).
+
+</archetype>
+
+<archetype id="behavioral-preservation-reviewer">
+
+**Behavioral Preservation Reviewer**
+
+**Expertise:** Refactoring safety, type widening risks, default value preservation, value tracing through conversion boundaries, silent regression detection in parameterization and extraction specs.
+
+**Selection signals in spec:**
+- Type widening (union types broadened to `string`, specific types relaxed to generic)
+- Function signature changes (new parameters, parameter type changes)
+- Parameterization of hardcoded values (constants extracted to config, presets, or parameters)
+- Claims of "no behavioral change" or "behavioral preservation"
+- Default value tables (what happens when a field is omitted)
+- Format or encoding conversions at system boundaries (ingress/egress mappings, display name vs code)
+- Refactoring specs where existing consumers must continue working unchanged
+- Mentions of "preset", "fallback", "default", "backwards-compatible"
+
+**What this reviewer checks:**
+- Trace a representative value (e.g., a country name, a niche category, a phone number) through the ENTIRE pipeline — from config ingress through every processing stage to the final output. Verify the value is correct at every boundary. This is the most important check.
+- For every parameterized function: does the default value EXACTLY match the current hardcoded behavior? Check each one against source code, not the spec's claims.
+- When types widen (e.g., `NicheName` from 26-literal union to `string`): what type safety is lost? Can the existing consumer's strict typing be preserved via presets or generics?
+- When conversion boundaries are introduced (e.g., ISO codes internally, display names in storage): enumerate every boundary. For each, verify the conversion is specified, the mapping is complete, and a missing entry fails safely (not silently).
+- When a fallback/default changes or becomes configurable: what happens if the configuration fails to load? Does the system fail loudly or silently corrupt data?
+- For each "unchanged" claim in the spec: verify it against the actual source code. Read the current implementation and confirm the spec's "before" description is accurate.
+- Check that the spec's function signature change table matches actual function names and signatures in the codebase — specs often reference planned names or outdated names instead of what's actually in the code.
+- Identify the "preset failure mode": if the tenant preset (e.g., gccPreset) fails to load or is partially spread, which fields fall back to defaults and what's the production impact?
+
+**Files to read:** All files whose function signatures change, type definition files (before and after), domain constants, config/preset files, the transform/output layer, any adapter that does format conversion.
 
 </archetype>
 
@@ -101,11 +140,11 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 
 </archetype>
 
-<archetype id="integration-detective">
+<archetype id="integration-feasibility-detective">
 
-**Integration Detective**
+**Integration & Feasibility Detective**
 
-**Expertise:** Interface contracts between systems, environment variables, deployment checklists, dependency injection, configuration management.
+**Expertise:** Interface contracts between systems, environment variables, deployment checklists, dependency injection, configuration management, file mapping completeness, import rewiring, build system viability, scope estimation.
 
 **Selection signals in spec:**
 - New API endpoints
@@ -114,6 +153,11 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Changes to dependency injection interfaces
 - Deployment or infrastructure changes
 - CI/CD pipeline impacts
+- File moves, renames, or restructuring (monorepo extraction, directory reorganization)
+- Build system changes (new bundler, workspace configuration, TypeScript path resolution)
+- Explicit file mapping tables (source → destination)
+- Session or scope estimates ("~3,000 lines", "fits in one session")
+- Mentions of "import", "rewire", "workspace", "turbo", "monorepo"
 
 **What this reviewer checks:**
 - Are all new env vars listed in every relevant location (spec, README, deployment checklist)?
@@ -121,8 +165,45 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Is the deployment sequence specified (what must happen before what)?
 - Are external integrations (webhooks, automations) resilient to failures?
 - What happens when an external dependency is down?
+- **File mapping completeness:** List every source file and test file in the current codebase. Does the spec's mapping account for ALL of them? Which files are missing from the mapping?
+- **Import rewiring:** After files move, which imports break? Are there circular dependency risks in the new structure? Do cross-package imports resolve correctly through workspace symlinks?
+- **Build system viability:** Will the proposed build configuration actually work? For TypeScript + workspaces: do path aliases resolve? Does the runtime (tsx, node) resolve workspace packages? Are there known gotchas with the chosen tooling?
+- **Test mapping:** Do test files map to the correct package? Do test imports match new source locations? Will the test runner discover tests in the new structure?
+- **Scope estimation:** Count actual files to move, imports to rewire, configs to create. Is the claimed scope realistic? If a plan claims "~3,000 lines," verify by counting the actual work.
+- **Plan boundary verification:** If the spec splits work into phases (Plan A, Plan B), are dependencies clean? Is anything in Plan A that requires Plan B changes, or vice versa?
 
-**Files to read:** Server/entry point code, config files, existing interface definitions, deployment configs, .env templates.
+**Files to read:** Server/entry point code, config files, existing interface definitions, deployment configs, .env templates, package.json files, tsconfig.json files, build configs (turbo.json, vite.config.ts), Dockerfile, full directory listing of source and test files.
+
+</archetype>
+
+<archetype id="deployment-mechanics-reviewer">
+
+**Deployment Mechanics Reviewer**
+
+**Expertise:** Container builds, graceful shutdown semantics, lock/mutex lifecycle across process boundaries, rollback safety with persistent state, deployment pipeline correctness, process signal handling.
+
+**Selection signals in spec:**
+- Dockerfile changes or new container configurations
+- Graceful shutdown patterns (SIGTERM, drain, AbortSignal)
+- Mutex, lock, or semaphore patterns that span process lifecycle
+- Rollback strategies ("revert the merge commit", "redeploy previous version")
+- Persistent state that survives deployments (volumes, caches, databases)
+- Health check changes or service readiness patterns
+- Mentions of "shutdown", "drain", "SIGTERM", "lock", "mutex", "rollback", "volume"
+- Process signal handling or lifecycle hooks
+- Decorator or wrapper patterns around process-critical operations
+
+**What this reviewer checks:**
+- **Container build correctness:** Will the Dockerfile build with the new structure? Are all required files copied? Does `npm ci` resolve workspace dependencies? Are production vs dev dependencies handled correctly?
+- **Graceful shutdown preservation:** Does the new shutdown pattern preserve the current drain semantics? Trace the signal path: SIGTERM → abort signal → drain current work → exit. Check for timing issues (can the shutdown handler race with initialization?).
+- **Lock lifecycle safety:** For every lock/mutex acquisition, verify there is a guaranteed release path. Check: what if the operation between acquire and release throws? What if the release call itself throws? Is there a `finally` block? Can the lock get stuck permanently?
+- **Rollback with persistent state:** If the deployment is reverted, what happens to data written by the new version? Cache format changes? Database migrations? Volume data compatibility? Will the old version choke on new-format data?
+- **Health check validity:** Does the health check accurately reflect service readiness? During shutdown, does the health check signal "draining" or does it keep reporting healthy (causing the load balancer to route new requests to a dying instance)?
+- **HTTP server lifecycle:** On shutdown, is the HTTP server closed before or after draining background work? Can new requests arrive during the drain window?
+- **Environment/path resolution:** After file moves, do `process.cwd()`, `__dirname`, and env file resolution still work in all contexts (local dev, Docker, CI, production platform)?
+- **Deployment platform constraints:** Does the deployment platform (Railway, Vercel, AWS, etc.) have build timeouts, memory limits, or other constraints that the new structure might hit?
+
+**Files to read:** Dockerfile, server entry points, shutdown/signal handling code, mutex/lock implementation, health check endpoints, deployment platform configuration, volume mount configuration.
 
 </archetype>
 
