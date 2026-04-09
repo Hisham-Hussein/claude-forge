@@ -56,7 +56,7 @@ Semantic HTML choices, focus management, and keyboard navigation are part of the
 What would you like to do?
 
 1. Create a UX design plan from a story map
-2. Review implementation against an existing UX plan
+2. Review an existing UX plan (quality audit, compliance check, or implementation review)
 3. Update a UX plan for new or changed stories
 4. Something else
 
@@ -96,7 +96,7 @@ All domain knowledge in `references/`:
 | Workflow | Purpose |
 |----------|---------|
 | create-ux-plan.md | Generate UX-DESIGN-PLAN.md from a story map (+ optional user stories) |
-| review-ux-compliance.md | Audit implementation against an existing UX plan (future) |
+| review-ux-compliance.md | Audit UX plan quality and/or implementation compliance — 10-phase review with severity-rated findings |
 | update-ux-plan.md | Update a UX plan for new or changed stories (future) |
 
 </workflows_index>
@@ -106,5 +106,6 @@ All domain knowledge in `references/`:
 | Template | Purpose |
 |----------|---------|
 | ux-design-plan-template.md | 11-section output structure for UX-DESIGN-PLAN.md |
+| ux-compliance-report-template.md | Compliance report output structure for review workflow |
 
 </templates_index>
