@@ -322,6 +322,16 @@ Report to user:
 - Nielsen's heuristic validation summary (pass/warn/fail per heuristic)
 - Any severity 1-2 gaps noted for future attention
 
+### Step 17: Verify Cross-Document Consistency
+
+**After writing the output files**, run the consistency verification from `workflows/verify-ux-consistency.md`.
+
+This catches internal inconsistencies between the split output files — page names that don't match between IA and layouts, buttons in wireframes missing from the navigation table, status values in state machines missing from field specs, etc.
+
+The verification runs 10 mechanical cross-reference checks and auto-fixes severity 3+ issues where the correct value can be determined. Report the verification summary to the user alongside the main output report.
+
+**Do not skip this step.** The most common post-creation defects are cross-document inconsistencies, and this step catches ~70% of them before the user ever sees the output.
+
 </phase>
 
 </process>
@@ -356,5 +366,6 @@ The UX plan is complete when:
 - [ ] Output respects 500-line splitting rule
 - [ ] A coding agent reading the output + a design system can implement without guesswork
 - [ ] Traceability matrix shows 100% coverage of in-scope story map activities
+- [ ] Cross-document consistency verification passes (all 10 checks from verify-ux-consistency.md)
 
 </success_criteria>

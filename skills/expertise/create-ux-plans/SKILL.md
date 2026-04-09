@@ -96,6 +96,7 @@ All domain knowledge in `references/`:
 | Workflow | Purpose |
 |----------|---------|
 | create-ux-plan.md | Generate UX-DESIGN-PLAN.md from a story map (+ optional user stories) |
+| verify-ux-consistency.md | Lightweight cross-document consistency check — runs automatically after create, catches internal inconsistencies between split files |
 | review-ux-compliance.md | Audit UX plan quality and/or implementation compliance — 10-phase review with severity-rated findings |
 | update-ux-plan.md | Update a UX plan for new or changed stories (future) |
 
