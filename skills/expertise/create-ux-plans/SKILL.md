@@ -21,7 +21,7 @@ Each workflow is in `workflows/` — the routing section determines which to loa
 <success_criteria>
 Per-workflow success criteria (each workflow file defines its own detailed criteria):
 
-- **Create:** UX plan in `.charter/` with all 11 sections complete, 100% traceability, no severity 3+ heuristic gaps
+- **Create:** 6 UX documents in `.charter/` via sequential pipeline, each verified by fresh subagent, 100% traceability, constraint manifest written, generation status shows all documents verified/approved
 - **Review:** Compliance report written to `.charter/UX-COMPLIANCE-REPORT.md` with verdict (PASS/PASS WITH NOTES/FAIL)
 - **Update:** All changes applied, no stale PG-XXX references, verify-ux-consistency passes
 - **Verify:** All 10 cross-document checks run, severity 3+ issues auto-fixed, summary reported
@@ -109,10 +109,22 @@ All domain knowledge in `references/`:
 
 | Workflow | Purpose |
 |----------|---------|
-| create-ux-plan.md | Generate UX-DESIGN-PLAN.md from a story map (+ optional user stories) |
+| create-ux-plan.md | 6-stage sequential pipeline: generates UX documents one at a time with per-document verification. Each stage reads verified prior documents from disk. Stages 1-3 gate on user approval. Resume-capable via status manifest. |
 | verify-ux-consistency.md | Lightweight cross-document consistency check — runs automatically after create, catches internal inconsistencies between split files |
 | review-ux-compliance.md | Audit UX plan quality and/or implementation compliance — 10-phase review with severity-rated findings |
 | update-ux-plan.md | Incrementally update a UX plan — merge, remove, or add pages; apply story-level changes — without regenerating from scratch |
+
+**Pipeline stages** (loaded by create-ux-plan.md, not invoked directly):
+
+| Stage | File | Document Produced |
+|-------|------|-------------------|
+| 0 | stages/stage-0-context-detection.md | UX-CONSTRAINTS.md + UX-GENERATION-STATUS.md |
+| 1 | stages/stage-1-design-plan.md | UX-DESIGN-PLAN.md (Sections 1-3) |
+| 2 | stages/stage-2-flows.md | UX-FLOWS.md (Sections 10-11) |
+| 3 | stages/stage-3-layouts.md | UX-LAYOUTS.md (Section 4) |
+| 4 | stages/stage-4-components.md | UX-COMPONENTS.md (Section 5) |
+| 5 | stages/stage-5-interactions.md | UX-INTERACTIONS.md (Sections 6-8) |
+| 6 | stages/stage-6-accessibility.md | UX-ACCESSIBILITY.md (Section 9, conditional) |
 
 </workflows_index>
 
@@ -122,5 +134,7 @@ All domain knowledge in `references/`:
 |----------|---------|
 | ux-design-plan-template.md | 11-section output structure for UX-DESIGN-PLAN.md |
 | ux-compliance-report-template.md | Compliance report output structure for review workflow |
+| ux-constraints-template.md | Platform constraint manifest format for pipeline Phase 0 |
+| ux-generation-status-template.md | Pipeline state manifest for resume capability |
 
 </templates_index>
