@@ -1,7 +1,5 @@
 ---
-description: Generate a UX design plan from a story map — covers IA, visual hierarchy, components, interactions, responsive behavior, data states, accessibility, and user flows
-argument-hint: [path to story map (optional, defaults to .charter/STORY-MAP.md)]
-allowed-tools: Skill(create-ux-plans)
+description: "Deprecated - use the claude-forge:create-ux-plans skill instead"
 ---
 
-Create a UX design plan. $ARGUMENTS
+This command is deprecated. To create UX plans, ask Claude to use the "claude-forge create-ux-plans" skill instead. The skill contains the full multi-stage pipeline with verification, routing, and resume capability.
