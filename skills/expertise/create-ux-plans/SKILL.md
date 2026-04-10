@@ -1,30 +1,30 @@
 ---
 name: create-ux-plans
-description: Use when a project has a story map (STORY-MAP.md) and needs UX specifications before implementation begins. Bridges the gap between story mapping and coding by specifying what users see and how they interact. Use when asked to "create a UX plan", "design the UX", "UX specification", "specify components and interactions", or when the planning pipeline needs a visual and behavioral specification layer.
+description: Plan UX patterns and design specifications. Use when asked to "create UX design", "create UX specifications", "help me plan the UX", "review UX plan", "audit UX compliance", "update UX plan", or "verify UX consistency". Handles the full UX spec lifecycle — create from story maps, review existing plans for quality/compliance, update plans for changed stories, and verify cross-document consistency.
 ---
 
 <objective>
-Generate comprehensive, design-system-agnostic UX specifications from story maps. Produces plans covering information architecture, visual hierarchy, component states with all applicable interactions, responsive behavior, data states with microcopy, accessibility, and user flows — enabling coding agents to implement UX without guesswork.
+Manage the full UX specification lifecycle — create, review, update, and verify design-system-agnostic UX plans. Plans cover information architecture, visual hierarchy, component states with all applicable interactions, responsive behavior, data states with microcopy, accessibility, and user flows — enabling coding agents to implement UX without guesswork.
 </objective>
 
 <quick_start>
-Invoke with a story map to generate a UX-DESIGN-PLAN.md:
+This skill detects existing UX plan files and routes to the appropriate workflow:
 
-1. Provide the story map path (defaults to `.charter/STORY-MAP.md`)
-2. Optionally provide user stories for richer acceptance criteria
-3. The workflow derives page structure, specifies every component with all states, validates against Nielsen's heuristics, and writes output to `.charter/`
+- **No `.charter/UX-*.md` files exist** → Create workflow (from story map)
+- **Files exist + user says "review"** → Compliance audit (10-phase, severity-rated findings)
+- **Files exist + user says "update"** → Incremental update (surgical edits, no regeneration)
+- **Files exist + user says "verify"** → Consistency check (10 cross-document checks)
 
-For the full process, see `workflows/create-ux-plan.md`.
+Each workflow is in `workflows/` — the routing section determines which to load.
 </quick_start>
 
 <success_criteria>
-- UX plan written to `.charter/` with all 11 sections complete (no placeholders)
-- Every component has all applicable states documented
-- Visual hierarchy uses role-based + semantic naming (no colors, fonts, or pixel values)
-- Traceability matrix shows 100% coverage of in-scope story map activities
-- Nielsen's heuristic validation passes with no severity 3+ gaps
-- Responsive behavior explicit for all tiers (mobile, tablet, desktop minimum)
-- A coding agent reading the output + a design system can implement without guesswork
+Per-workflow success criteria (each workflow file defines its own detailed criteria):
+
+- **Create:** UX plan in `.charter/` with all 11 sections complete, 100% traceability, no severity 3+ heuristic gaps
+- **Review:** Compliance report written to `.charter/UX-COMPLIANCE-REPORT.md` with verdict (PASS/PASS WITH NOTES/FAIL)
+- **Update:** All changes applied, no stale PG-XXX references, verify-ux-consistency passes
+- **Verify:** All 10 cross-document checks run, severity 3+ issues auto-fixed, summary reported
 </success_criteria>
 
 <essential_principles>
@@ -51,6 +51,18 @@ Semantic HTML choices, focus management, and keyboard navigation are part of the
 
 </essential_principles>
 
+<auto_detect>
+
+**BEFORE presenting the intake menu, check for existing output:**
+
+1. Glob for `.charter/UX-DESIGN-PLAN.md` and `.charter/UX-*.md` files
+2. If UX plan files exist → the plan has already been generated. Tell the user: "UX plan files already exist in `.charter/`. Options: **review** (compliance audit), **update** (apply changes), or **re-create** (regenerate from scratch)."
+3. If no UX plan files exist → proceed to create workflow
+
+This detection MUST happen before asking the user anything. If the user's invocation message already contains intent (e.g., "review the UX plans"), match that intent directly — do NOT ask again.
+
+</auto_detect>
+
 <intake>
 
 What would you like to do?
@@ -58,22 +70,24 @@ What would you like to do?
 1. Create a UX design plan from a story map
 2. Review an existing UX plan (quality audit, compliance check, or implementation review)
 3. Update a UX plan for new or changed stories
-4. Something else
+4. Verify consistency across UX plan files (lightweight cross-document check)
+5. Something else
 
-**Wait for response before proceeding.**
+**If the user provided intent with the skill invocation, match it and proceed. Only wait for a response if intent is genuinely unclear.**
 
 </intake>
 
 <routing>
 
-| Response | Workflow |
+| Response | Workflow File |
 |----------|----------|
 | 1, "create", "generate", "new", "plan", "design" | `workflows/create-ux-plan.md` |
 | 2, "review", "audit", "check", "compliance" | `workflows/review-ux-compliance.md` |
 | 3, "update", "change", "modify", "revise" | `workflows/update-ux-plan.md` |
-| 4, other | Clarify intent, then route to appropriate workflow |
+| 4, "verify", "consistency", "cross-check" | `workflows/verify-ux-consistency.md` |
+| 5, other | Clarify intent, then route to appropriate workflow |
 
-**After reading the workflow, follow it exactly.**
+**MANDATORY: Once you determine the workflow, you MUST use the Read tool to load the workflow file from this skill's `workflows/` directory. Then follow that workflow exactly. Do NOT improvise or act on your own understanding of what "review" or "update" means. The workflow file contains the precise multi-phase process. Reading the workflow file is not optional — it is the entire point of the routing.**
 
 </routing>
 
