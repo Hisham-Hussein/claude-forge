@@ -11,7 +11,9 @@ Review Progress:
 - [ ] Step 5: Ask user for mode (Agent Teams vs Parallel Subagents), then spawn reviewers
 - [ ] Step 6: Synthesize with critical judgment (cross-challenge, severity calibration)
 - [ ] Step 7: Present to user and get decision
-- [ ] Step 8: Apply fixes (if approved) → loop back to Step 5
+- [ ] Step 8a: Apply fixes with impact tracing
+- [ ] Step 8b: Verify fixes (self-review gate — catch regressions before next round)
+- [ ] Step 8c: Commit and ask about next round → loop back to Step 5
 - [ ] Step 9: Safety valve (if round 5 reached with open Critical/Major)
 ```
 
@@ -178,35 +180,77 @@ Spec is implementation-ready. N rounds, M total reviewer passes, all converged o
 ```
 
 Wait for user response:
-- "Apply fixes" → proceed to Step 8
+- "Apply fixes" → proceed to Step 8a
 - "Stop" or "good enough" → end
 - User disagrees with findings → discuss, adjust, re-present
 </step_7>
 
-<step_8>
-**Step 8: Apply Fixes**
+<step_8a>
+**Step 8a: Apply Fixes with Impact Tracing**
 
-For each approved Critical/Major issue:
-1. Read the spec section that needs editing
-2. Apply the fix using Edit tool
-3. Verify the edit is clean and consistent with surrounding text
+For each approved Critical/Major issue, BEFORE editing:
 
-After all fixes applied:
-4. Summarize what changed (list each fix briefly)
-5. **Commit the round's fixes** as a single commit with message format:
-   `docs: fix N Critical + M Major issues from adversarial review (round R)`
+1. **Trace impact radius.** Search the spec (using Grep) for every reference to the entity being changed — field names, table names, state names, relationship names. List them. These are the locations you must check after editing.
+2. **Read the target section** — read the actual file content around the edit point.
+3. **Apply the fix** using the Edit tool.
+4. **Immediately check impact locations** — revisit each reference found in step 1. Update any that are now stale or inconsistent.
+
+The purpose of the impact trace is to make cascading updates part of the fix, not an afterthought discovered in the next review round.
+</step_8a>
+
+<step_8b>
+**Step 8b: Verify Fixes**
+
+After all fixes are applied, switch from editor mode to adversarial self-reviewer mode. Your goal is to find problems with your own edits before they waste a reviewer cycle.
+
+Run three verification passes:
+
+**Pass 1: Fix-to-finding validation.**
+For each fix, re-read the original reviewer finding and the edit you applied. Ask: "Does this edit actually resolve the concern the reviewer raised, or did I address something adjacent?" If the fix is a partial resolution, note what's still unresolved.
+
+**Pass 2: Consistency scan.**
+For each fix that added, removed, or renamed anything:
+- **Stale references:** Grep the entire spec for the old name or removed item. Zero matches required. If matches remain, update them.
+- **Dropped items:** If you removed something (field, state, row), verify its function is absorbed elsewhere — not silently lost.
+- **Incomplete enumerations:** If you added a list, mapping, or table that should be exhaustive, enumerate ALL items from the source of truth and compare against what you wrote. Gaps here are the most common regression.
+- **Summary/count consistency:** If totals or counts appear anywhere in the spec (overview sections, headers, relationship tables), verify they still match reality.
+
+**Pass 3: Re-read changed sections.**
+Read each changed section of the actual file (not from memory). Verify markdown formatting is clean, tables render correctly, and the new content is consistent with the surrounding text style and conventions.
+
+If any pass finds issues, fix them and re-run the specific pass on the affected fix. Do NOT proceed to commit with known issues.
+
+**Present verification results:**
+```
+Verification of N fixes:
+- X passed all checks
+- Y had issues caught and corrected: [brief list]
+All fixes verified clean.
+```
+
+This step is mandatory — not optional, not "if you have time." Skipping it is the primary driver of review round inflation. Every minute spent here saves 10 minutes of reviewer cycles.
+</step_8b>
+
+<step_8c>
+**Step 8c: Commit and Loop**
+
+After verification passes:
+
+1. Summarize what changed (list each fix briefly)
+2. **Commit the round's fixes** as a single commit with message format:
+   `docs: fix N Critical + M Major findings from adversarial review round R`
    Include a body listing each fix for traceability. One commit per round — not per fix — because fixes within a round are semantically coupled and may touch overlapping sections.
 
 **MANDATORY: Do NOT auto-start the next round.** Present the fix summary to the user and ask:
 ```
-Round R fixes applied and committed. Ready to start Round R+1, or do you want to stop here?
+Round R fixes applied, verified, and committed. Ready to start Round R+1, or do you want to stop here?
 ```
 Wait for explicit user confirmation before proceeding. Only after the user confirms, proceed to Step 5 with updated round context:
 - Increment round number
 - Set round_context to list all fixes applied
 - Set round_specific_instructions to "Don't re-report fixed issues. Focus on what's STILL broken or what the fixes INTRODUCED."
 - Re-select reviewers if needed (same team is fine if spec scope hasn't changed)
-</step_8>
+</step_8c>
 
 <step_9>
 **Step 9: Safety Valve**
@@ -234,6 +278,7 @@ This workflow is complete when:
 - [ ] All reviewers read real source files, not just the spec
 - [ ] Each round synthesized with critical judgment (not rubber-stamped)
 - [ ] User approved all fixes before they were applied
+- [ ] All fixes verified by orchestrator before committing (fix-to-finding, consistency scan, re-read)
 - [ ] Final round: all reviewers found zero Critical/Major
 - [ ] Orchestrator confirmed the verdict with own judgment
 - [ ] User received "implementation-ready" declaration
