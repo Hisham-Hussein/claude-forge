@@ -43,7 +43,7 @@ These are not separate review items — they are the lens through which all find
 
 <prerequisites>
 
-Two execution modes exist (Agent Teams vs Parallel Subagents) — see Step 5 of the workflow for details and the critical distinction between them.
+Three execution modes exist (Agent Teams, Parallel Subagents, Solo Reviewer) — see Step 5 of the workflow for details and the critical distinctions between them.
 
 The plan being reviewed should follow the writing-plans skill output format: tasks with steps, file paths, TDD cycle (write test → verify fail → implement → verify pass → commit), and verification criteria. The skill adapts to other plan formats but is optimized for this structure.
 

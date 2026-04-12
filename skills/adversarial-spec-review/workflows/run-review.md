@@ -8,7 +8,7 @@ Review Progress:
 - [ ] Step 2: Select the review team (announce to user, get acknowledgment)
 - [ ] Step 3: Identify files for reviewers (spec + source + config + types + tests)
 - [ ] Step 4: Generate focus areas per reviewer (specific questions, not instructions)
-- [ ] Step 5: Ask user for mode (Agent Teams vs Parallel Subagents), then spawn reviewers
+- [ ] Step 5: Ask user for mode (Agent Teams vs Parallel Subagents vs Solo Reviewer), then spawn reviewers
 - [ ] Step 6: Synthesize with critical judgment (cross-challenge, severity calibration)
 - [ ] Step 7: Present to user and get decision
 - [ ] Step 8a: Apply fixes with impact tracing
@@ -50,6 +50,8 @@ Based on the spec's domain dimensions, I'm spawning N reviewers:
 ```
 
 Wait for user acknowledgment. The user may want to add or remove reviewers.
+
+**Mode C adaptation:** If the user chooses Mode C (Solo Reviewer) in Step 5, adapt the announcement: instead of "spawning N reviewers," say "the solo reviewer will cover N lenses" and list the same archetypes as combined lenses. The user can still add or remove lenses.
 </step_2>
 
 <step_3>
@@ -89,7 +91,7 @@ See templates/reviewer-task.md `<focus_area_generation>` for examples.
 <step_5>
 **Step 5: Spawn Reviewers**
 
-**MANDATORY: Ask the user which mode they want BEFORE spawning in Round 1.** Present both options clearly and wait for their choice. For subsequent rounds, confirm briefly: "Continuing with Mode [A/B] — OK, or want to switch?" Example for Round 1:
+**MANDATORY: Ask the user which mode they want BEFORE spawning in Round 1.** Present all options clearly and wait for their choice. For subsequent rounds, confirm briefly: "Continuing with Mode [A/B/C] — OK, or want to switch?" Example for Round 1:
 
 ```
 Before I spawn the reviewers, which mode do you want?
@@ -99,9 +101,13 @@ and challenge findings in real-time. Requires Agent Teams feature enabled in CLI
 
 **Mode B: Parallel Subagents** (fallback) — Independent agents that report back to me.
 No inter-agent communication. I handle cross-challenge in synthesis.
+
+**Mode C: Solo Reviewer** (lightweight) — One agent reviews through all lenses in a single
+comprehensive pass. Best for small-medium specs, quick validation, or budget-conscious
+reviews. Same rigor, single agent.
 ```
 
-Two modes are available. They are fundamentally different — do NOT confuse them.
+Three modes are available. They are fundamentally different — do NOT confuse them.
 
 ### Mode A: Agent Teams (PREFERRED)
 
@@ -145,6 +151,29 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 4. Wait for all agents to complete.
 
 **CRITICAL:** Do NOT use Mode B's mechanics (Agent tool) while claiming to use Mode A (Agent Teams). They are completely different features. If you find yourself typing `Agent tool` invocations, you are in Mode B.
+
+### Mode C: Solo Reviewer (LIGHTWEIGHT)
+
+**What it is:** A single Agent tool invocation that reviews through ALL selected archetype lenses in one pass. The solo agent receives a combined prompt with all focus areas organized by lens. This mode uses fewer tokens and API calls than Mode A or B while maintaining the same severity calibration and engineering standards.
+
+**When to use:**
+- Small-to-medium specs (under ~5 major sections)
+- Quick validation passes (e.g., verifying fixes from a prior Mode A/B round)
+- Budget-conscious reviews where spawning 3-5 agents is not justified
+- When the user explicitly requests it
+
+**When NOT to use (warn the user):**
+- Large, complex specs where blind spots from a single pass are likely
+- Specs touching 5+ distinct subsystems (reviewer fatigue degrades quality)
+- When the user has previously done Mode A/B and wants comparable depth
+
+**How to use:**
+1. Combine all selected archetypes' focus areas into a single prompt following the `solo_agent_prompt_template` from templates/reviewer-task.md. Keep focus areas to the top 3-4 questions per lens (not the full 3-7) to manage total prompt length.
+2. Create one task via TaskCreate: "R{round}: Solo Comprehensive Review"
+3. Spawn ONE agent using the Agent tool with `model: opus`.
+4. The agent reviews through all lenses sequentially, performs a cross-lens pass, and returns consolidated findings.
+
+**Key difference from Mode B:** Mode B spawns N independent agents in parallel — diversity of perspective catches blind spots through independent convergence. Mode C spawns 1 agent with N lenses combined — the solo reviewer sees connections across lenses that independent agents cannot, but may have blind spots that diversity would catch. The orchestrator compensates via mandatory spot-checking (see Step 6).
 </step_5>
 
 <step_6>
@@ -162,6 +191,12 @@ After all reviewers complete, apply synthesis-principles.md:
 6. **Check for fix regressions** (round 2+) — did prior fixes create new problems?
 
 Produce the final issues list using the presentation format from synthesis-principles.md.
+
+**Mode C adaptation:** When the round used Mode C (Solo Reviewer), synthesis changes:
+- Skip the cross-challenge step (there is only one reviewer) — instead, examine the reviewer's "Cross-Lens Observations" section for convergence signals (same issue surfacing under multiple lenses)
+- Every Critical and Major finding requires orchestrator verification against the actual codebase (this is Rule 2 applied universally, since all findings are single-reviewer findings)
+- The orchestrator MUST spot-check the top 3 riskiest areas identified in Step 1 to verify the solo reviewer didn't miss anything — if the orchestrator finds issues the solo reviewer missed, those become orchestrator-originated findings and the round is NOT converged
+- All other synthesis rules (severity calibration, noise dropping, fix regression checking, holistic goal achievement judgment) apply unchanged
 </step_6>
 
 <step_7>

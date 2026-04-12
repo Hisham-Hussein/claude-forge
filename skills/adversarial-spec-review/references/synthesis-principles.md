@@ -24,6 +24,20 @@ After collecting findings, the orchestrator must answer: "If a developer impleme
 
 </cross_challenge_rules>
 
+<solo_reviewer_adaptation>
+
+When Mode C (Solo Reviewer) is used, the cross-challenge rules adapt:
+
+**Rule 1 adaptation:** Independent convergence is replaced by cross-lens convergence. If the solo reviewer flags the same issue under multiple lenses, treat it as a convergence signal equivalent to multi-reviewer convergence.
+
+**Rule 2 adaptation:** Becomes the DEFAULT for all findings. Every Critical and Major finding from the solo reviewer requires orchestrator verification against the actual codebase. This is more work for the orchestrator but is essential — a single reviewer has more potential blind spots than a team.
+
+**Rules 3-6:** Apply unchanged.
+
+**Orchestrator spot-check requirement:** After processing the solo reviewer's findings, the orchestrator MUST independently examine the top 3 riskiest areas of the spec (as identified in Step 1 analysis). If the orchestrator finds issues the solo reviewer missed, those are added as orchestrator-originated findings. This compensates for the loss of multi-reviewer diversity.
+
+</solo_reviewer_adaptation>
+
 <severity_calibration>
 
 **Critical** — The spec as written would produce incorrect behavior, data loss, or security vulnerability if implemented literally. A developer following the spec would build the wrong thing.
@@ -47,6 +61,8 @@ The review loop STOPS when ALL of these are true:
 The orchestrator declares: "Spec is implementation-ready. N rounds, M total reviewers, all converged on zero Critical/Major."
 
 If after 5 rounds there are still Critical/Major issues, the orchestrator should pause and tell the user: "After 5 rounds we're still finding issues. The spec may need a structural rethink, not just iterative fixes. Here's what's still broken: [list]."
+
+**Mode C note:** For Mode C (Solo Reviewer), convergence requires the solo reviewer to report zero Critical/Major AND the orchestrator's spot-check of the top 3 riskiest areas to find no additional issues. A clean solo pass without the orchestrator's spot-check is NOT convergent.
 
 </convergence_criteria>
 
