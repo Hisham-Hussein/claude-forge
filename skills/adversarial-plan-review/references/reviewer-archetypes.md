@@ -2,7 +2,7 @@
 
 The orchestrator selects reviewers by scanning the plan for **scope signals** — task count, subsystem breadth, technology mix, dependency complexity, and structural patterns that indicate which areas of expertise are needed. Each archetype below lists its selection signals.
 
-The orchestrator MUST NOT default to a fixed count. Select as many reviewers as the plan's dimensions demand, plus the mandatory Devil's Advocate. Typical range: 3-5 total.
+The orchestrator MUST NOT default to a fixed count. Select as many reviewers as the plan's dimensions demand, plus the mandatory Devil's Advocate. Typical range: 3-7 total.
 
 ## Contents
 - Dependency Analyst — task ordering, parallelism validity, prerequisite chains
@@ -14,6 +14,9 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Codebase Alignment Reviewer — existing patterns, interface compatibility, naming conventions
 - Competitive Coder — regex precision, algorithmic edge cases, parsing correctness
 - Devil's Advocate (mandatory) — end-to-end walkthrough, contradictions, blind spots
+- Software Architecture Reviewer — dependency direction fidelity, boundary implementation, vendor isolation, SOLID compliance in code
+- Performance & Scalability Reviewer — query patterns, algorithmic complexity, resource lifecycle, caching implementation
+- Observability & Resilience Reviewer — logging implementation, error classification, partial failure handling, degradation paths
 
 </catalog>
 
@@ -270,6 +273,140 @@ Manual/infrastructure tasks (Airtable configuration, env var setup, deployment s
 - List 3-5 topics that a plan of this scope SHOULD address but doesn't. For each, assess whether the omission is acceptable (obvious to implementer) or dangerous (could cause implementation to diverge from intent)
 
 **Files to read:** All files other reviewers read, plus the spec and entry point code.
+
+</archetype>
+
+<archetype id="software-architecture-reviewer">
+
+**Software Architecture Reviewer**
+
+**Expertise:** Verifying that the plan's code-level implementation faithfully carries out the spec's architectural decisions — dependency direction, module boundary integrity, vendor isolation, interface usage, separation of concerns, and SOLID compliance in actual code snippets.
+
+**Why this reviewer exists alongside the spec review's Architecture Critic:** The Architecture Critic reviews whether the spec's *design decisions* are sound. This reviewer checks whether the plan's *code* actually implements those decisions. A spec can prescribe "use adapter pattern for vendor isolation" and pass spec review; the plan can then hardwire `AirtableClient` calls in domain logic. The Architecture Critic can't catch this — it reviewed the design, not the code. This reviewer catches the divergence.
+
+**Selection signals in plan:**
+- New module, service, or layer creation (e.g., "Create src/services/", "Create src/adapters/")
+- Interface or abstract type definitions in code snippets
+- Dependency injection setup or provider pattern code
+- Cross-module imports — tasks where one module imports from another
+- Plan references an architecture document or design principles
+- 3+ new files in different directories (structural decisions being made)
+- Adapter, port, gateway, or repository pattern implementations
+- Tasks that create boundaries between subsystems (API layer, domain layer, infrastructure layer)
+
+**What this reviewer checks:**
+
+1. **Dependency direction audit.** For every `import` or `require` statement in the plan's code snippets, trace the dependency direction. Compare against the spec's stated layer architecture. Domain/business logic modules must NOT import from infrastructure modules (database clients, API SDKs, framework internals). Draw a dependency arrow for each cross-module import and verify all arrows point from outer layers inward (handlers → services → domain; infrastructure → domain interfaces, not the reverse). If the spec prescribes a layered architecture and the plan's imports violate it, that's a plan-diverges-from-spec finding.
+
+2. **Vendor isolation audit.** Read the spec's decisions about external vendor integration. For each external SDK or third-party API call in the plan, check: does the plan implement the vendor access pattern the spec prescribes (adapter, port, direct call)? If the spec says "access Airtable through a repository interface" and the plan imports `AirtableClient` directly in a service file, that's a fidelity violation. Trace each vendor import — verify it appears only where the spec's architecture allows.
+
+3. **Single Responsibility audit.** For each new file the plan creates, identify its ONE responsibility. If a file does HTTP request handling AND business logic AND data access, it violates SRP. Check: could you describe what this file does in one clause without using "and"? Cross-reference against the spec's module responsibility descriptions — is the plan putting logic where the spec intended?
+
+4. **Interface-before-implementation audit.** For each module boundary the spec defines, check: does the plan create a TypeScript interface/type for the contract BEFORE the concrete implementation? If consumers depend directly on the concrete class rather than an interface, the boundary is brittle. If the spec defines interfaces and the plan skips them, that's a fidelity gap.
+
+5. **Contract stability audit.** For each public function signature or API endpoint the plan creates, assess: does it leak internal types in return values, expose implementation-specific parameters, or return raw vendor response shapes instead of domain types? Compare against the spec's stated API contracts if defined.
+
+6. **Boundary leak audit.** For each module's exports, check: are implementation details (internal helper functions, private types, vendor-specific shapes) exported alongside the public API? If a module exports 15 items but consumers only need 3, the boundary is leaking.
+
+7. **Open/Closed assessment.** For the plan's key extension points (where new behaviors will be added in future phases), check: can new behavior be added by adding new code (new implementations of an existing interface), or does it require modifying existing code (adding cases to a switch, conditions to an if-chain)? If the spec identifies extension points and the plan implements them as closed switch statements, that's a divergence.
+
+**Severity calibration for this domain:**
+- **Critical:** The plan creates a dependency cycle between modules, or the plan's structure makes a stated project principle impossible to achieve later (e.g., architecture doc requires vendor portability but the plan hardwires vendor calls throughout domain logic with no adapter layer — retrofitting adapters would require rewriting every consumer).
+- **Major:** The plan clearly diverges from the spec's architectural decisions. The code would work, but it doesn't implement the approved design. Examples: domain logic importing from infrastructure when the spec prescribes the inverse, missing interface at a boundary the spec explicitly defines, a single file mixing 3+ concerns that the spec assigns to separate modules. Also applies to violations of principles explicitly stated in CLAUDE.md.
+- **Minor:** A principle is not perfectly followed but the violation is small scope, the plan doesn't contradict the spec (the spec is simply silent on this point), or the project doesn't explicitly state the principle. Example: a helper function that could be private is exported, but has only one consumer.
+- **Not a finding:** Theoretical perfection that neither the spec nor CLAUDE.md requires. Don't flag the absence of an interface when there's only one implementation and no stated portability requirement for that boundary.
+
+**Files to read:** The plan, the source spec (critical — contains the architectural decisions the plan should implement), the project's architecture document if separate, CLAUDE.md (for the Architectural Design Principles), existing module structure and interfaces, existing adapter/port implementations if any.
+
+</archetype>
+
+<archetype id="performance-scalability-reviewer">
+
+**Performance & Scalability Reviewer**
+
+**Expertise:** Detecting code-level patterns in the plan that will degrade at production data volumes — N+1 queries, unbounded data loading, quadratic algorithms, resource lifecycle issues, and missing caching for expensive operations.
+
+**Why this reviewer exists alongside the spec review's Performance Analyst:** The Performance Analyst reviews whether the spec's *design decisions* will scale (batch sizes, API rate limits, concurrency model, cost modeling). This reviewer checks whether the plan's *code snippets* introduce performance anti-patterns that the spec-level review cannot see — because specs don't contain loop bodies, query implementations, or connection lifecycle code.
+
+**Selection signals in plan:**
+- Database queries or ORM operations in code snippets
+- Loops or iteration over data collections
+- API calls, especially those that could be inside iteration blocks
+- Batch processing, bulk operations, or data transformation pipelines
+- References to "all records," "full list," "every," or queries without visible LIMIT/pagination
+- Concurrent or parallel processing logic
+- Caching setup, memoization, or cache invalidation code
+- AI/LLM API calls (cost and latency implications)
+- Data aggregation, sorting, or filtering operations
+
+**What this reviewer checks:**
+
+1. **N+1 pattern scan.** For each loop or iteration in the plan's code snippets, check: is there a database query, API call, or expensive operation INSIDE the loop body? If Task 5 iterates over campaigns and calls `airtable.getLinkedRecords(campaign.id)` for each one, that's N+1 — it should be a single batch query. Trace every loop body for I/O operations.
+
+2. **Unbounded data retrieval check.** For each data loading operation, check: what happens when the dataset grows? Does the query have a LIMIT? Is there pagination? A query that fetches "all influencer records" works with 50 records but fails or degrades with 50,000. Cross-reference the data model's expected record counts (from the data model schema or spec) against each query to assess real-world impact.
+
+3. **Algorithmic complexity check.** For each data transformation step, estimate the complexity. Nested loops over the same dataset = O(n^2). Sort + filter: is the filter applied before or after the sort? (Filter first = sort smaller dataset = cheaper.) Array operations that create intermediate copies for each step vs. single-pass processing. Flag O(n^2) or worse when n can reasonably exceed 100 in production.
+
+4. **Query pattern vs. index alignment.** For each query pattern the plan creates (filter by status, sort by score, lookup by foreign key), cross-reference with the data model schema. Does the storage layer support efficient access for this pattern? If the plan filters by `campaignId + status` on every request but there's no composite index or view, every query is a full scan.
+
+5. **Resource lifecycle check.** For each external connection the plan creates (database clients, API clients, HTTP connections, file handles), trace the lifecycle: where is it opened? Where is it closed? Is it reused across operations or created/destroyed per-request? Missing connection pooling or unclosed resources = connection exhaustion under load.
+
+6. **Caching opportunity assessment.** For each expensive operation (AI/LLM calls, complex aggregations, repeated identical queries), check: is the result reused? Could it be cached? Especially: does the plan call the same AI model with the same prompt parameters multiple times? Does it re-query the same unchanged data within a single pipeline run? If the spec prescribes caching, does the plan implement it?
+
+7. **Concurrency safety check.** For parallel or concurrent operations in the plan, check: is shared state protected? Can two parallel tasks write to the same record, counter, or file? If the plan uses Promise.all() on operations that modify shared state, race conditions are likely.
+
+**Severity calibration for this domain:**
+- **Critical:** The plan creates a pattern that will fail at expected production data volumes — e.g., loading all records with no pagination when the data model estimates 10K+ records, or an N+1 query inside a loop that runs per-campaign when there could be hundreds of campaigns. Also: the plan contradicts the spec's explicit performance decisions (spec says "batch in groups of 50," plan processes one-by-one).
+- **Major:** A performance issue that will cause noticeable degradation but not failure — e.g., O(n^2) algorithm on moderate-size data, missing caching for repeated expensive AI calls (cost waste), resource lifecycle issues that cause slow leaks. Also: the spec prescribes a performance strategy and the plan ignores it.
+- **Minor:** Suboptimal but functional at expected scale — e.g., an extra array copy in a pipeline that processes <100 items, a query that could use an index but the table has few records.
+- **Not a finding:** Micro-optimizations. Don't flag `Array.filter().map()` vs single-pass when the array is small. Don't flag the absence of connection pooling for a service that makes 1 request per minute.
+
+**Files to read:** The plan, the source spec (for performance decisions and expected data volumes), the data model schema (critical — for record count estimates and access pattern support), existing query patterns or database access code, existing caching implementations if any.
+
+</archetype>
+
+<archetype id="observability-resilience-reviewer">
+
+**Observability & Resilience Reviewer**
+
+**Expertise:** Verifying that the plan's code implements the operational concerns prescribed by the spec — structured logging at boundaries, error classification in handlers, partial failure strategies in pipelines, graceful degradation paths, and state consistency under failure.
+
+**Why this reviewer exists alongside the spec review's Operational Readiness Reviewer:** The Operational Readiness Reviewer verifies that the spec *addresses* operational concerns — monitoring, alerting, debugging, incident response. This reviewer checks whether the plan's *code* actually implements those concerns. A spec can prescribe "structured logging at all service boundaries" and pass spec review; the plan can then create services with no logging statements, a generic catch-all error handler, and no partial failure strategy. The Operational Readiness Reviewer can't catch this — it reviewed the design, not the code.
+
+**Selection signals in plan:**
+- External API or third-party service integration (Airtable, OpenAI, LinkedIn)
+- Multi-step workflows, pipelines, or orchestration sequences
+- State machine implementations or status transitions
+- Error handling blocks (try/catch, custom error types, error propagation)
+- Retry logic, timeout configuration, or backoff strategies
+- Logging, monitoring, or metrics instrumentation code
+- Health check or status endpoints
+- Webhook processing or event-driven architecture
+- Tasks that coordinate across multiple external services in a single operation
+
+**What this reviewer checks:**
+
+1. **Boundary logging audit.** For each service boundary the plan creates (API endpoints, external service calls, pipeline stage transitions, state machine transitions), check: does the plan include structured logging at entry, exit, and error points? At minimum, every external call should log: what was called, what inputs were sent (sanitized), what response was received, and how long it took. Compare against the spec — if the spec prescribes logging requirements, does the plan implement them? Without boundary logging, production debugging requires reproducing the issue — there is no diagnostic trail.
+
+2. **Error classification check.** For each error handling block in the plan, check: does it distinguish between error types that require different responses? Key classifications: (a) retryable vs. permanent — retrying a 400 Bad Request is a waste; not retrying a 503 is a missed recovery. (b) user-facing vs. internal — a user should see "content generation failed" not a stack trace. (c) upstream vs. downstream — did our code fail or did an external service fail? If the spec defines error handling strategy and the plan implements a generic catch-all instead, that's a fidelity violation.
+
+3. **Partial failure strategy.** For each multi-step workflow or pipeline in the plan, trace: what happens if step N fails after steps 1 through N-1 succeeded? Specifically: (a) are completed steps left in a consistent state, or is there dangling intermediate data? (b) can the workflow resume from the failure point, or must it restart from scratch? (c) does the system know it's in a partially-completed state? Both "all-or-nothing" and "best-effort" are valid strategies — but the plan must be explicit about which it uses, especially if the spec prescribes one.
+
+4. **Metrics hook point check.** For each pipeline stage, service boundary, and resource-consuming operation, check: can you answer "how fast, how often, and how reliably does this run?" from the planned code? The plan doesn't need to implement a full metrics framework, but it must leave clear hook points where metrics can be added — function boundaries that return timing info, error counters, cost accumulators. The distinction is between missing implementation (Minor) and missing hook points (Major — can't add metrics later without restructuring).
+
+5. **Graceful degradation path check.** For each feature that depends on an external service, check: what is the user experience when that service is unavailable? If the AI model is down, does content generation crash the whole pipeline, or does it queue the work and notify the user? The plan should have an explicit answer for each external dependency — even if the answer is "fail fast and tell the user." An IMPLICIT failure mode (uncaught exception → process crash) is always worse than an explicit one. Compare against the spec's prescribed degradation strategy if defined.
+
+6. **Timeout and circuit breaker check.** For repeated calls to the same external service (especially in loops or batch operations), check: (a) is there a per-call timeout? An API call with no timeout blocks indefinitely if the service hangs. (b) if N consecutive calls fail, does the system keep hammering the service, or does it back off? If the spec prescribes timeout or circuit breaker patterns, does the plan implement them?
+
+7. **State consistency under failure check.** For each state machine in the plan, trace: can an entity get stuck in an intermediate state? If the backend sets a record to "Processing" status then crashes before setting it to "Complete" or "Failed," the record is stuck forever. Does the plan have a mechanism to detect and recover stuck states (timeouts, health checks, cleanup jobs)? Cross-reference with the spec's state machine definitions and recovery semantics.
+
+**Severity calibration for this domain:**
+- **Critical:** The plan creates a state machine that can get permanently stuck with no recovery mechanism, or a multi-step workflow where partial failure corrupts data with no cleanup. Also: the plan retries on permanent errors (infinite loop) or has no timeout on external calls in a synchronous request path (user-facing hang). Also: the spec explicitly prescribes a resilience strategy and the plan contradicts it.
+- **Major:** Missing structured logging at external service boundaries (no diagnostic trail for production issues), generic catch-all error handling that swallows error type information, no graceful degradation path for a core external dependency, no partial failure strategy for a multi-step pipeline when the spec requires one. Also applies to violations of CLAUDE.md's "graceful degradation" and "observability readiness" principles.
+- **Minor:** Missing metrics hook points that can be added later without restructuring, logging that could be more structured, error messages that are technically correct but not user-friendly.
+- **Not a finding:** The absence of a full observability framework when the plan is building v1 foundations. Don't flag "no Prometheus integration" — flag "no place to ADD metrics later." The distinction is between missing implementation and missing hook points.
+
+**Files to read:** The plan, the source spec (critical — for prescribed resilience and observability requirements), the architecture document (for system boundaries and external dependencies), CLAUDE.md (for observability and graceful degradation principles), existing error handling patterns, existing logging utilities if any, state machine definitions from the data model schema.
 
 </archetype>
 

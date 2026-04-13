@@ -149,6 +149,27 @@ Example for Spec Fidelity Reviewer:
 3. The spec (Section 2) requires server-side Hard Max enforcement. Which task implements this? Does the test cover the case where campaign.maxInfluencers exceeds settings.hardMax?
 ```
 
+Example for Software Architecture Reviewer on a content pipeline plan:
+```
+1. Task 3 creates src/services/contentPipeline.ts that imports AirtableClient directly from src/infrastructure/airtable.ts. The spec (Section 3, "Vendor Isolation") prescribes infrastructure access through port interfaces. Does the plan create the port interface the spec requires, or does the service depend on the concrete Airtable implementation?
+2. Task 7 creates a matching engine in src/domain/matching.ts. Walk through its imports — does it depend only on domain types, or does it import from infrastructure or HTTP layers? The spec's layer architecture says domain modules must not depend outward.
+3. CLAUDE.md Principle 4 requires vendor portability. Tasks 4-6 integrate the OpenAI API. Does the plan implement the LLM adapter interface the spec defines, or does it call the OpenAI SDK directly from service code?
+```
+
+Example for Performance & Scalability Reviewer on a campaign processing plan:
+```
+1. Task 5 iterates over all campaigns and calls generateContent() for each. The data model schema estimates up to 200 active campaigns. Does the plan batch these operations or process them sequentially? At 200 campaigns with 3s per AI call, sequential processing takes 10 minutes.
+2. Task 3 loads all influencer records for a campaign using listRecords(). The data model allows up to 5,000 influencers per campaign. Is there pagination? What happens when a campaign has 5,000 linked records?
+3. Task 8 creates a scoring pipeline that sorts all candidates, then filters by criteria, then sorts again by score. Can the filter be applied before the first sort to reduce the dataset size?
+```
+
+Example for Observability & Resilience Reviewer on a content generation plan:
+```
+1. Task 6 calls the OpenAI API to generate content. The spec (Section 5) prescribes retryable vs. permanent error classification. The plan's error handler in Task 6, Step 4 catches all errors with a generic handler — does it implement the spec's error classification, or does it swallow error type information?
+2. Task 4 sets campaign status to "Processing" at the start and "Complete" at the end. The spec's state machine (Section 2) defines recovery semantics for stuck states. Does the plan implement the recovery mechanism, or can a crash leave campaigns permanently stuck?
+3. The plan creates 5 pipeline stages (Tasks 3-7). For each stage boundary, is there a log entry that records stage completion, duration, and success/failure? The spec requires structured logging at service boundaries.
+```
+
 Focus areas should be QUESTIONS, not instructions. Questions force investigation; instructions invite rubber-stamping.
 
 </focus_area_generation>
