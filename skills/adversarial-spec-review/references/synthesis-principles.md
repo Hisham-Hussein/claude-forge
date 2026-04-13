@@ -22,6 +22,9 @@ Each round of fixes can create regressions. Explicitly ask: "Did fixing X break 
 **Rule 6: Judge goal achievement explicitly.**
 After collecting findings, the orchestrator must answer: "If a developer implements this spec literally, will the stated objective be achieved?" This is not about individual issues — it's a holistic assessment. A spec can have zero individual Critical findings yet still fail to achieve its goal due to cumulative gaps or a flawed overall approach. If the answer is "no" or "probably not," that is a Critical finding even if no single reviewer flagged it.
 
+**Rule 7: Apply stricter severity calibration in Round 2+.**
+In Round 1, a borderline finding may reasonably be kept as Major — it's the first pass, and caution is appropriate. In Round 2+, apply a HIGHER bar: if an issue was in scope during Round 1 but wasn't caught by any reviewer, it is almost certainly Minor (if it were truly Major, at least one of N reviewers would have flagged it). The only findings that can be Major in Round 2+ are: (a) regressions introduced by Round N-1 fixes, or (b) issues that were literally invisible until a Round N-1 fix revealed them. Everything else is Minor by default — the orchestrator must justify upgrading it with specific evidence of why prior rounds couldn't have caught it.
+
 </cross_challenge_rules>
 
 <solo_reviewer_adaptation>

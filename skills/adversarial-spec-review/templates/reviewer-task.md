@@ -111,14 +111,14 @@ The orchestrator fills these fields:
 |-------|--------|
 | `{round}` | Current round number (1, 2, 3...) |
 | `{spec_path}` | Path to the spec file |
-| `{round_context}` | Round 1: empty. Round 2+: "Prior rounds fixed: [list of fixes]. Find remaining issues or problems the fixes introduced." |
+| `{round_context}` | Round 1: empty. Round 2+: "Prior rounds fixed: [list of fixes]." (Context only — do NOT add hunting instructions here. The convergence instructions come from `{round_specific_instructions}`.) |
 | `{archetype_name}` | From reviewer-archetypes.md |
 | `{archetype_one_liner}` | Brief description from archetype |
 | `{focus_areas}` | Generated from spec analysis — the specific sections and concerns this reviewer should examine |
 | `{file_list}` | Relevant source files detected from spec references and codebase analysis |
 | `{file_list_with_reasons}` | Same files but with "(for X context)" annotations |
 | `{numbered_focus_areas}` | Numbered list of specific questions/checks for this reviewer |
-| `{round_specific_instructions}` | Round 1: "Be thorough." Round 2+: "Don't re-report fixed issues. Focus on what's STILL broken or what the fixes INTRODUCED." |
+| `{round_specific_instructions}` | Round 1: "Be thorough." Round 2+: "This is a CONVERGENCE round. Verify the fixes listed above are clean and check for regressions. Do NOT expand scope beyond Round 1's coverage. Do NOT dig deeper into areas that were clean in prior rounds. If the fixes are correct and no regressions exist, report zero Critical/Major — that is the expected outcome of a successful convergence round." |
 | `{task_id}` | Task ID from TaskCreate |
 | `{combined_lenses}` | Mode C only: All selected archetypes formatted as numbered lens sections, each with name, one-liner, and focus areas |
 | `{lens_count}` | Mode C only: Count of selected archetypes |

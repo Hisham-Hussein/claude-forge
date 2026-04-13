@@ -86,6 +86,13 @@ Questions should be specific to THIS spec, not generic. Reference actual section
 See templates/reviewer-task.md `<focus_area_generation>` for examples.
 
 **Self-check before proceeding:** For each focus area question, verify: (a) it references a specific section number or field name from the spec, (b) it asks the reviewer to TRACE or VERIFY something concrete, not just "check if X is correct." Rewrite any question that fails this test.
+
+**Round 2+ focus area rules:** In subsequent rounds, focus areas MUST narrow, not deepen. Generate questions ONLY from these three categories:
+1. **Fix verification** — "Did the fix for [prior finding] resolve the concern? Did it introduce any inconsistency with [related section]?"
+2. **Regression check** — "Is [section that was clean in Round N-1] still consistent after the fixes?"
+3. **Fix-adjacent gaps** — "Did fixing [X] reveal a gap in [Y] that was hidden by the original error?"
+
+Do NOT generate "go deeper" questions, "find what Round N missed" questions, or questions that expand scope beyond Round 1's coverage. Round 2+ is convergence, not discovery. If the spec was clean in an area during Round 1, it's still clean — don't re-investigate it with deeper scrutiny.
 </step_4>
 
 <step_5>
@@ -283,8 +290,14 @@ Round R fixes applied, verified, and committed. Ready to start Round R+1, or do 
 Wait for explicit user confirmation before proceeding. Only after the user confirms, proceed to Step 5 with updated round context:
 - Increment round number
 - Set round_context to list all fixes applied
-- Set round_specific_instructions to "Don't re-report fixed issues. Focus on what's STILL broken or what the fixes INTRODUCED."
+- Set round_specific_instructions — use the convergence-mode text from templates/reviewer-task.md (NOT the Round 1 text)
 - Re-select reviewers if needed (same team is fine if spec scope hasn't changed)
+
+**CRITICAL — Anti-escalation rule for Round N+1 prompts:**
+- NEVER tell reviewers to "go deeper", "find what was missed", "expand scope", or "look harder"
+- Round N+1 focus areas must be NARROWER than Round N — fix verification and regression checks only (see Step 4 Round 2+ rules)
+- Consider switching to Mode C (Solo Reviewer) for Round 2+ — convergence rounds don't need the diversity of 5 parallel agents; a single focused pass verifying fixes is more cost-effective and less prone to scope creep
+- The orchestrator's Round N+1 prompt must include: "This is a convergence round. Your job is to verify fixes are clean and confirm readiness. Zero findings is the expected outcome if the fixes are correct. Do NOT expand scope."
 </step_8c>
 
 <step_9>
