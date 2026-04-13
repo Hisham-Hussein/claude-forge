@@ -13,8 +13,16 @@ If only one reviewer flagged it, the orchestrator MUST verify it against the act
 **Rule 3: Discard findings that are style preferences, not executability flaws.**
 "The task should use a more descriptive variable name" is a style preference. "The task creates a function with 3 parameters but the caller in Task 7 passes 4 arguments" is an executability flaw. Only executability flaws matter.
 
-**Rule 4: Discard manufactured severity.**
-Reviewers sometimes inflate severity to justify their existence. Apply this test: "Would this issue actually block or derail execution, or is it something a competent developer would handle on the fly?" Critical = execution is impossible or produces wrong results. Major = execution succeeds but misses requirements or creates problems. Minor = developer can handle it.
+**Rule 4: Score each finding before classifying severity.**
+For every finding that survives Rules 1-3, the orchestrator MUST assign a confidence score (0-100) before classifying it as Critical, Major, or Minor. This is mandatory — do not skip this step.
+
+Score each finding by completing this sentence: "I am __% confident this finding is real AND would cause problems in practice." Use the confidence scoring rubric in `<confidence_scoring>` to calibrate. Then apply the thresholds:
+- Score < 60: Drop (not reported to user)
+- Score 60-79: Minor — note for implementer, fix if easy
+- Score 80+: Major — fix before execution
+- Critical: Identified by nature (execution failure, incorrect results, missed spec requirements), not by confidence score. Critical findings bypass scoring.
+
+The score must be written down for each finding. If you cannot write "I am 80% confident this would cause problems in practice," it is not Major.
 
 **Rule 5: Check if fixes from prior rounds introduced new problems.**
 Each round of fixes can create regressions — a reordered task may break a dependency, a split task may duplicate setup code. Explicitly ask: "Did fixing X break Y?" This is the Devil's Advocate's primary job in rounds 2+.
@@ -40,16 +48,58 @@ When Mode C (Solo Reviewer) is used, the cross-challenge rules adapt:
 
 <severity_calibration>
 
-**Critical** — The plan as written would fail to execute, produce incorrect results, or miss a spec requirement entirely. A developer following the plan would build the wrong thing or get stuck.
+**Critical** — (bypasses confidence scoring) The plan as written would fail to execute, produce incorrect results, or miss a spec requirement entirely. A developer following the plan would build the wrong thing or get stuck.
 Examples: missing task that creates a type other tasks import, dependency ordering that makes a task impossible, test that asserts the wrong behavior, spec requirement with zero task coverage.
 
-**Major** — The plan has a real gap that would cause implementation problems, but a competent developer might catch and fix it during execution. Still should be fixed in the plan.
+**Major** — (confidence score 80+) The plan has a real gap that would cause execution problems AND the implementer would not catch it without the plan mentioning it. Verified real, will be hit in practice.
 Examples: vague step that needs more specificity, test that only covers happy path for complex logic, task that partially covers a spec requirement but misses edge cases, file path that looks wrong.
 
-**Minor** — Polish, style, or implementation details that are obvious to the implementer and wouldn't cause execution problems.
-Examples: commit message could be more descriptive, test variable names are generic, step could mention an existing utility function.
+**Minor** — (confidence score 60-79) Real gap, but likely caught by a competent implementer. Note for implementer, fix if easy. Findings scoring below 60 are dropped entirely.
+Examples: commit message could be more descriptive, test variable names are generic, step could mention an existing utility function, defense-in-depth improvements where primary coverage already exists.
 
 </severity_calibration>
+
+<confidence_scoring>
+
+Score each non-Critical finding on a 0-100 confidence scale. The question is:
+"How confident am I that this is a REAL issue that would cause PROBLEMS IN PRACTICE?"
+
+0:  Not confident. False positive that doesn't survive light scrutiny, or a
+    pre-existing issue the plan didn't introduce.
+
+25: Somewhat confident. Might be real, but could be a false positive. Unable to
+    verify against the actual codebase. If the concern is theoretical ("what if
+    a future API change..."), it belongs here unless there is concrete evidence.
+
+50: Moderately confident. Verified real against the codebase, but unlikely to be
+    hit in practice, or a nitpick that a competent developer would handle without
+    guidance. Not important relative to the rest of the plan.
+
+60-79: Confident. Double-checked and verified as real. A competent implementer
+    would LIKELY catch it, but it's a genuine gap worth noting. Defense-in-depth
+    improvements (a second safety layer where the primary coverage already works),
+    documentation that prevents confusion, and ambiguities that could lead to
+    divergent implementations belong here.
+    → Classified as **Minor** (note for implementer, fix if easy).
+
+80-100: High confidence. Verified real, will be hit in practice, and the existing
+    approach is insufficient. The implementer would NOT catch this without the
+    plan mentioning it. Directly impacts correctness or functionality. Or:
+    directly violates a stated project principle (CLAUDE.md / architecture doc).
+    → Classified as **Major** (fix before execution).
+
+IMPORTANT: "The fix is easy" is not a severity input. A trivially fixable gap
+can still be Minor (score 60-79) if a developer would catch it. Ease of fix
+determines whether a Minor is "fix if easy" vs "note for implementer" — it does
+NOT upgrade Minor to Major.
+
+IMPORTANT: "Pattern-setting story" is not an automatic severity amplifier. A
+finding in a pattern-setting story is Major only if it scores 80+ on its own
+merits. If the concern is that the pattern will propagate, verify: would the
+propagation actually cause problems, or would developers in future stories also
+catch and handle it?
+
+</confidence_scoring>
 
 <principle_violation_calibration>
 
@@ -96,11 +146,14 @@ After each round, present to the user:
 ### Critical Issues (N)
 For each: title, severity, section/task reference, description, recommended fix, evidence from spec/code
 
-### Major Issues (N)
-Same format
+### Major Issues (N) — confidence 80+
+For each: title, confidence score, section/task reference, description, recommended fix, evidence from spec/code
+
+### Minor Issues (N) — confidence 60-79
+For each: title, confidence score, section/task reference, brief description, recommendation (note for implementer / fix if easy)
 
 ### Dropped Findings
-Brief list of what reviewers flagged but the orchestrator downgraded or dropped, with reasoning
+Brief list of what reviewers flagged but the orchestrator scored below 60 or downgraded, with the score and reasoning
 
 ### Verdict
 [Either "N Critical, M Major — fixes needed" or "Plan is execution-ready"]
