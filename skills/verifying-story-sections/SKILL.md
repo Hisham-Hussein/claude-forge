@@ -34,7 +34,7 @@ Story specs have 5 natural verification checkpoints. Each group depends on the a
 </section_groups>
 
 <source_document_mapping>
-Which source excerpts to inline for each section group:
+Which source excerpts to inline for each section group. **Excerpt selection principle:** prefer broader sections over narrow snippets. When the mapping says "tables and fields this story touches," include the full table definitions from the data model — not just the fields you think are relevant. The verifier needs enough context to catch what you missed, not just confirm what you included.
 
 **Group 1 (Story + ACs):**
 - Epics file: the specific story entry — user story statement, acceptance criteria, technical requirements
@@ -43,18 +43,18 @@ Which source excerpts to inline for each section group:
 **Group 2 (Tasks / Subtasks):**
 - The ACs from Group 1 (already in the story file — internal consistency check)
 - Architecture doc: relevant patterns (adapter pattern, port design, composition roots)
-- Data model spec: tables and fields this story touches
+- Data model spec: full table definitions for all tables this story touches (not just the fields you referenced — include the complete table so the verifier can catch omissions)
 
 **Group 3 (Architecture context):**
 - Architecture doc: tech stack, code structure, file organization, relevant subsystem design
 - Data model spec: tables, relationships, state machines relevant to this story
 - Previous story file: files created, patterns established, dev notes
-- Codebase state: verify claimed existing code actually exists (use Glob/Grep — do not trust story claims about what exists without checking)
+- Codebase verification results: before spawning the verifier, run Glob/Grep on all codebase claims in the section (file paths, exports, existing code). Include the results in the verifier prompt as "Codebase Verification Results" so the verifier can compare claims against reality without needing tool access.
 
 **Group 4 (Data model + interface design):**
-- Data model spec: exact field names, types, constraints, relationships for affected tables
+- Data model spec: exact field names, types, constraints, relationships for affected tables — include full table definitions
 - Architecture doc: port interfaces, adapter patterns, type design conventions
-- Shared package exports: verify against actual codebase if prior stories have been implemented
+- Shared package exports: if prior stories have been implemented, run Grep on the barrel exports and include results
 
 **Group 5 (Guardrails):**
 - CLAUDE.md: architectural principles, testing requirements, naming conventions
@@ -89,24 +89,54 @@ The verifier receives four inputs:
 </procedure>
 
 <verification_areas>
-The verifier checks five things. These are ordered by cascade severity — a source fidelity error causes more downstream damage than an actionability gap.
+The verifier checks seven things. These are ordered by cascade severity — a source fidelity error causes more downstream damage than an actionability gap.
 
-1. **Source document fidelity** — Does the section accurately reflect its source documents? Line-by-line comparison. If the data model spec says field X is a `singleSelect` with specific choices, does the story section say that? If the architecture doc specifies 3 adapter patterns, are all 3 reflected? Cite the specific source text and the specific story text that diverges.
+1. **Source document fidelity** — Does the section accurately reflect its source documents? The verifier must build an explicit **comparison table** mapping every factual claim in the story section to its source text. If the data model spec says field X is a `singleSelect` with specific choices, does the story section say that? If the architecture doc specifies 3 adapter patterns, are all 3 reflected? Every claim not traceable to a source row is flagged as unsupported. Cite the specific source text and the specific story text that diverges.
 
 2. **Completeness** — Are all relevant requirements from source documents captured? A missing constraint is invisible to the developer — they cannot follow guidance that is not there. Check: are all fields from the data model included? All ports from the architecture? All ACs from the epic?
 
-3. **Internal consistency** — Does this section contradict earlier sections in the same story? Does an AC reference a type that the data model section defines differently? Does a task reference a file path that the architecture section placed elsewhere?
+3. **Source coherence** — When multiple source documents are provided, do they agree with each other on the facts the story references? If the PRD says field X is required and the data model spec says it is optional, or the architecture defines an interface that contradicts the data model's table structure, flag this as a SOURCE CONFLICT. The story author cannot resolve source conflicts alone — escalate to the user with both source locations cited. Do not penalize the story for choosing one side of a conflict; flag the conflict itself.
 
-4. **Actionability** — Is the section specific enough for a developer agent to implement without ambiguity? "Follow architecture patterns" without citing which patterns is a gap. "Use the existing TenantConfigProvider interface" without listing its methods is a gap. The developer agent will ONLY have this story file — everything it needs must be present.
+4. **Internal consistency** — Does this section contradict earlier sections in the same story? Does an AC reference a type that the data model section defines differently? Does a task reference a file path that the architecture section placed elsewhere? For Groups 3-5: actively scan every entity (field name, type, file path, interface method) mentioned in this section against all previously committed sections. If this section says field X is type Y, and an earlier section references field X as type Z, that is a cross-group regression.
 
-5. **Principle compliance** — Do design decisions in this section honor the project's CLAUDE.md principles? Dependency direction, interface segregation, vendor portability, error handling patterns — check against the principles the project actually states, not theoretical best practices.
+5. **Actionability** — Is the section specific enough for a developer agent to implement without ambiguity? The developer agent will ONLY have this story file — everything it needs must be present. Apply these concrete tests (fail any = deviation):
+   - Every interface/port mentioned: are its method signatures listed?
+   - Every file path referenced: is the full path from repo root given?
+   - Every type mentioned: is its shape defined or a reference to its definition location?
+   - Every "follow pattern X": is the pattern described inline or cited by file:line?
+   - Every constraint ("must be", "required", "at most"): is the specific value/threshold stated?
+
+6. **Principle compliance** — Do design decisions in this section honor the project's CLAUDE.md principles? Dependency direction, interface segregation, vendor portability, error handling patterns — check against the principles the project actually states, not theoretical best practices.
+
+7. **Codebase claim verification** (Groups 3-4 only) — When the story claims "the shared package already exports X," "file Y exists at path Z," or "the existing adapter follows pattern W," the verifier must use Glob or Grep to confirm. Do not trust prose claims about codebase state. Stale claims about what exists are a common source of developer confusion.
 </verification_areas>
 
+<severity_classification>
+Every deviation must be classified by severity. This focuses fix effort on what matters and prevents the fix-verify loop from churning on trivial findings.
+
+- **CRITICAL**: Wrong fact that will propagate and cause downstream errors — wrong field name, wrong type, wrong relationship, missing required constraint, wrong interface method signature. A developer implementing from this story will write incorrect code. Must fix before proceeding.
+- **MAJOR**: Missing information that leaves a gap the developer cannot fill — port method not listed, constraint not mentioned, architecture pattern referenced but not described. The developer will have to guess. Should fix before proceeding.
+- **MINOR**: Imprecise wording that is unlikely to cause implementation errors but could be clearer — slightly informal description of a well-defined concept, redundant context. Fix if convenient. Does not block section commitment.
+
+The fix-reverify loop is required only for CRITICAL and MAJOR deviations. MINOR findings are logged in the verifier report but do not block commitment of the section.
+</severity_classification>
+
+<intentional_deviations>
+Sometimes the story legitimately departs from a source document — the source is stale, the user made a decision that overrides it, or a refinement emerged during story creation. Without a mechanism to mark these, the verifier will re-flag them every cycle, wasting fix-verify iterations.
+
+When the story author knows a deviation from a source is intentional:
+1. Annotate the deviation inline in the story section with: `<!-- INTENTIONAL DEVIATION: [reason] -->`
+2. The verifier acknowledges annotated deviations in its report but does not count them as findings.
+3. Unannotated deviations are always flagged — the annotation is opt-in and requires a reason.
+
+The verifier must still report intentional deviations in a separate "Acknowledged Deviations" section so the user can audit them if desired. If the reason is weak or missing, the verifier should flag it as a MAJOR deviation (an unjustified intentional deviation is worse than an accidental one).
+</intentional_deviations>
+
 <fix_reverify_loop>
-When the verifier finds deviations:
+When the verifier finds CRITICAL or MAJOR deviations:
 
 1. The story author fixes the section.
-2. The verifier is re-spawned in **re-verification mode**. In addition to the 5 standard checks, re-verification also checks:
+2. The verifier is re-spawned in **re-verification mode**. In addition to the 7 standard checks, re-verification also checks:
    - Did each fix actually resolve the reported deviation?
    - Did any fix introduce new inconsistencies with the rest of the story?
 3. If re-verification passes, commit and move on.
@@ -140,6 +170,21 @@ The Dev Agent Record section (agent model, debug log, completion notes, file lis
 </pitfall>
 </anti_patterns>
 
+<verification_audit_trail>
+After each section group completes verification, append a verification log entry to the story file as an HTML comment. This enables process improvement and post-hoc auditing.
+
+```
+<!-- Verification Log
+Group 1: PASS (1 cycle)
+Group 2: PASS after fixes (2 cycles) — D1 [CRITICAL]: wrong field type personaId, D2 [MAJOR]: missing FR7 constraint
+Group 3: PASS (1 cycle) — 1 MINOR logged (imprecise adapter description)
+Group 4: PASS after fixes (3 cycles) — D1 [CRITICAL]: port method signature wrong, escalated D2: SOURCE CONFLICT PRD vs data-model on field optionality (user resolved: required)
+Group 5: PASS (1 cycle)
+Intentional deviations: 1 (Group 4 — field renamed per user decision 2026-04-10, source doc stale)
+-->
+```
+</verification_audit_trail>
+
 <success_criteria>
 The skill is working when:
 
@@ -147,6 +192,8 @@ The skill is working when:
 - Deviations are caught and fixed at the section where they originate, not discovered downstream
 - The fix-verify loop converges within 3 cycles (if it consistently hits the cap, the source document mapping or excerpt selection needs improvement)
 - The final story spec, after all sections pass verification, has zero source-document contradictions
+- Source conflicts between documents are surfaced and escalated, not silently resolved by the author
+- The verification audit trail shows a clear record of what was checked and what was fixed
 </success_criteria>
 
 <reference_index>
