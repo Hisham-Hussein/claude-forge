@@ -36,6 +36,18 @@ Task N:
 - [ ] 3 fix cycles exhausted without PASS? → Escalate to user
 ```
 
+After all tasks pass per-task verification:
+
+```
+Final holistic verification:
+- [ ] Spawn final holistic verifier (see templates/final-verification-prompt.md)
+      Inputs: complete plan file, complete spec, CLAUDE.md
+- [ ] Score verifier's raw findings using the confidence rubric (see <final_verification>)
+- [ ] Verdict APPROVED (zero Critical, zero Major)? → Plan is ready for user review
+- [ ] Verdict REVISE? → Fix findings → Re-run final verification
+- [ ] 2 fix cycles exhausted? → Escalate to user with remaining findings
+```
+
 </procedure>
 
 <inputs>
@@ -146,6 +158,99 @@ Intentional deviations: 1 (Task 4 — interface simplified per user decision, sp
 ```
 </verification_audit_trail>
 
+<final_verification>
+After all tasks pass per-task verification, spawn a **final holistic verifier** on the complete plan. This catches emergent issues invisible to per-task verification — cumulative spec coverage gaps, entity drift across distant tasks, principle violations that span multiple tasks, and missing integration points.
+
+**When to invoke:** After the last task passes per-task verification and before presenting the plan to the user.
+
+**Inputs:**
+1. **Complete plan file** (path) — the full plan with all verified tasks
+2. **Complete spec** (path or inline) — the full source spec, not just individual sections
+3. **Project principles file** (path) — CLAUDE.md
+
+**Two-layer architecture (find vs judge):**
+
+The final verification separates finding from scoring — the agent that looks for problems should not also decide how serious they are.
+
+1. **Sonnet verifier agent** (spawned via `templates/final-verification-prompt.md`) — runs all 5 holistic checks. Produces raw findings with evidence and spec/principles citations. Does NOT score or classify severity. Its job is to be thorough — surface everything, let the orchestrator judge.
+
+2. **Plan author / orchestrator** (the caller) — receives the verifier's raw findings and applies the confidence scoring rubric below. Scores each finding 0-100, classifies severity, drops low-confidence findings, produces the calibrated report, and renders the APPROVED/REVISE verdict.
+
+**What the final verifier checks (5 holistic areas):**
+
+1. **Cumulative spec coverage** — Walk every requirement, constraint, and behavioral prescription in the full spec. For each, verify at least one task addresses it. Flag any spec requirement with zero task coverage. This is the check that per-task verification structurally cannot do — each task verifier sees only its spec section, so gaps between sections are invisible.
+
+2. **Cross-task entity integrity** — Build a full entity registry: every interface, type, export, function, constant, and file path mentioned across all tasks. For each entity, verify consistent naming, typing, and signatures everywhere it appears. Per-task verification catches adjacent-task drift; this catches drift across tasks 2 and 9 that never see each other.
+
+3. **Dependency graph correctness** — Verify that every entity a task consumes is produced by a prior task (or exists in the codebase). Check for circular dependencies, missing producers, and ordering issues. Per-task forward checks are scoped to the current spec section; this verifies the full dependency graph.
+
+4. **Holistic principle compliance** — Read CLAUDE.md principles. Check the plan as a whole — not individual tasks in isolation. Does the combined dependency graph honor DIP? Does the full set of interfaces honor ISP? Does the overall architecture honor clean boundaries? A principle violation that emerges from the interaction of 3 tasks won't be caught by verifying each task alone.
+
+5. **Integration completeness** — For every interface/port defined in one task and consumed in another, verify the consumer's usage matches the producer's definition. Check: are all defined exports actually imported somewhere? Are there tasks that produce artifacts no other task consumes (dead code in the plan)?
+
+**Orchestrator severity calibration — confidence-scored rubric:**
+
+After receiving the verifier's raw findings, the orchestrator scores each finding (0-100) before classifying. This prevents severity inflation.
+
+| Score | Classification | Action |
+|-------|---------------|--------|
+| Below 60 | DROP — not reported | Theoretical concern, cosmetic, or competent developer would handle without guidance |
+| 60-79 | MINOR | Note for implementer. Fix if easy. Does not block plan approval. |
+| 80-100 | MAJOR | Real gap the implementer would NOT catch without the plan mentioning it. Should fix before approval. |
+| N/A (by nature) | CRITICAL | Plan as written would produce incorrect results, miss a spec requirement entirely, or create a dependency that cannot be resolved. Must fix. |
+
+**Anti-inflation rules:**
+- "Ease of fix" is NOT a severity input. Easy to fix does not make it Major.
+- Defense-in-depth improvements (second safety layer where primary exists) are capped at MINOR.
+- "Pattern-setting" is not an automatic severity amplifier. A finding is Major only if it scores 80+ on its own merits.
+- If you cannot write "I am 80% confident this would cause problems in practice," it is not Major.
+- Accuracy is the only measure of quality. Zero Critical / zero Major is a valid and successful outcome — not a failure of the review.
+
+**Orchestrator scoring steps:**
+1. Read each raw finding from the verifier
+2. Apply the confidence scoring rubric (0-100)
+3. Drop findings below 60
+4. Classify remaining: MINOR (60-79), MAJOR (80-100), CRITICAL (by nature)
+5. Apply anti-inflation rules — demote any finding that fails the rules
+6. Produce the calibrated report
+7. Render verdict: APPROVED (zero Critical, zero Major) or REVISE (list specific fixes)
+
+**Calibrated report format:**
+
+```
+FINAL VERIFICATION — [plan name]
+
+Spec coverage: {N}/{M} requirements covered ({percentage}%)
+  Uncovered: [list with spec locations, if any]
+
+Entity registry: {N} entities tracked across {M} tasks
+  Inconsistencies: [list, if any]
+
+Dependency graph: {valid / issues found}
+  Issues: [list, if any]
+
+Principle compliance: {pass / issues found}
+  Issues: [list, if any]
+
+Integration completeness: {pass / issues found}
+  Issues: [list, if any]
+
+Findings:
+F{n}: {title}
+Confidence: {score}/100
+Severity: CRITICAL / MAJOR / MINOR
+Area: {which of the 5 holistic checks}
+Evidence: {what the plan says vs what the spec/principles require}
+Fix: {specific suggested fix}
+
+Verdict: APPROVED / REVISE
+(APPROVED = zero Critical, zero Major)
+(REVISE = list specific fixes needed)
+```
+
+**Fix loop:** If REVISE, the plan author fixes the findings and re-runs the final holistic verifier. Cap: 2 cycles. If still not APPROVED after 2 cycles, escalate to the user with remaining findings.
+</final_verification>
+
 <success_criteria>
 The skill is working when:
 
@@ -156,8 +261,11 @@ The skill is working when:
 - Spec-principles conflicts are surfaced and escalated, not silently resolved by the author
 - The verification audit trail shows a clear record of what was checked and what was fixed
 - MINOR findings are logged but do not churn the fix-verify loop
+- The final holistic verification passes (APPROVED) before the plan is presented to the user
+- Spec coverage is explicitly measured and reported (not assumed from per-task passes)
 </success_criteria>
 
 <reference_index>
-Verifier prompt template: `templates/verification-prompt.md`
+Per-task verifier prompt: `templates/verification-prompt.md`
+Final holistic verifier prompt: `templates/final-verification-prompt.md`
 </reference_index>
