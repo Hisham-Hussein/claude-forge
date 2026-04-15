@@ -30,7 +30,8 @@ Task N:
 - [ ] Write the task from the relevant spec section
 - [ ] Spawn verifier (see templates/verification-prompt.md)
 - [ ] Verifier returned PASS? → Commit task to plan file → Move to next task
-- [ ] Verifier returned deviations? → Fix → Re-spawn verifier (re-verification mode)
+- [ ] Verifier returned CRITICAL or MAJOR deviations? → Fix → Re-spawn verifier (re-verification mode)
+      (MINOR findings are logged but do not block — commit the task with MINORs noted)
 - [ ] Re-verification PASS? → Commit → Next task
 - [ ] 3 fix cycles exhausted without PASS? → Escalate to user
 ```
@@ -75,7 +76,7 @@ The verifier checks six things. These are ordered by cascade severity — a spec
 
 5. **Cross-task entity consistency** — Actively scan every entity (interface name, type, export, function signature, file path, constant name) introduced or referenced in this task against:
    - All previously committed tasks (backward check — did we contradict something already established? If this task introduces `RetryPolicy` with 3 fields and a prior task referenced `RetryPolicy` with 4 fields, that's a cross-task regression)
-   - The spec sections for downstream tasks (forward check — will what we defined here be findable and compatible with what downstream tasks will need?)
+   - What the current spec section says about downstream dependencies (forward check — if the spec section references things downstream tasks will consume, will what we defined here be findable and compatible?)
 
 6. **Spec-principles conflict detection** — When the spec prescribes a behavior and the project principles contradict it (e.g., spec says inline a vendor SDK but principles say depend on abstractions), flag this as a CONFLICT. The plan author cannot resolve spec-vs-principles conflicts alone — escalate to the user with both locations cited. Do not penalize the task for choosing one side; flag the conflict itself.
 

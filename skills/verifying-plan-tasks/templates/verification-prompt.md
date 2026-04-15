@@ -93,8 +93,9 @@ Agent tool:
     - All previously committed tasks in the plan file (backward check —
       if this task introduces `RetryPolicy` with 3 fields and a prior task
       referenced `RetryPolicy` with 4 fields, that is a cross-task regression)
-    - What downstream spec sections will need (forward check — will what
-      we defined here be findable and compatible?)
+    - What the current spec section says about downstream dependencies
+      (forward check — if the spec mentions things downstream tasks will
+      consume, will what we defined here be findable and compatible?)
 
     6. Spec-principles conflict detection
     When the spec prescribes a behavior and the project principles
