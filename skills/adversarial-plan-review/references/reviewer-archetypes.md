@@ -17,8 +17,33 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Software Architecture Reviewer — dependency direction fidelity, boundary implementation, vendor isolation, SOLID compliance in code
 - Performance & Scalability Reviewer — query patterns, algorithmic complexity, resource lifecycle, caching implementation
 - Observability & Resilience Reviewer — logging implementation, error classification, partial failure handling, degradation paths
+- Security & Authorization Reviewer — authorization enforcement in code, query filter presence, error sanitization, formula injection
+- Data Model Mapping Reviewer — schema-to-domain field mapping, Zod vs mapper validation boundaries, linked record extraction, type coercion
 
 </catalog>
+
+<selection_index>
+
+**Progressive loading:** This index contains selection signals for all archetypes. Use it for team selection (Steps 1-2). After selecting the team, read only the full `<archetype id="...">` blocks for the selected reviewers (Step 4) — do NOT read all archetype blocks.
+
+| Archetype | ID | Selection Signals |
+|---|---|---|
+| Dependency Analyst | dependency-analyst | Tasks with dependency markers; parallel task groups; tasks modifying same files; shared state/infrastructure; 8+ tasks |
+| Spec Fidelity Reviewer | spec-fidelity-reviewer | References to source spec; multiple tasks covering different functional areas; tasks introducing unmentioned features; tasks that skip spec sections |
+| Task Decomposition Critic | task-decomposition-critic | Tasks with 10+ steps; tasks with <3 steps; steps saying "implement" without snippets; missing/vague verification steps; generic file paths |
+| TDD Discipline Reviewer | tdd-discipline-reviewer | Test-first steps; test files and commands; mock setup; multiple tasks with testing; integration/e2e test steps |
+| Integration Sequencing Reviewer | integration-sequencing-reviewer | Tasks building on each other's output; schema changes followed by code; interface definitions used later; deployment steps interspersed; multiple phases |
+| Risk & Blocker Detector | risk-blocker-detector | External service dependencies; environment setup steps; platform capability assumptions; manual steps; production access requirements |
+| Codebase Alignment Reviewer | codebase-alignment-reviewer | Tasks modifying existing files; new files following existing patterns; interface changes affecting callers; explicit "same pattern as X" references |
+| Competitive Coder | competitive-coder | Regex in code snippets; string parsing/URL extraction; input normalization; pattern matching with branches; edge case lists in tests |
+| Devil's Advocate | devils-advocate | MANDATORY — always selected regardless of signals |
+| Software Architecture Reviewer | software-architecture-reviewer | New module/service/layer creation; interface/abstract type definitions; DI setup; cross-module imports; architecture doc references; 3+ new files in different dirs; adapter/port patterns |
+| Performance & Scalability Reviewer | performance-scalability-reviewer | DB queries/ORM in snippets; loops over collections; API calls inside iteration; batch processing; "all records" references; concurrent processing; caching code; AI/LLM calls |
+| Observability & Resilience Reviewer | observability-resilience-reviewer | External API integration; multi-step workflows/pipelines; state machines; error handling blocks; retry/timeout/backoff; logging/metrics code; health checks; webhook processing |
+| Security & Authorization Reviewer | security-authorization-reviewer | DB/API query calls in snippets; filterByFormula/access-scoping params; ID-based record fetches; error catch blocks; string interpolation in filters; multi-tenant/persona scoping; sanitization utilities; env var secrets |
+| Data Model Mapping Reviewer | data-model-mapping-reviewer | Mapper/transformation functions; Zod schemas; linked record access; type coercion code; field name constants; discriminated unions; null/undefined/empty checks; `as` assertions; mixed optional/required domain types |
+
+</selection_index>
 
 <archetype id="dependency-analyst">
 
@@ -407,6 +432,93 @@ Manual/infrastructure tasks (Airtable configuration, env var setup, deployment s
 - **Not a finding:** The absence of a full observability framework when the plan is building v1 foundations. Don't flag "no Prometheus integration" — flag "no place to ADD metrics later." The distinction is between missing implementation and missing hook points.
 
 **Files to read:** The plan, the source spec (critical — for prescribed resilience and observability requirements), the architecture document (for system boundaries and external dependencies), CLAUDE.md (for observability and graceful degradation principles), existing error handling patterns, existing logging utilities if any, state machine definitions from the data model schema.
+
+</archetype>
+
+<archetype id="security-authorization-reviewer">
+
+**Security & Authorization Reviewer**
+
+**Expertise:** Verifying that the plan's code-level data access paths enforce the authorization model prescribed by the spec — tenant isolation filters on every query, ID-based access justification, error message sanitization, formula injection prevention, and secret handling in code snippets.
+
+**Why this reviewer exists alongside the spec review's Security Auditor:** The Security Auditor reviews whether the spec's *authorization model* is sound — are the right access control decisions made? This reviewer checks whether the plan's *code* actually enforces those decisions at every data access point. A spec can prescribe "all persona-scoped queries must include a filterByFormula" and pass spec review; the plan can then have a `listRecords` call in Task 7 that omits `filterByFormula` entirely. The Security Auditor can't catch this — it reviewed the model, not the code. This reviewer traces every query to verify enforcement is present.
+
+**Selection signals in plan:**
+- Database or API query calls in code snippets (`listRecords`, `getRecord`, `selectRecordsAsync`, `find`, `query`)
+- `filterByFormula` or equivalent access-scoping parameters in query construction
+- ID parameters used to fetch specific records (potential direct object reference)
+- Error handling blocks that catch and re-throw or log errors (potential information leakage)
+- String interpolation or template literals used to build query formulas or filter expressions
+- Multi-tenant or multi-persona data access (tenantId, personaId, workspaceId in queries)
+- Sanitization or cause-wrapping utilities in error handling paths (`sanitizeCause`, `toSafeError`)
+- Environment variables for API keys, tokens, or secrets referenced in code
+
+**What this reviewer checks:**
+
+1. **Query authorization audit.** For every data access call in the plan's code snippets (`listRecords`, `selectRecords`, `getRecord`, fetch to an API endpoint), trace the call and verify an authorization filter is present. Specifically: does every `listRecords`-style call include a `filterByFormula` (or equivalent scope constraint) that restricts results to the authorized tenant/persona? Cross-reference against the spec's isolation model — which tables require scoping and which are tenant-wide? A query on a scoped table that returns records without filtering is a potential cross-tenant data leak. Check both direct query calls AND helper functions the plan creates that wrap queries — the filter must be present at the actual call site, not assumed to be added elsewhere.
+
+2. **Direct object reference check.** For every code path that fetches a record by ID (e.g., `getRecord(tableName, recordId)`), check: is the ID validated as belonging to the authorized tenant/persona AFTER retrieval, or is the plan relying on the ID being proof of prior authorization? If the plan has ID-based access with no ownership verification, assess: is the ID source provably trustworthy (obtained from a prior scoped query in the same request), or could it come from external input? If the plan justifies the exemption, verify the justification is documented in a code comment — undocumented security assumptions are fragile.
+
+3. **Error message sanitization audit.** For every `catch` block or error handling path in the plan's code snippets, check: does the error response expose internal details? Specifically: (a) are raw error messages from external services passed through to callers? They may contain internal field names, API URLs, or record IDs. (b) does the plan use a sanitization utility (`sanitizeCause` or equivalent) before wrapping caught errors? (c) do error messages include enough context for debugging (record ID, operation name) without leaking structure? Cross-reference with the spec — if the spec prescribes error sanitization patterns, does the plan implement them?
+
+4. **Formula injection check.** For every string interpolation or template literal that constructs a filter formula, query parameter, or search expression, check: is any externally-sourced value interpolated directly into the formula string without escaping or validation? If all interpolated values come from typed branded IDs (e.g., `PersonaId`) or field name constants, the risk is low. If any value could originate from user input or external API responses, flag the interpolation path.
+
+5. **Secret lifecycle check.** For every reference to API keys, tokens, or secrets in the plan's code, check: (a) are secrets read from environment variables, not hardcoded in code snippets? (b) are secrets ever included in error messages, log statements, or written to storage fields? (c) do code snippets that create API clients pass secrets correctly (via constructor config, not as URL parameters)?
+
+6. **Access scope completeness.** After checking individual queries, step back and assess holistically: does the plan's authorization coverage match the spec's security model? If the spec requires persona isolation on 6 tables and the plan has 10 query methods, verify all 10 are correctly scoped. Enumerate any gaps with task/step references. Check for methods that are intentionally exempt (e.g., shared-items queries, tenant-wide tables) and verify the exemption is justified and documented.
+
+**Severity calibration for this domain:**
+- **Critical:** A data access call with no authorization filter where the spec requires tenant/persona isolation — this is a potential cross-tenant data leak. Also: user-supplied input interpolated directly into filter formulas with no escaping (formula injection). Also: secrets hardcoded in code snippets or included in error messages.
+- **Major:** ID-based record access with no ownership verification where the ID source is not provably trustworthy, or the exemption is not documented. Also: error messages that expose internal structure (field names, API URLs, record IDs) to callers without sanitization. Also: the spec prescribes a security pattern and the plan omits it. Also: incomplete authorization coverage — most queries are filtered but some are not, creating an inconsistent enforcement surface.
+- **Minor:** Error messages that are technically safe but could be more opaque. Secret handling that works but doesn't follow least-privilege patterns. Authorization filter present but using a pattern different from the spec's prescribed approach (works but inconsistent).
+- **Not a finding:** Theoretical attack vectors requiring compromised infrastructure. Don't flag the absence of encryption-at-rest when the storage platform handles it. Don't flag missing rate limiting unless the spec requires it.
+
+**Files to read:** The plan (focusing on every code snippet with data access calls), the source spec (critical — for the authorization/isolation model the plan should implement), CLAUDE.md (for security-at-boundaries and tenant isolation principles), existing query utilities and filter construction helpers, existing error handling and sanitization utilities, data model schema (for understanding which tables require scoping).
+
+</archetype>
+
+<archetype id="data-model-mapping-reviewer">
+
+**Data Model Mapping Reviewer**
+
+**Expertise:** Verifying that the plan's mapper code snippets correctly and completely translate between storage schema and domain types — field coverage, type coercion correctness, linked record extraction patterns, Zod-vs-mapper validation boundaries, null/undefined/empty-array semantics, and discriminated union completeness.
+
+**Why this reviewer exists alongside the spec review's Data Integrity Guardian:** The Data Integrity Guardian reviews whether the spec's *field preservation and data corruption prevention decisions* are sound — are the right fields protected, are update-vs-preserve rules correct? This reviewer checks whether the plan's *mapper code* actually implements those decisions without data loss or silent corruption. A spec can prescribe "map all 21 Knowledge Item fields to the domain type" and pass spec review; the plan's mapper code can then silently skip 2 optional fields, coerce a date string without validation, or extract a linked record array incorrectly. The Data Integrity Guardian can't catch this — it reviewed the design decisions, not the mapping code.
+
+**Selection signals in plan:**
+- Mapper functions or transformation code that converts between storage records and domain types
+- Zod schemas or runtime validation applied to external data before mapping
+- Linked record field access (record ID extraction from arrays, optional vs required links)
+- Type coercion code (date string parsing, number conversion, boolean defaulting, enum mapping)
+- Field name constants or string literals referencing storage column names
+- Discriminated unions or variant types with switch/if-else dispatch on a type discriminant
+- Null checks, undefined checks, empty array checks, or default value assignments (`?? false`, `?? 0`)
+- `as` type assertions or non-null assertions (`!`) in mapper code
+- Domain type definitions with a mix of optional and required fields
+
+**What this reviewer checks:**
+
+1. **Field coverage audit.** For each mapper function in the plan, compare the fields it maps against the data model schema's field list for that table. Produce a coverage check: which schema fields does the mapper handle? Which does it skip? For skipped fields, determine: is the omission intentional (the domain type doesn't include this field — e.g., Attachment validated by Zod but discarded by mapper) or a gap (the domain type declares the field but the mapper never populates it)? Cross-reference with the spec — if the spec says "map all fields from Table X," verify the plan's mapper actually maps all of them.
+
+2. **Zod-vs-mapper validation boundary check.** For each domain type that has both a Zod schema and a mapper function, trace the validation responsibility boundary. Specifically: (a) what does Zod validate (required fields present, correct primitive types, enum membership)? (b) what must the mapper validate beyond Zod (conditionally required fields based on discriminant value, cross-field constraints, linked record presence for required relationships)? (c) is there a gap where neither Zod nor the mapper validates something? Example: a Zod schema marks `analysisStatus` as `.optional()` (valid across all variants), but the domain type requires it for the `Influencer` variant — the mapper must enforce the conditional requirement. Flag any conditionally-required field where neither the schema nor the mapper enforces the constraint.
+
+3. **Linked record extraction audit.** For every linked record field the mapper accesses, check: (a) does the code correctly handle the storage platform's linked record shape (e.g., Airtable returns arrays of record IDs)? (b) for required single-link fields, does the code use the project's required-extraction utility (e.g., `extractRequiredLinkedRecordId`) that returns `Result<string, Error>` on empty? (c) for optional single-link fields, does it use the optional-extraction utility? (d) what happens when the linked record array is empty or undefined — does the mapper produce `undefined`, throw, or return an error Result? Verify the behavior matches what the domain type expects (required = error on missing, optional = undefined on missing).
+
+4. **Type coercion correctness.** For each field that requires type conversion in the mapper, check: (a) date string parsing — does `new Date(dateStr)` handle the storage platform's date format correctly? What happens with `undefined` input (should produce `undefined`, not `Invalid Date`)? Is the conditional pattern (`dateStr ? new Date(dateStr) : undefined`) used consistently? (b) number fields — does the mapper distinguish between `0` (meaningful value) and `undefined` (not set)? A direct pass-through is correct; `Number(value)` is dangerous because `Number(undefined)` = `NaN` and `Number("")` = `0`. (c) boolean fields — does the mapper handle `undefined` from unchecked checkboxes? The domain type may require `boolean` while storage returns `undefined` for unchecked — verify defaulting (e.g., `?? false`). (d) enum fields — does the mapper handle values that pass Zod validation but aren't in the domain enum?
+
+5. **Discriminated union completeness.** For every discriminated union or variant type in the plan's mapper code, check: (a) are ALL variants handled in the switch/if-else? Cross-reference with the spec's variant list. (b) is there a default/else branch that produces an error (not silently drops the record)? (c) does each variant branch map ALL type-specific fields for that variant, not just the common base fields? (d) if a new variant is added later, will the code produce a compile error (exhaustive check via `default: never`) or silently fall through?
+
+6. **Null/undefined/empty-array semantics audit.** For each optional field in the domain type, trace through the mapper to determine what value is produced when: (a) field present with value → should map to the value, (b) field is empty string → should this be `undefined` or `""`? (c) field is `undefined` (not returned by storage API) → should be `undefined` in domain type, (d) field is `null` → should be `undefined` (if the project convention is undefined-not-null). Pay special attention to fields where the storage platform's empty representation doesn't match the domain type's optional representation.
+
+7. **Type assertion audit.** For every `as` type assertion or non-null assertion (`!`) in mapper code, check: is the assertion provably safe given prior validation, or is it suppressing a type error that indicates a real mapping gap? A `personaId as string` after `createPersonaId()` is safe (branded type unwrapping). An `as unknown as DomainType` bypasses all type checking at the most critical boundary — flag it. A `records[0]!` after a length guard (`if (records.length === 0) return err(...)`) is safe — the guard proves non-null.
+
+**Severity calibration for this domain:**
+- **Critical:** A mapper silently drops a field that the domain type marks as required — this produces `undefined` where consumers expect a value, causing downstream errors. Also: a linked record extraction that doesn't handle the empty-array case for a required relationship, producing `undefined` where an ID is expected. Also: a discriminated union dispatch that silently falls through on an unrecognized variant (data loss).
+- **Major:** A Zod-vs-mapper validation gap where a conditionally-required field passes through unvalidated (e.g., Influencer without `analysisStatus` accepted by Zod, not caught by mapper). Also: type coercion that produces wrong-but-plausible results (e.g., `Number("")` producing `0` instead of `undefined` for an unset numeric field). Also: discriminated union dispatch that is not exhaustive — missing variant compiles but produces wrong output. Also: mapper skips an optional field that downstream consumers actually use.
+- **Minor:** A type coercion that is technically redundant (field is already the correct type from storage). Also: field ordering in the mapper output that doesn't match the domain type declaration (cosmetic). Also: a linked record utility function choice that works but isn't the project's preferred pattern.
+- **Not a finding:** Optional fields intentionally omitted from the mapper when the domain type doesn't use them and no consumer accesses them (e.g., Attachment validated by Zod but discarded by mapper — intentional and documented). Don't flag mapper verbosity — explicit field-by-field mapping is preferable to object spread at this boundary. Don't flag the absence of runtime validation for fields that Zod already validates completely.
+
+**Files to read:** The plan (focusing on mapper code snippets and domain type definitions), the data model schema (critical — the source of truth for field lists, types, and relationships), the source spec (for field mapping decisions and validation requirements), existing mapper implementations (to verify pattern consistency), existing Zod schemas, existing linked record extraction utilities, the domain type definitions the mappers target.
 
 </archetype>
 

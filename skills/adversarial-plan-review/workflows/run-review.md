@@ -25,7 +25,7 @@ Read the plan file completely. Then analyze it for scope dimensions:
 1. **Extract plan structure** — count tasks, identify phases, note dependencies between tasks
 2. **Find the source spec** — the plan should reference its source design document. Read it. If not referenced, ask the user which spec this plan implements.
 3. **Identify referenced files** — find all file paths (Create, Modify, Test), module names, function names, interface names mentioned in the plan. These are the files reviewers must read.
-4. **Scan for scope signals** — for each archetype in reviewer-archetypes.md, count how many selection signals appear in the plan
+4. **Scan for scope signals** — read the `<selection_index>` section in `references/reviewer-archetypes.md` (do NOT read the full archetype blocks yet). For each archetype in the index, count how many selection signals appear in the plan.
 5. **Note the plan's complexity** — task count, phase count, number of files touched, number of new vs modified files
 
 Output: a mental map of the plan's scope dimensions and which archetypes match.
@@ -34,7 +34,7 @@ Output: a mental map of the plan's scope dimensions and which archetypes match.
 <step_2>
 **Step 2: Select the Review Team**
 
-**Read `references/reviewer-archetypes.md` now** — it contains the archetype catalog and selection process.
+**Read the `<catalog>`, `<selection_index>`, and `<selection_process>` sections of `references/reviewer-archetypes.md`** — these contain the archetype list, selection signals, and selection process. Do NOT read the full `<archetype>` blocks yet — those are loaded in Step 4 only for selected reviewers.
 
 Apply the selection process from reviewer-archetypes.md:
 - Select every archetype with 2+ signal matches
@@ -77,6 +77,8 @@ Each reviewer gets the plan + spec + their domain-relevant files.
 **Step 4: Generate Focus Areas per Reviewer**
 
 **Read `templates/reviewer-task.md` now** — it contains the prompt template, dynamic fields, and focus area generation guidance.
+
+**Read the full `<archetype>` blocks now — but ONLY for the selected reviewers.** For each selected reviewer, read their `<archetype id="...">` block in `references/reviewer-archetypes.md` to get their detailed "What this reviewer checks" and "Severity calibration" sections. Do NOT read archetype blocks for reviewers not on the team.
 
 For each reviewer, generate 3-7 specific QUESTIONS (not instructions) based on:
 - The plan's task structure mapped to the reviewer's expertise
