@@ -6,7 +6,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 
 ## Contents
 - Data Integrity Guardian — field preservation, corruption, audit trails
-- Architecture Critic — module boundaries, package boundaries, interfaces, testability, SOLID
+- Architecture Critic — module boundaries, package boundaries, interfaces, testability, SOLID, architectural tech debt
 - Behavioral Preservation Reviewer — refactoring safety, type widening, default preservation, value tracing
 - Performance Analyst — scalability, rate limits, cost modeling
 - Integration & Feasibility Detective — env vars, deployment, file mappings, build viability, scope estimation
@@ -52,7 +52,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 
 **Architecture Critic**
 
-**Expertise:** Module boundaries, package boundaries, separation of concerns, code duplication risks, interface contracts, type system design, public API surface management, dependency direction.
+**Expertise:** Module boundaries, package boundaries, separation of concerns, code duplication risks, interface contracts, type system design, public API surface management, dependency direction, architectural tech debt detection.
 
 **Selection signals in spec:**
 - New functions or modules being created
@@ -65,6 +65,9 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Monorepo or package extraction (barrel exports, workspace packages, internal vs public types)
 - Adapter or implementation placement decisions (which package owns what)
 - Mentions of "export", "barrel", "index.ts", "public API", "internal"
+- Platform-specific names or vendor-specific patterns in core/shared packages
+- Mentions of "debt", "coupling", "migration", "neutral", "platform"
+- Code placed in core packages that names a specific external platform or vendor
 
 **What this reviewer checks:**
 - Is the architectural decision (e.g., separate function vs mode flag) justified?
@@ -79,8 +82,9 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Is the public API surface (barrel export) correct? Are types classified as "internal" that consumers actually need? Are internal types leaking into the public surface?
 - For monorepo specs: can each package be consumed independently? Are adapters placed in the right package (shared vs tenant-specific)?
 - Do port interfaces fully cover the abstraction? Are there hidden couplings where a "generic" interface requires tenant-specific knowledge?
+- **Architectural tech debt audit:** Search the project for tech debt registries or governance documents (e.g., `docs/tech-debt/`, constraint files, CLAUDE.md principles). If a registry exists, cross-reference the spec against it: does the spec deepen any registered debt? Does it add new debt that should be registered? Does it violate any registry rules (e.g., "use neutral names for new items")? If no registry exists, independently audit for architectural debt patterns: platform-specific names leaking into core/shared packages, vendor lock-in in domain logic, coupling that would resist provider substitution, naming that assumes a single implementation when the architecture intends multiple.
 
-**Files to read:** Existing modules being modified, interface definitions, type files, callers of changed interfaces, barrel/index files, package.json files (for workspace and dependency declarations).
+**Files to read:** Existing modules being modified, interface definitions, type files, callers of changed interfaces, barrel/index files, package.json files (for workspace and dependency declarations), tech debt registries and governance documents (e.g., `docs/tech-debt/`, CLAUDE.md).
 
 </archetype>
 
