@@ -8,7 +8,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Dependency Analyst — task ordering, parallelism validity, prerequisite chains
 - Spec Fidelity Reviewer — coverage gaps, scope creep, requirement traceability
 - Task Decomposition Critic — granularity, atomicity, step completeness, file paths
-- TDD Discipline Reviewer — test quality, red-green-commit cycle, assertion specificity
+- TDD Discipline & Test Coverage Reviewer — TDD cycle, assertion quality, three-layer coverage completeness, T1-T8 enforcement
 - Integration Sequencing Reviewer — build order, working system at each boundary, merge safety
 - Risk & Blocker Detector — external dependencies, unknowns, assumptions, environmental prerequisites
 - Codebase Alignment Reviewer — existing patterns, interface compatibility, naming conventions
@@ -31,7 +31,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 | Dependency Analyst | dependency-analyst | Tasks with dependency markers; parallel task groups; tasks modifying same files; shared state/infrastructure; 8+ tasks |
 | Spec Fidelity Reviewer | spec-fidelity-reviewer | References to source spec; multiple tasks covering different functional areas; tasks introducing unmentioned features; tasks that skip spec sections |
 | Task Decomposition Critic | task-decomposition-critic | Tasks with 10+ steps; tasks with <3 steps; steps saying "implement" without snippets; missing/vague verification steps; generic file paths |
-| TDD Discipline Reviewer | tdd-discipline-reviewer | Test-first steps; test files and commands; mock setup; multiple tasks with testing; integration/e2e test steps |
+| TDD Discipline & Test Coverage Reviewer | tdd-discipline-reviewer | Test-first steps; test files and commands; mock setup; multiple tasks with testing; integration/e2e test steps; new adapter/external service code; pipeline/orchestrator creation; behavioral logic; state machines; user-facing workflows |
 | Integration Sequencing Reviewer | integration-sequencing-reviewer | Tasks building on each other's output; schema changes followed by code; interface definitions used later; deployment steps interspersed; multiple phases |
 | Risk & Blocker Detector | risk-blocker-detector | External service dependencies; environment setup steps; platform capability assumptions; manual steps; production access requirements |
 | Codebase Alignment Reviewer | codebase-alignment-reviewer | Tasks modifying existing files; new files following existing patterns; interface changes affecting callers; explicit "same pattern as X" references |
@@ -148,9 +148,9 @@ Manual/infrastructure tasks (Airtable configuration, env var setup, deployment s
 
 <archetype id="tdd-discipline-reviewer">
 
-**TDD Discipline Reviewer**
+**TDD Discipline & Test Coverage Reviewer**
 
-**Expertise:** Test-driven development cycle integrity, test quality, assertion specificity, test isolation, mock appropriateness, red-green-commit discipline.
+**Expertise:** Test-driven development cycle integrity, test quality, assertion specificity, mock appropriateness, red-green-commit discipline, AND three-layer test coverage completeness (unit, integration, E2E), test task traceability against implementation tasks, CLAUDE.md testing discipline principles T1–T8 enforcement, zero-gap test coverage verification, test-to-behavior mapping.
 
 **Selection signals in plan:**
 - Test-first steps (write test → verify fail → implement → verify pass)
@@ -158,16 +158,87 @@ Manual/infrastructure tasks (Airtable configuration, env var setup, deployment s
 - Mock setup or test fixture code
 - Multiple tasks with testing components
 - Integration test or end-to-end test steps
+- Tasks that create new adapter methods or external service integration code (Airtable, OpenAI, Apify, LinkedIn API calls)
+- Tasks that create or modify pipeline orchestrators or multi-step workflows
+- Tasks that implement behavioral logic (matching, filtering, scoring, classification, validation, state transitions)
+- State machine implementations with status transitions
+- New port or interface definitions at external boundaries
+- Tasks that create user-facing workflows an operator would trigger
 
 **What this reviewer checks:**
-- Does each task follow the red-green-commit cycle? Specifically: (a) test is written BEFORE implementation, (b) test is run to verify it fails for the RIGHT reason, (c) implementation is minimal to pass the test, (d) test is re-run to verify it passes
-- Are test assertions specific and meaningful? `expect(result).toBeDefined()` tests nothing. `expect(result.status).toBe("Review")` tests something. `expect(result.influencers).toHaveLength(30)` tests the right thing.
-- Do tests actually exercise the behavior the task is building, or do they just exercise boilerplate? A test for a matching engine that only checks "it returns an array" is useless.
-- Are mocks appropriate? Are they mocking the right boundaries (external services, I/O) and not mocking internal logic? Does the test still test something real after mocking?
-- Is test coverage sufficient for the complexity? A matching engine with 6 filter criteria needs more than one test case.
-- Are edge cases tested? What about empty inputs, boundary values, error paths?
 
-**Files to read:** The plan (focusing on test steps), the spec (to understand what behavior should be tested), existing test files (to understand testing patterns and frameworks used).
+This reviewer has two mandates. **Mandate A (TDD Discipline):** are the tests in this plan well-written, following TDD cycle and best practices? **Mandate B (Coverage Completeness):** are ALL the tests that SHOULD exist actually present in the plan? A plan can pass Mandate A with perfect red-green-commit discipline on 5 test cases while silently missing 15 scenarios that need testing. Both mandates must pass.
+
+This reviewer enforces the project's three-layer testing methodology as defined in CLAUDE.md principles T1–T8. The core coverage mandate: **nothing the plan adds should escape testing. Zero holes. Zero scenarios without coverage. Every behavior, every boundary, every pipeline — tested.**
+
+### Mandate A: TDD Discipline
+
+1. **Red-green-commit cycle (T1).** Does each task follow the cycle? Specifically: (a) test is written BEFORE implementation, (b) test is run to verify it fails for the RIGHT reason, (c) implementation is minimal to pass the test, (d) test is re-run to verify it passes. Every code-producing task must follow this cycle.
+
+2. **Assertion specificity (T2).** Are test assertions specific and meaningful? `expect(result).toBeDefined()` tests nothing. `expect(result.status).toBe("Review")` tests something. `expect(result.influencers).toHaveLength(30)` tests the right thing. Do tests actually exercise the behavior the task is building, or do they just exercise boilerplate? A test for a matching engine that only checks "it returns an array" is useless.
+
+3. **Mock appropriateness.** Are mocks at the right boundaries (external services, I/O) and not mocking internal logic? Does the test still test something real after mocking? Are mocked return values realistic (T3), or are they minimal stubs that hide wiring problems?
+
+### Mandate B: Three-Layer Coverage Completeness
+
+4. **Three-layer coverage matrix.** Walk every task in the plan. For each task that creates or modifies behavioral code, produce a coverage row:
+
+| Task | Behavior Added | Unit Test in Plan? | Integration Test in Plan? | E2E Test in Plan? | Verdict |
+|---|---|---|---|---|---|
+| Task 3: Matching engine | 6 filter criteria, sort, exclusion | Yes — Task 3 steps 2-4 | N/A — pure domain logic | Missing — part of campaign pipeline | **GAP** |
+| Task 5: Airtable adapter | listInfluencers(), updateRecord() | Yes — mapper tests | No — no integration test task | Missing — part of pipeline | **GAP** |
+| Task 8: Campaign orchestrator | Full pipeline wiring | Yes — orchestration logic | N/A — tested via E2E | No E2E test task | **GAP** |
+
+Every "GAP" is a finding. Severity depends on which layer is missing (see calibration below).
+
+5. **Unit test behavior coverage (T1, T2).** For each task's unit tests, verify: (a) do the tests cover ALL behaviors the task introduces, not just the primary happy path? A matching engine task with 6 filter criteria needs tests for each criterion. A single "it matches" test is a T2 violation. (b) are edge cases tested — empty inputs, boundary values, null/undefined fields, partial data, error paths? (c) Count the behavioral assertions vs the behaviors introduced — if the ratio is less than 1:1, coverage is incomplete.
+
+6. **Integration test boundary audit (T7 — MANDATORY, BLOCKING).** Enumerate every adapter method the plan creates that talks to a real external system. For EACH one, verify the plan includes an integration test task or step that tests against the REAL system — not mocks. This is a blocking requirement per T7.
+
+Produce an explicit boundary-to-test traceability list:
+
+| Task | Adapter Method | External System | Integration Test Task/Step | Verdict |
+|---|---|---|---|---|
+| Task 4 | listInfluencers() | Airtable | Task 4, Step 6 | **PASS** |
+| Task 5 | fetchPosts() | Apify | None | **FAIL — T7 violation** |
+| Task 6 | generateContent() | OpenAI | None | **FAIL — T7 violation** |
+
+Every "FAIL" is a **Critical** finding. T7 is non-negotiable: an adapter method is not complete until its integration test passes against the real system. If the plan creates 5 adapter methods and only 3 have integration tests, the plan is incomplete — full stop.
+
+7. **E2E pipeline audit (T8 — MANDATORY, BLOCKING).** Identify every user-facing pipeline the plan creates, modifies, or completes. For EACH pipeline, verify the plan includes an E2E test task that exercises the FULL pipeline with zero mocks — real external services, real data, real write-back.
+
+Produce an explicit pipeline-to-E2E traceability list:
+
+| Pipeline | Tasks That Build It | Components Wired | E2E Test Task | Verdict |
+|---|---|---|---|---|
+| Enrichment pipeline | Tasks 4, 6, 8 | LLM + Airtable → fields written | Task 9 | **PASS** |
+| Social import | Tasks 5, 7 | Apify + Airtable → Writing Samples | None | **FAIL — T8 violation** |
+
+Every "FAIL" is a **Critical** finding. T8 is non-negotiable: if the plan builds a pipeline, the plan must include an E2E test for that pipeline — not as a follow-up, not as tech debt, but as part of this plan.
+
+**Planning check from T8:** "When writing implementation plans, include the E2E test as an explicit task — not a follow-up. If the plan adds a pipeline orchestrator without an E2E test task, the plan is incomplete."
+
+### Mandate C: Testing Hygiene (T3–T6)
+
+8. **Test data realism (T3).** For each test in the plan's code snippets, examine the test fixtures and mock data. Does it use realistic, imperfect inputs — partial data, nulls, missing fields, edge-case shapes? Or is every test fixture a clean, complete, happy-path object? All-happy-path fixtures hide wiring problems (T3). If the plan's test code uses `{ name: "Test", score: 100, status: "Active" }` for every test case without any missing/null/malformed data, flag as Major.
+
+9. **Error suppression prohibition (T4 — ABSOLUTE).** Scan every test step and test code snippet in the plan for any form of error suppression: `dangerouslyIgnoreUnhandledErrors`, blanket `try/catch` that swallows errors, `@ts-ignore` on test assertions, `--no-verify`, `.skip` without justification. If found, flag as **Critical**. T4 is absolute: error suppression is never acceptable — not as a first resort, not as a last resort, not under any circumstance. It masks real bugs and propagates bad patterns.
+
+10. **Gated test visibility (T5).** If the plan includes tests gated behind environment variables or opt-in flags (e.g., `describe.skipIf(!hasCredentials)`), verify: (a) the gating is explicit and documented, (b) the plan states what coverage is skipped when the gate is closed, (c) the plan does not treat skipped coverage as verified behavior. If a plan says "integration tests pass" but the tests were gated and skipped, that's a T5 violation.
+
+11. **Test isolation verification (T6).** For each test suite in the plan, check: (a) do any tests depend on state created by a prior test? (b) is there shared mutable state between tests (module-level variables mutated across tests, test A creating data that test B reads)? (c) does the plan use `beforeAll` for shared mutable state instead of `beforeEach` for per-test setup? Shared mutable state between tests is a bug — it makes tests pass in one order and fail in another. Exception: integration/E2E tests that create expensive resources in `beforeAll` are acceptable, but must not depend on test execution order.
+
+### Final Sweep
+
+12. **Cross-task test gap scan.** After checking individual tasks, perform a holistic scan: walk through the spec's complete list of behaviors, boundaries, and pipelines. For each one, verify a plan task covers it with the appropriate test layer. Produce a final gap summary listing any behaviors, boundaries, or pipelines that have NO test coverage in any plan task. This is the "nothing escapes" check — the most important output of this reviewer.
+
+**Severity calibration for this domain:**
+- **Critical:** A plan task creates an adapter method with no integration test (T7 violation — blocking). A plan builds a user-facing pipeline with no E2E test task (T8 violation — blocking). A plan uses error suppression in test code (T4 violation — absolute). A behavioral component introduced by the plan has zero test coverage at any layer. The cross-task gap scan reveals untested behaviors.
+- **Major:** Unit tests exist but don't cover all behaviors a task introduces (partial T2 coverage). Test data is all-happy-path with no edge cases (T3 violation). Tests share mutable state or depend on execution order (T6 violation). Gated tests skip silently without documentation (T5 violation). A task claims "tests pass" but the test assertions are non-specific (`toBeDefined()`, `toBeTruthy()`). A task does not follow red-green-commit cycle (T1 violation).
+- **Minor:** Test descriptions could be more specific but cover the right behaviors. Edge case coverage is present but not exhaustive. Test organization could be cleaner.
+- **Not a finding:** The absence of a testing framework when the project already has one. Don't flag test count — coverage completeness matters, not quantity. Don't flag test style preferences (describe/it nesting depth, test file naming) when the project has established conventions.
+
+**Files to read:** The plan (every task — test gaps hide in tasks that seem "too simple to test"), the source spec (critical — the authoritative list of what SHOULD be tested), CLAUDE.md (critical — contains T1–T8 principles that this reviewer enforces verbatim), existing test files (to understand patterns and what integration/E2E tests already exist), data model schema (to identify all external boundaries), architecture document (to identify all pipeline/adapter boundaries).
 
 </archetype>
 
@@ -534,6 +605,6 @@ To select reviewers:
 6. If 7+ archetypes match, the plan is broad — prioritize the 4-5 with the strongest signal density (most signals matched, most relevant to the plan's riskiest sections) and fold the remaining archetypes' top concerns into the Devil's Advocate's focus areas. Announce which archetypes were folded and why.
 
 The orchestrator announces the selected team to the user before spawning, e.g.:
-"Based on the plan's scope, I'm spawning 4 reviewers: Dependency Analyst (15 tasks with claimed parallelism in Phase 2), Spec Fidelity Reviewer (plan references 7-section spec, need coverage check), TDD Discipline Reviewer (all tasks have test steps, need quality check), and Devil's Advocate."
+"Based on the plan's scope, I'm spawning 4 reviewers: Dependency Analyst (15 tasks with claimed parallelism in Phase 2), Spec Fidelity Reviewer (plan references 7-section spec, need coverage check), TDD Discipline & Test Coverage Reviewer (all tasks have test steps, need quality and coverage check), and Devil's Advocate."
 
 </selection_process>

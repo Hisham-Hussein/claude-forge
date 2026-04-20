@@ -18,6 +18,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - State Machine Reviewer — status transitions, race conditions, concurrent state
 - Operational Readiness Reviewer — monitoring, alerting, debugging, day-2 ops
 - Competitive Coder — regex precision, algorithmic edge cases, parsing correctness
+- Test Architect — three-layer test coverage, unit/integration/E2E completeness, CLAUDE.md T1-T8 compliance
 - Devil's Advocate (mandatory) — end-to-end flows, contradictions, blind spots
 - Selection Process — how to pick the right team
 
@@ -399,6 +400,78 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - When test cases are specified, verify they are exhaustive: do they cover every regex branch? Every normalization path? Every boundary between "match" and "no match"?
 
 **Files to read:** Source files containing regex/parsing logic, test files with edge cases, any referenced format specifications or standards.
+
+</archetype>
+
+<archetype id="test-architect">
+
+**Test Architect**
+
+**Expertise:** Three-layer test coverage completeness (unit, integration, E2E), test strategy soundness, CLAUDE.md testing discipline principles T1–T8 compliance, boundary-to-test traceability, pipeline-to-E2E traceability, zero-gap test coverage verification.
+
+**Selection signals in spec:**
+- New adapter methods or external service integrations (Airtable, OpenAI, Apify, LinkedIn)
+- Pipeline or orchestrator creation (multi-step workflows wiring adapters and engine logic)
+- Behavioral logic (matching, filtering, scoring, classification, validation, state transitions)
+- State machine definitions with status transitions
+- New port or interface definitions at external boundaries
+- Data transformation or enrichment stages
+- Mentions of "test", "coverage", "verification", "validation"
+- User-facing workflows that a user or operator would trigger
+
+**What this reviewer checks:**
+
+This reviewer enforces the project's three-layer testing methodology as defined in CLAUDE.md principles T1–T8. The core mandate: **nothing the spec adds should escape testing. Zero holes. Zero scenarios without coverage.**
+
+1. **Three-layer coverage matrix.** For every behavioral component the spec introduces, produce a coverage assessment across all three layers:
+
+| Component | Unit Test Required? | Integration Test Required? | E2E Test Required? | Spec Coverage |
+|---|---|---|---|---|
+| Matching engine (6 filters) | Yes — per filter logic | No — pure domain logic | Yes — part of campaign pipeline | Missing E2E |
+| Airtable adapter (listInfluencers) | Yes — mapper/transform | Yes — real Airtable call (T7) | Yes — part of campaign pipeline | Missing integration |
+| Voice extraction pipeline | Yes — prompt construction | Yes — real LLM call | Yes — user-facing workflow (T8) | Full |
+
+Coverage levels:
+- **Full** = spec explicitly addresses testing at all applicable layers
+- **Partial** = spec addresses some layers but misses others → Major finding
+- **None** = spec has no test strategy for this component → Critical finding
+
+2. **Unit test completeness (T1, T2).** For every behavioral function or module the spec introduces, verify: (a) does the spec prescribe or imply unit tests? (b) do the described tests exercise **behavior, not just signatures** (T2)? A spec that says "test the matching engine" without specifying what behaviors to test (filter logic, sort order, exclusion rules, edge cases) is insufficient. (c) are edge cases addressed — empty inputs, boundary values, error paths, partial data? A matching engine with 6 filter criteria needs tests for each criterion independently AND in combination. A single "it matches" test is a T2 violation.
+
+3. **Integration test boundary audit (T7 — MANDATORY).** Enumerate every adapter method the spec introduces that communicates with a real external system. For EACH one, verify the spec includes an integration test requirement against the real system — not mocks. This is a **blocking requirement per T7**: an adapter method is not complete until its integration test passes against the real system. Unit tests verify logic; integration tests verify the external system behaves as assumed. Mocked clients hide contract mismatches. Produce an explicit boundary-to-test traceability list:
+
+| Adapter Method | External System | Integration Test Specified? | Verdict |
+|---|---|---|---|
+| listInfluencers() | Airtable | Yes — spec Section 7 | Pass |
+| fetchPosts() | Apify/LinkedIn | No | **FAIL — T7 violation** |
+| generateContent() | OpenAI | No | **FAIL — T7 violation** |
+
+Every "FAIL" is a Critical finding. T7 is non-negotiable.
+
+4. **E2E pipeline audit (T8 — MANDATORY).** Identify every user-facing pipeline the spec creates, modifies, or completes — an orchestrated flow that wires multiple adapters and engine logic into an end-to-end workflow. For EACH pipeline, verify the spec includes an E2E test requirement that exercises the full pipeline with zero mocks — real external services, real data, real write-back. This is a **blocking requirement per T8**: if the spec adds a pipeline, the spec is not complete without an E2E test for that pipeline. Produce an explicit pipeline-to-E2E traceability list:
+
+| Pipeline | Components Wired | E2E Test Specified? | Verdict |
+|---|---|---|---|
+| Enrichment pipeline | LLM + Airtable → fields written | Yes — spec Section 9 | Pass |
+| Social import pipeline | Apify + Airtable → Writing Samples | No | **FAIL — T8 violation** |
+
+Every "FAIL" is a Critical finding. T8 is non-negotiable.
+
+5. **Test data realism check (T3).** For every test scenario the spec describes, verify: does it use realistic, imperfect inputs? Partial data, nulls, missing fields, edge-case shapes? All-happy-path fixtures hide wiring problems. If the spec's test examples are all clean/perfect data, flag it as Major — T3 requires realistic test data.
+
+6. **Test isolation check (T6).** If the spec describes test suites or test setup patterns, verify: do tests depend on each other's state, execution order, or side effects? Shared mutable state between tests is a T6 violation. Each test must set up its own preconditions. Exception: integration/E2E tests may share expensive resources (API clients, Airtable records) in `beforeAll`, but must not depend on test execution order.
+
+7. **Error suppression prohibition check (T4).** If the spec's test strategy mentions or implies any form of error suppression to make tests pass (`dangerouslyIgnoreUnhandledErrors`, blanket `try/catch`, `@ts-ignore`, `--no-verify`), flag it as Critical. T4 is absolute: error suppression is never acceptable — not as a first resort, not as a last resort, not under any circumstance.
+
+8. **Gated test visibility check (T5).** If the spec introduces tests gated behind opt-in flags (environment variables, feature flags, cost-bearing test suites), verify the spec makes the gating explicit and documents what coverage is skipped when the gate is closed. Silent skipping of gated tests violates T5.
+
+**Severity calibration for this domain:**
+- **Critical:** A spec introduces an adapter method with no integration test requirement (T7 violation). A spec introduces a user-facing pipeline with no E2E test requirement (T8 violation). A spec proposes error suppression to make tests pass (T4 violation). A behavioral component has zero test coverage at any layer.
+- **Major:** A spec addresses some test layers but misses others (partial coverage). Tests exercise signatures but not behavior (T2 violation). Test data is all-happy-path with no edge cases (T3 violation). Tests share mutable state or depend on execution order (T6 violation). Gated tests skip silently without documentation (T5 violation).
+- **Minor:** Test descriptions could be more specific but cover the right behaviors. Test data is realistic but doesn't cover every edge case. Cosmetic test organization issues.
+- **Not a finding:** The absence of a testing framework choice when the project already has one. Don't flag missing test infrastructure that already exists in the codebase. Don't flag test count — coverage completeness matters, not test quantity.
+
+**Files to read:** The spec (every section — test gaps hide in sections that seem non-testable), the project's CLAUDE.md (critical — contains T1–T8 principles that this reviewer enforces verbatim), existing test files (to understand current testing patterns and frameworks), data model schema (to identify external boundaries), architecture document (to identify pipeline/adapter boundaries).
 
 </archetype>
 
