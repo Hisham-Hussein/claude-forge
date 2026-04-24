@@ -19,6 +19,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Operational Readiness Reviewer — monitoring, alerting, debugging, day-2 ops
 - Competitive Coder — regex precision, algorithmic edge cases, parsing correctness
 - Test Architect — three-layer test coverage, unit/integration/E2E completeness, CLAUDE.md T1-T8 compliance
+- Prompt Critic — prompt-as-code architecture, prompt engineering quality, LLM input/output design
 - Devil's Advocate (mandatory) — end-to-end flows, contradictions, blind spots
 - Selection Process — how to pick the right team
 
@@ -472,6 +473,74 @@ Every "FAIL" is a Critical finding. T8 is non-negotiable.
 - **Not a finding:** The absence of a testing framework choice when the project already has one. Don't flag missing test infrastructure that already exists in the codebase. Don't flag test count — coverage completeness matters, not test quantity.
 
 **Files to read:** The spec (every section — test gaps hide in sections that seem non-testable), the project's CLAUDE.md (critical — contains T1–T8 principles that this reviewer enforces verbatim), existing test files (to understand current testing patterns and frameworks), data model schema (to identify external boundaries), architecture document (to identify pipeline/adapter boundaries).
+
+</archetype>
+
+<archetype id="prompt-critic">
+
+**Prompt Critic**
+
+**Expertise:** LLM prompt architecture, prompt engineering quality, input/output schema design, prompt text effectiveness, separation of concerns between computation and LLM reasoning, structured output validation, token efficiency.
+
+**Selection signals in spec:**
+- LLM prompt creation or modification (`.prompt.ts` files, `assemblePrompt()`, system/user prompts)
+- Zod schemas for LLM input or output
+- `generateObject<T>()` or structured output calls
+- Prompt text with instructions, examples, or field definitions
+- Mentions of "prompt", "LLM", "extraction", "generation", "system prompt", "user prompt"
+- XML or markdown structuring of prompt content
+- Few-shot examples or anti-pattern lists
+- Token budget or context window considerations
+- Aggregation or pre-computation of data fed to an LLM
+
+**Core principles (apply universally — no project-specific docs needed):**
+
+*Three-layer responsibility split:* Every well-engineered LLM call separates three concerns with strict boundaries:
+
+| Layer | Responsibility | Violation examples |
+|---|---|---|
+| **Caller** (business logic) | Fetches data, computes deterministic values (counts, averages, rankings, filtering, sorting), builds typed input | Computing inside the prompt module; fetching data inside the prompt module |
+| **Prompt module** (pure rendering) | Transforms typed input into prompt strings. No computation, no side effects, no data fetching. Exports typed input/output schemas and a pure assembly function | Aggregation logic inside assemblePrompt(); API calls inside the prompt; hardcoded data that should come from the caller |
+| **LLM provider** (execution + validation) | Sends prompt, validates response against typed output schema, returns typed result | Prompt construction inside the provider; business logic in the validation layer |
+
+*Why this matters:* When the caller computes deterministic values (e.g., "7 of 10 posts use Question hooks"), the LLM receives verified facts — not values it might hallucinate from counting. When the prompt module is pure, it is testable in isolation. When the provider enforces the output schema, the caller gets typed data it can trust.
+
+*Prompt engineering quality:* Inside the prompt module, the assembly function is where prompt engineering craft applies. Effective prompts share these traits:
+- **Structural delineation:** Sections are clearly separated (XML tags, markdown headers, or delimiters) so the LLM can locate information without scanning the entire context
+- **Instructions + examples are complementary:** Instructions define rules, examples demonstrate application. Every behavior shown in examples must also be stated in instructions. Instructions set the floor; examples set the ceiling.
+- **Negative instructions over negative examples:** "Never use the word 'leverage'" works better than showing bad output (which primes the model to produce it)
+- **Output format enforced by schema, not by prompt:** When using structured output (`generateObject`, `response_format`), the typed schema enforces structure — the prompt should describe *what* to produce, not *how* to format it
+- **Token efficiency:** Every token must justify its inclusion. Deterministic values computed by code, not by the LLM. Context curated for the current step, not bulk-loaded "just in case"
+
+**What this reviewer checks:**
+
+1. **Layer boundary violations.** Trace every piece of data from its source to its appearance in the prompt. For each, verify: is it computed in the caller (correct) or inside the prompt module (violation)? Is there computation that could be done deterministically in code but is delegated to the LLM (e.g., counting occurrences, computing averages, ranking items)?
+
+2. **Prompt module purity.** Read the `assemblePrompt()` function (or equivalent). Does it have side effects? Does it fetch data? Does it compute values? It should be a pure function: typed input in, strings out. Testable by asserting "given this input, the assembled prompt contains these strings."
+
+3. **Input schema completeness.** Does the typed input schema contain everything the prompt needs? Are there values hardcoded in the prompt text that should be parameterized through the input schema? Are there input fields that the prompt ignores (dead inputs)?
+
+4. **Output schema precision.** Does the output schema enforce what the spec requires? Are constraints (min/max array lengths, enums, required vs optional) appropriate for the LLM's capability? Are optional fields marked correctly for the LLM provider's structured output mode (e.g., `.nullable()` for OpenAI)?
+
+5. **Prompt text quality.** Read the actual prompt text (system + user) as if you were the LLM receiving it. Is each section's purpose clear? Are field definitions unambiguous — could two reasonable interpretations exist? Are there instructions that contradict each other? Is the role definition appropriate? Are anti-pattern instructions phrased as negative instructions (not negative examples)?
+
+6. **Structural clarity.** Are prompt sections delineated so the LLM can parse them unambiguously? For complex prompts (multiple sections, metadata blocks, per-item data): is there structural markup (XML tags, clear delimiters) that separates sections? For simple prompts: is the structure clean enough without markup?
+
+7. **Token efficiency.** Estimate the token count for a realistic input. Is it within model limits with margin? Are there redundancies between prompt sections (the same rule stated differently in instructions and examples)? Is context curated for the task or bulk-loaded? Are deterministic values computed by code or delegated to the LLM?
+
+8. **Prompt version and observability.** Does the prompt module export a version string? A task ID? Can outputs be traced back to the exact prompt version that produced them? If the spec changes the prompt significantly, is the version bumped?
+
+**Severity calibration for this domain:**
+- **Critical:** Computation inside the prompt module (layer violation). The prompt module has side effects or fetches data (purity violation). Output schema missing or not enforced by structured output. Prompt text contains contradictory instructions.
+- **Major:** Deterministic values delegated to LLM instead of computed in code. Input schema missing fields the prompt needs. Output schema constraints incompatible with the LLM provider. Prompt sections ambiguous or poorly delineated. Token budget exceeds model limits for realistic input.
+- **Minor:** Prompt text could be more concise. Structural markup style inconsistent with project conventions. Version not bumped for minor changes. Token budget suboptimal but within limits.
+- **Not a finding:** Choice of XML vs markdown vs delimiters for prompt structuring (this is a project convention, not a quality issue). Specific LLM provider choice. Model selection (fast vs quality tier).
+
+**Project-specific enhancement:** If the project has a prompt architecture section in its architecture document (search for "Prompt Architecture", "prompt-as-code", or `.prompt.ts` patterns), read it — it may define project-specific conventions for prompt module structure, naming, file organization, and text formatting. If the project has prompt engineering research (search `artifacts/research/` for "prompt engineering" or "best practices"), read it for project-specific evidence-backed techniques. These project-specific docs enhance the review but are not required — the core principles above are sufficient for any project.
+
+**Deep reference:** Read `references/prompt-critic-reference.md` for research-backed rationale, detailed examples, and common prompt spec issues. The core principles above are sufficient for triage; the reference file provides depth for thorough reviews.
+
+**Files to read:** All `.prompt.ts` files being created or modified, the caller that builds the prompt input, the LLM provider integration code, the output schema and how it's consumed, architecture documents (for project-specific prompt conventions), any referenced prompt engineering research.
 
 </archetype>
 
