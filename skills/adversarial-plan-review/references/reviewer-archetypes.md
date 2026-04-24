@@ -13,6 +13,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Risk & Blocker Detector — external dependencies, unknowns, assumptions, environmental prerequisites
 - Codebase Alignment Reviewer — existing patterns, interface compatibility, naming conventions
 - Competitive Coder — regex precision, algorithmic edge cases, parsing correctness
+- Prompt Implementation Critic — prompt-as-code task decomposition, layer boundary compliance in code snippets, prompt assembly correctness
 - Devil's Advocate (mandatory) — end-to-end walkthrough, contradictions, blind spots
 - Software Architecture Reviewer — dependency direction fidelity, boundary implementation, vendor isolation, SOLID compliance in code
 - Performance & Scalability Reviewer — query patterns, algorithmic complexity, resource lifecycle, caching implementation
@@ -36,6 +37,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 | Risk & Blocker Detector | risk-blocker-detector | External service dependencies; environment setup steps; platform capability assumptions; manual steps; production access requirements |
 | Codebase Alignment Reviewer | codebase-alignment-reviewer | Tasks modifying existing files; new files following existing patterns; interface changes affecting callers; explicit "same pattern as X" references |
 | Competitive Coder | competitive-coder | Regex in code snippets; string parsing/URL extraction; input normalization; pattern matching with branches; edge case lists in tests |
+| Prompt Implementation Critic | prompt-implementation-critic | `.prompt.ts` in file paths; `assemblePrompt` in code snippets; Zod output schemas for LLM responses; `generateObject` calls; XML/markdown prompt text in code; system/user prompt construction; LLM task IDs; prompt version strings |
 | Devil's Advocate | devils-advocate | MANDATORY — always selected regardless of signals |
 | Software Architecture Reviewer | software-architecture-reviewer | New module/service/layer creation; interface/abstract type definitions; DI setup; cross-module imports; architecture doc references; 3+ new files in different dirs; adapter/port patterns |
 | Performance & Scalability Reviewer | performance-scalability-reviewer | DB queries/ORM in snippets; loops over collections; API calls inside iteration; batch processing; "all records" references; concurrent processing; caching code; AI/LLM calls |
@@ -348,6 +350,73 @@ Every "FAIL" is a **Critical** finding. T8 is non-negotiable: if the plan builds
 - When the plan's code branches on string values returned by another function (e.g., `classification.service === "snapchat"`), verify the branching values match what the called function actually returns by reading its source code
 
 **Files to read:** The plan (focusing on code snippets with regex/parsing), source files containing regex/parsing logic that the plan calls or extends, test files with edge cases, any referenced format specifications or real-world input data.
+
+</archetype>
+
+<archetype id="prompt-implementation-critic">
+
+**Prompt Implementation Critic**
+
+**Expertise:** Verifying that implementation plan tasks correctly decompose, sequence, and implement LLM prompt modules following the three-layer prompt-as-code pattern. Reviews code snippets for layer boundary violations, prompt assembly correctness, and schema enforcement.
+
+**Selection signals in plan:**
+- `.prompt.ts` files in task file paths
+- `assemblePrompt()` or prompt assembly functions in code snippets
+- Zod schemas for LLM input or output (`generateObject<T>()`, `zodResponseFormat`)
+- System/user prompt text construction in code
+- XML or markdown structuring of prompt content in code snippets
+- LLM task IDs or prompt version strings
+- Aggregation or pre-computation logic feeding into prompt input
+- Tasks labeled "prompt module", "extraction prompt", "generation prompt"
+
+**Core principles (apply universally):**
+
+*Three-layer split in implementation:* Every LLM call must be implemented across three separate concerns:
+
+| Layer | Implemented as | Red flags in code snippets |
+|---|---|---|
+| **Caller** | Business logic file (e.g., `voice-extractor.ts`) — fetches data, computes deterministic values, builds typed input | Prompt text strings here; `generateObject` called here without going through the prompt module |
+| **Prompt module** | `.prompt.ts` file — exports Zod schemas, task ID, version, pure `assemblePrompt()` | `await` keyword; imports from adapter packages; aggregation loops; `fetch`/`get` calls |
+| **LLM provider** | `generateObject<T>()` call — sends prompt, validates output against Zod schema | Prompt construction here; business logic in validation |
+
+*Plan-level decomposition:* A well-decomposed prompt implementation plan has separate tasks for:
+1. Types and schemas (input/output Zod schemas, domain types)
+2. Prompt module (assemblePrompt function, prompt text, version)
+3. Caller logic (aggregation, data fetching, input construction)
+4. Tests (prompt assembly unit tests, caller unit tests, integration test with real LLM, E2E pipeline test)
+
+A single task that says "implement the prompt" without separating these concerns will produce tangled code.
+
+**What this reviewer checks:**
+
+1. **Task decomposition for prompt work.** Does the plan separate prompt module tasks from caller tasks? A task that mixes "compute aggregation summary AND assemble the prompt AND call the LLM" violates the three-layer split. Each layer should be a distinct task (or at minimum, distinct steps within a task with clear boundaries).
+
+2. **Layer boundary compliance in code snippets.** For every code snippet in the plan:
+   - If it's in a `.prompt.ts` task: does the code contain only pure rendering logic? Any `await`, data fetching, or aggregation is a violation.
+   - If it's in a caller task: does the code construct the typed input and delegate to the prompt module? Any prompt text strings here is a violation.
+   - If it's in a provider/pipeline task: does the code pass `{ system, user }` to `generateObject` with the output schema? Any prompt construction here is a violation.
+
+3. **Task ordering respects layer dependencies.** Correct order: (1) shared types and Zod schemas, (2) prompt module (depends on schemas), (3) caller logic (depends on prompt module's input schema), (4) tests. A plan that implements the caller before the prompt module's input schema exists will cause rework.
+
+4. **Prompt assembly test specificity.** If the plan has a test task for the prompt module, does it specify concrete assertions? Good: "assert assembled prompt contains XML `<analysis-summary>` tag with sample counts from input." Bad: "test the prompt assembly." Prompt modules are pure functions — their tests should assert exact string content for given inputs.
+
+5. **Aggregation logic placement.** If the plan includes tasks for computing summary statistics (distributions, averages, rankings), verify these tasks are in the caller, not in the prompt module. The plan should show the aggregation producing a typed object that the prompt module consumes — not the prompt module computing aggregates from raw data.
+
+6. **Schema constraint validity.** If code snippets show Zod output schemas with constraints (`.min()`, `.max()`, `.enum()`), verify the constraints are enforceable by the LLM provider's structured output mode. For OpenAI: `minItems`/`maxItems` on arrays are enforced; complex conditional schemas may not be. If optional fields appear in the output schema, verify the plan uses `.nullable().optional()` (OpenAI requirement).
+
+7. **Prompt version management.** If the plan modifies an existing prompt, does the task include bumping `promptVersion`? Material changes (new fields, restructured instructions, different output format) require a version bump for log traceability.
+
+8. **Prompt text review opportunity.** Does the plan include the actual prompt text (system and user prompts) in the code snippets, or does it defer prompt writing to the implementer? The prompt text is the highest-leverage part of any LLM feature — reviewing it at plan time catches issues that are expensive to fix after implementation. A plan that says "write appropriate system prompt" without showing the text is too vague.
+
+**Severity calibration:**
+- **Critical:** Code snippet places computation inside the prompt module (layer violation). Tasks mix all three layers into one monolithic step. Output schema not enforced by structured output — prompt uses free-text formatting instructions instead.
+- **Major:** Aggregation logic in the wrong task (prompt module instead of caller). Prompt assembly tests say "test the prompt" without concrete assertions. Task ordering violates layer dependencies. Prompt text deferred entirely to implementer with no review.
+- **Minor:** Prompt version not bumped for minor changes. Task decomposition combines two layers but with clear step boundaries within the task. Schema constraints slightly too strict or too loose.
+- **Not a finding:** Choice of XML vs markdown for prompt text (project convention). Specific LLM model selection. Prompt wording style preferences.
+
+**Deep reference:** Read `references/prompt-critic-reference.md` (in the adversarial-spec-review skill) for research-backed rationale on prompt engineering quality, the three-layer split in depth, and common prompt implementation issues. The reference is shared between spec and plan review — the principles are the same; only the review focus differs (spec = design correctness, plan = implementation correctness).
+
+**Files to read:** The plan (all tasks involving prompt work), the source spec (for prompt design decisions the plan must implement), existing `.prompt.ts` files (for established patterns), the caller being modified, type definition files.
 
 </archetype>
 
