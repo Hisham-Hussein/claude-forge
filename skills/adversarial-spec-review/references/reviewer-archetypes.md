@@ -480,7 +480,7 @@ Every "FAIL" is a Critical finding. T8 is non-negotiable.
 
 **Prompt Critic**
 
-**Expertise:** LLM prompt architecture, prompt engineering quality, input/output schema design, prompt text effectiveness, separation of concerns between computation and LLM reasoning, structured output validation, token efficiency.
+**Expertise:** LLM prompt architecture, prompt engineering quality, input/output schema design, prompt text effectiveness, few-shot strategy, separation of concerns between computation and LLM reasoning, structured output validation, token efficiency, prompt ordering and caching.
 
 **Selection signals in spec:**
 - LLM prompt creation or modification (`.prompt.ts` files, `assemblePrompt()`, system/user prompts)
@@ -492,6 +492,7 @@ Every "FAIL" is a Critical finding. T8 is non-negotiable.
 - Few-shot examples or anti-pattern lists
 - Token budget or context window considerations
 - Aggregation or pre-computation of data fed to an LLM
+- Prompt ordering decisions (static vs dynamic content, caching considerations)
 
 **Core principles (apply universally — no project-specific docs needed):**
 
@@ -511,6 +512,9 @@ Every "FAIL" is a Critical finding. T8 is non-negotiable.
 - **Negative instructions over negative examples:** "Never use the word 'leverage'" works better than showing bad output (which primes the model to produce it)
 - **Output format enforced by schema, not by prompt:** When using structured output (`generateObject`, `response_format`), the typed schema enforces structure — the prompt should describe *what* to produce, not *how* to format it
 - **Token efficiency:** Every token must justify its inclusion. Deterministic values computed by code, not by the LLM. Context curated for the current step, not bulk-loaded "just in case"
+- **Match instruction explicitness to model capability:** GPT models (GPT-4.1, GPT-5) benefit from explicit, structured instructions. Newer models (GPT-5.5+) and reasoning models work best with outcome-first prompts. Regardless of model, avoid extreme over-specification (20 rigid steps for a judgment task) and reserve absolute rules for true invariants. The reviewer should check whether the spec's instruction style matches the target model.
+- **Message role priority:** Authoritative rules belong in the system/developer message, not the user message. Developer/system messages take priority over user messages regardless of position. Design prompts so the priority chain and positional recency reinforce each other, never compete.
+- **Match prompt style to output style:** The formatting and tone of prompt text influence the formatting and tone of output. Concise prose prompt → concise prose output. Verbose, over-formatted prompt → verbose, over-formatted output.
 
 **What this reviewer checks:**
 
@@ -520,20 +524,20 @@ Every "FAIL" is a Critical finding. T8 is non-negotiable.
 
 3. **Input schema completeness.** Does the typed input schema contain everything the prompt needs? Are there values hardcoded in the prompt text that should be parameterized through the input schema? Are there input fields that the prompt ignores (dead inputs)?
 
-4. **Output schema precision.** Does the output schema enforce what the spec requires? Are constraints (min/max array lengths, enums, required vs optional) appropriate for the LLM's capability? Are optional fields marked correctly for the LLM provider's structured output mode (e.g., `.nullable()` for OpenAI)?
+4. **Output schema precision.** Does the output schema enforce what the spec requires? Are constraints (min/max array lengths, enums, required vs optional) appropriate for the LLM's capability? Are optional fields marked correctly for the LLM provider's structured output mode (e.g., `.nullable()` for OpenAI)? Does the schema granularity match the consumer? Code consumers need fine-grained typed schemas; LLM consumers need coarse string fields with prompt instructions controlling internal structure — over-structured schemas compress LLM output quality.
 
-5. **Prompt text quality.** Read the actual prompt text (system + user) as if you were the LLM receiving it. Is each section's purpose clear? Are field definitions unambiguous — could two reasonable interpretations exist? Are there instructions that contradict each other? Is the role definition appropriate? Are anti-pattern instructions phrased as negative instructions (not negative examples)?
+5. **Prompt text quality.** Read the actual prompt text (system + user) as if you were the LLM receiving it. Is each section's purpose clear? Are field definitions unambiguous — could two reasonable interpretations exist? Are there instructions that contradict each other? Is the role definition appropriate? Are anti-pattern instructions phrased as negative instructions (not negative examples)? If few-shot examples are used, are there 3-5 (the diminishing-returns sweet spot), or is there measured justification for a different count? Are examples placed after instructions and near the end of the prompt? If the prompt retrieves factual context for creative generation, does it partition source-backed facts from creative framing and instruct the model on what to do when evidence is missing? Does the prompt's prose style match the desired output style (concise prompt → concise output)?
 
 6. **Structural clarity.** Are prompt sections delineated so the LLM can parse them unambiguously? For complex prompts (multiple sections, metadata blocks, per-item data): is there structural markup (XML tags, clear delimiters) that separates sections? For simple prompts: is the structure clean enough without markup?
 
-7. **Token efficiency.** Estimate the token count for a realistic input. Is it within model limits with margin? Are there redundancies between prompt sections (the same rule stated differently in instructions and examples)? Is context curated for the task or bulk-loaded? Are deterministic values computed by code or delegated to the LLM?
+7. **Token efficiency.** Estimate the token count for a realistic input. Is it within model limits with margin? Are there redundancies between prompt sections (the same rule stated differently in instructions and examples)? Is context curated for the task or bulk-loaded? Are deterministic values computed by code or delegated to the LLM? Is static content (system prompt, instructions) placed before dynamic content (per-request context, examples, input) to enable prompt caching? Where caching-optimal and comprehension-optimal ordering conflict, does the choice match the pipeline's call volume?
 
 8. **Prompt version and observability.** Does the prompt module export a version string? A task ID? Can outputs be traced back to the exact prompt version that produced them? If the spec changes the prompt significantly, is the version bumped?
 
 **Severity calibration for this domain:**
-- **Critical:** Computation inside the prompt module (layer violation). The prompt module has side effects or fetches data (purity violation). Output schema missing or not enforced by structured output. Prompt text contains contradictory instructions.
-- **Major:** Deterministic values delegated to LLM instead of computed in code. Input schema missing fields the prompt needs. Output schema constraints incompatible with the LLM provider. Prompt sections ambiguous or poorly delineated. Token budget exceeds model limits for realistic input.
-- **Minor:** Prompt text could be more concise. Structural markup style inconsistent with project conventions. Version not bumped for minor changes. Token budget suboptimal but within limits.
+- **Critical:** Computation inside the prompt module (layer violation). The prompt module has side effects or fetches data (purity violation). Output schema missing or not enforced by structured output. Prompt text contains contradictory instructions. Over-structured output schema for an LLM consumer (e.g., 10+ nested schemas for a field the LLM should produce as prose — proven to compress quality).
+- **Major:** Deterministic values delegated to LLM instead of computed in code. Input schema missing fields the prompt needs. Output schema constraints incompatible with the LLM provider. Prompt sections ambiguous or poorly delineated. Token budget exceeds model limits for realistic input. Few-shot examples contradict instructions. Authoritative rules placed in user message instead of system/developer message. Instruction explicitness mismatched to target model (e.g., vague outcome-only prompt for GPT-4.1, or 15+ rigid steps for a reasoning model).
+- **Minor:** Prompt text could be more concise. Structural markup style inconsistent with project conventions. Version not bumped for minor changes. Token budget suboptimal but within limits. Static/dynamic content ordering suboptimal for caching but within token limits. Few-shot count outside 3-5 range without measured justification. Prompt prose style mismatches desired output style.
 - **Not a finding:** Choice of XML vs markdown vs delimiters for prompt structuring (this is a project convention, not a quality issue). Specific LLM provider choice. Model selection (fast vs quality tier).
 
 **Project-specific enhancement:** If the project has a prompt architecture section in its architecture document (search for "Prompt Architecture", "prompt-as-code", or `.prompt.ts` patterns), read it — it may define project-specific conventions for prompt module structure, naming, file organization, and text formatting. If the project has prompt engineering research (search `artifacts/research/` for "prompt engineering" or "best practices"), read it for project-specific evidence-backed techniques. These project-specific docs enhance the review but are not required — the core principles above are sufficient for any project.
