@@ -375,7 +375,7 @@ Every "FAIL" is a **Critical** finding. T8 is non-negotiable: if the plan builds
 
 | Layer | Implemented as | Red flags in code snippets |
 |---|---|---|
-| **Caller** | Business logic file (e.g., `voice-extractor.ts`) — fetches data, computes deterministic values, builds typed input | Prompt text strings here; `generateObject` called here without going through the prompt module |
+| **Caller** | Business logic file (e.g., `data-processor.ts`) — fetches data, computes deterministic values, builds typed input | Prompt text strings here; `generateObject` called here without going through the prompt module |
 | **Prompt module** | `.prompt.ts` file — exports Zod schemas, task ID, version, pure `assemblePrompt()` | `await` keyword; imports from adapter packages; aggregation loops; `fetch`/`get` calls |
 | **LLM provider** | `generateObject<T>()` call — sends prompt, validates output against Zod schema | Prompt construction here; business logic in validation |
 
@@ -402,7 +402,7 @@ A single task that says "implement the prompt" without separating these concerns
 
 5. **Aggregation logic placement.** If the plan includes tasks for computing summary statistics (distributions, averages, rankings), verify these tasks are in the caller, not in the prompt module. The plan should show the aggregation producing a typed object that the prompt module consumes — not the prompt module computing aggregates from raw data.
 
-6. **Schema constraint validity.** If code snippets show Zod output schemas with constraints (`.min()`, `.max()`, `.enum()`), verify the constraints are enforceable by the LLM provider's structured output mode. For OpenAI: `minItems`/`maxItems` on arrays are enforced; complex conditional schemas may not be. If optional fields appear in the output schema, verify the plan uses `.nullable().optional()` (OpenAI requirement).
+6. **Schema constraint validity and granularity.** If code snippets show output schemas with constraints (array length limits, enums, required vs optional), verify the constraints are enforceable by the LLM provider's structured output mode. For OpenAI: `minItems`/`maxItems` on arrays are enforced; complex conditional schemas may not be. If optional fields appear in the output schema, verify the plan uses the provider's required pattern (e.g., `.nullable().optional()` for OpenAI). Beyond enforceability, also verify schema granularity matches the consumer: If the output is consumed by another LLM or displayed to a human, the schema should use coarse string fields with prompt instructions controlling internal structure — not deeply nested typed objects that compress LLM output quality.
 
 7. **Prompt version management.** If the plan modifies an existing prompt, does the task include bumping `promptVersion`? Material changes (new fields, restructured instructions, different output format) require a version bump for log traceability.
 
@@ -410,7 +410,7 @@ A single task that says "implement the prompt" without separating these concerns
 
 **Severity calibration:**
 - **Critical:** Code snippet places computation inside the prompt module (layer violation). Tasks mix all three layers into one monolithic step. Output schema not enforced by structured output — prompt uses free-text formatting instructions instead.
-- **Major:** Aggregation logic in the wrong task (prompt module instead of caller). Prompt assembly tests say "test the prompt" without concrete assertions. Task ordering violates layer dependencies. Prompt text deferred entirely to implementer with no review.
+- **Major:** Aggregation logic in the wrong task (prompt module instead of caller). Prompt assembly tests say "test the prompt" without concrete assertions. Task ordering violates layer dependencies. Prompt text deferred entirely to implementer with no review. Output schema granularity mismatched to consumer (e.g., 10+ nested types for an LLM consumer when coarse string fields would produce richer output).
 - **Minor:** Prompt version not bumped for minor changes. Task decomposition combines two layers but with clear step boundaries within the task. Schema constraints slightly too strict or too loose.
 - **Not a finding:** Choice of XML vs markdown for prompt text (project convention). Specific LLM model selection. Prompt wording style preferences.
 
