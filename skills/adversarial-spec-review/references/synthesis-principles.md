@@ -13,16 +13,31 @@ If only one reviewer flagged it, the orchestrator MUST verify it against the act
 **Rule 3: Discard findings that are implementation details, not design flaws.**
 "The spec doesn't specify the exact function name" is an implementation detail. "The spec says to use upsert but upsert can create ghost records" is a design flaw. Only design flaws matter.
 
-**Rule 4: Score each finding before classifying severity.**
-For every finding that survives Rules 1-3, the orchestrator MUST assign a confidence score (0-100) before classifying it as Critical, Major, or Minor. This is mandatory — do not skip this step.
+**Rule 4: Adversarial weighing before scoring — MANDATORY for every Critical and Major candidate.**
+For every finding that survives Rules 1-3, the orchestrator MUST complete a forced adversarial weighing before assigning a confidence score. This is the most important rule in synthesis — skipping it is the primary cause of severity inflation.
 
-Score each finding by completing this sentence: "I am __% confident this finding is real AND would cause problems in practice." Use the confidence scoring rubric in `<confidence_scoring>` to calibrate. Then apply the thresholds:
+**For every finding a reviewer rates Critical or Major, the orchestrator MUST write — visibly in the synthesis, not internally — three things:**
+
+1. **Case FOR this severity:** In 1-2 sentences, the strongest argument that this finding is real, would be hit in practice, and the implementer would not catch it without the spec mentioning it.
+2. **Case AGAINST this severity:** In 1-2 sentences, the strongest argument that this finding is not real, would not be hit in practice, or a competent implementer doing TDD would catch it naturally.
+3. **Verdict:** Which argument wins, and the resulting confidence score.
+
+The orchestrator must genuinely try to defeat each finding. If the AGAINST argument is stronger or even comparable to the FOR argument, the finding is NOT Major (and NOT Critical). A finding that survives adversarial weighing should feel obviously correct — the FOR argument should clearly dominate.
+
+**Then** assign a confidence score (0-100) using the rubric in `<confidence_scoring>`:
 - Score < 60: Drop (not reported to user)
 - Score 60-79: Minor — note for implementer, fix if easy
 - Score 80+: Major — fix before implementation
-- Critical: Identified by nature (incorrect behavior, data loss, security), not by confidence score. Critical findings bypass scoring.
+- Critical: Must survive adversarial weighing AND be about incorrect behavior, data loss, or security. A finding where the AGAINST argument holds any weight is not Critical.
 
-The score must be written down for each finding. If you cannot write "I am 80% confident this would cause problems in practice," it is not Major.
+The adversarial weighing and score must be written down for each finding. If you cannot write a FOR argument that clearly dominates the AGAINST argument, it is not Major.
+
+**Hard disqualifiers — these findings are automatically Minor-or-below regardless of reviewer framing:**
+- The spec shows correct code/example but surrounding prose is imprecise → Minor max
+- A missing test scenario that TDD would discover naturally during implementation → Drop
+- A scaling concern beyond 10x current realistic load → Drop
+- The spec says the right thing but doesn't say it prominently enough → Minor max
+- The existing codebase pattern already handles the concern without spec guidance → Drop
 
 **Rule 5: Check if fixes from prior rounds introduced new problems.**
 Each round of fixes can create regressions. Explicitly ask: "Did fixing X break Y?" This is the Devil's Advocate's primary job in rounds 2+.
@@ -51,7 +66,7 @@ When Mode C (Solo Reviewer) is used, the cross-challenge rules adapt:
 
 <severity_calibration>
 
-**Critical** — (bypasses confidence scoring) The spec as written would produce incorrect behavior, data loss, or security vulnerability if implemented literally. A developer following the spec would build the wrong thing.
+**Critical** — (bypasses confidence scoring but NOT adversarial weighing) The spec as written would produce incorrect behavior, data loss, or security vulnerability if implemented literally. A developer following the spec would build the wrong thing. The Rule 4 AGAINST argument must have no weight — if there is any reasonable counter-argument, it is Major at most, not Critical.
 Examples: protection mechanism that doesn't actually protect, write path that deletes data, auth bypass.
 
 **Major** — (confidence score 80+) The spec has a real gap that would cause implementation problems AND the implementer would not catch it without the spec mentioning it. Verified real, will be hit in practice.
@@ -64,7 +79,9 @@ Examples: formula field not named, section cross-references missing, batch size 
 
 <confidence_scoring>
 
-Score each non-Critical finding on a 0-100 confidence scale. The question is:
+PREREQUISITE: Every Critical and Major candidate MUST have completed Rule 4 adversarial weighing before reaching this rubric. If the FOR/AGAINST weighing was not written down, go back and do it. Scoring without adversarial weighing is the primary cause of severity inflation.
+
+Score each finding (including Critical candidates that survived adversarial weighing) on a 0-100 confidence scale. Critical findings bypass the score-to-severity thresholds below (they are classified by nature, not score), but the score still serves as a sanity check — a Critical candidate scoring below 80 should be re-examined. The question is:
 "How confident am I that this is a REAL issue that would cause PROBLEMS IN PRACTICE?"
 
 0:  Not confident. False positive that doesn't survive light scrutiny, or a
@@ -130,15 +147,20 @@ After each round, present to the user:
 
 ### Critical Issues (N)
 For each: title, severity, section reference, description, recommended fix, code evidence
+Include Rule 4 adversarial weighing: FOR argument, AGAINST argument, verdict
 
 ### Major Issues (N) — confidence 80+
 For each: title, confidence score, section reference, description, recommended fix, code evidence
+Include Rule 4 adversarial weighing: FOR argument, AGAINST argument, verdict
 
 ### Minor Issues (N) — confidence 60-79
 For each: title, confidence score, section reference, brief description, recommendation (note for implementer / fix if easy)
 
 ### Dropped Findings
-Brief list of what reviewers flagged but the orchestrator scored below 60 or downgraded, with the score and reasoning
+Brief list of what reviewers flagged but the orchestrator downgraded or dropped, with:
+- Findings that failed adversarial weighing (AGAINST argument won) — show the FOR/AGAINST/verdict
+- Findings that scored below 60 — show the score and reasoning
+- Findings caught by hard disqualifiers — name the disqualifier
 
 ### Verdict
 [Either "N Critical, M Major — fixes needed" or "Spec is implementation-ready"]

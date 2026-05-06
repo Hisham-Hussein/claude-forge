@@ -193,9 +193,10 @@ After all reviewers complete, apply synthesis-principles.md:
 1. **Collect all findings** from task comments/agent results
 2. **Cross-challenge:** check for independent convergence (2+ reviewers flagging same issue)
 3. **Verify single-reviewer findings** — read the actual code to confirm or refute
-4. **Confidence-score each surviving finding** — For every non-Critical finding that survived steps 1-3, assign a confidence score (0-100) using the rubric in `<confidence_scoring>`. Write the score next to each finding. Apply thresholds: <60 = drop, 60-79 = Minor, 80+ = Major. This step is mandatory and must produce written scores — do not classify severity without scoring first.
-5. **Drop noise** — remove implementation details and nitpicks that survived scoring
-6. **Check for fix regressions** (round 2+) — did prior fixes create new problems?
+4. **Adversarial weighing (Rule 4 — MANDATORY)** — For every finding a reviewer rated Critical or Major, write the FOR/AGAINST/verdict weighing visibly before scoring. Apply hard disqualifiers. This is the primary defense against severity inflation — do not skip it.
+5. **Confidence-score each surviving finding** — For every finding that survived adversarial weighing, assign a confidence score (0-100) using the rubric in `<confidence_scoring>`. Write the score next to each finding. Apply thresholds: <60 = drop, 60-79 = Minor, 80+ = Major.
+6. **Drop noise** — remove implementation details and nitpicks that survived scoring
+7. **Check for fix regressions** (round 2+) — did prior fixes create new problems?
 
 Produce the final issues list using the presentation format from synthesis-principles.md.
 
