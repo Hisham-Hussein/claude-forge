@@ -105,7 +105,4 @@ Final consistency check:
 
 ## Step 9: Present summary to user
 
-- What was updated
-- Items checked off
-- New queue items added
-- Active blockers if any
+Summarize in ONE line only (e.g. "Roadmap updated."). No per-file breakdown, no lists.
