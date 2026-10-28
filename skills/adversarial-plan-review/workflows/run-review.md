@@ -11,9 +11,10 @@ Review Progress:
 - [ ] Step 5: Ask user for mode (Agent Teams vs Parallel Subagents vs Solo Reviewer), then spawn reviewers
 - [ ] Step 6: Synthesize with critical judgment (cross-challenge, severity calibration)
 - [ ] Step 7: Present to user and get decision
-- [ ] Step 8a: Apply fixes with impact tracing
-- [ ] Step 8b: Verify fixes (self-review gate — catch regressions before next round)
-- [ ] Step 8c: Commit and ask about next round → loop back to Step 5
+- [ ] Step 8: Regression-Safe Fixes (8a → 8b → 8c)
+  - [ ] Step 8a: Apply fixes with impact tracing
+  - [ ] Step 8b: Verify fixes (self-review gate — catch regressions before next round)
+  - [ ] Step 8c: Commit and ask about next round → loop back to Step 5
 - [ ] Step 9: Safety valve (if round 5 reached with open Critical/Major)
 ```
 
@@ -224,6 +225,10 @@ Wait for user response:
 - "Stop" or "good enough" → end
 - User disagrees with findings → discuss, adjust, re-present
 </step_7>
+
+## Step 8: Regression-Safe Fixes
+
+Apply approved fixes without introducing new errors: trace each fix's impact before editing (8a), verify your own edits adversarially before anything else sees them (8b), then commit and hand control back to the user (8c).
 
 <step_8a>
 **Step 8a: Apply Fixes with Impact Tracing**
