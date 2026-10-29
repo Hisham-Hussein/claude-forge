@@ -30,7 +30,7 @@ The orchestrator must genuinely try to defeat each finding. If the AGAINST argum
 - Score 80+: Major — fix before implementation
 - Critical: Must survive adversarial weighing AND be about incorrect behavior, data loss, or security. A finding where the AGAINST argument holds any weight is not Critical.
 
-The adversarial weighing and score must be written down for each finding. If you cannot write a FOR argument that clearly dominates the AGAINST argument, it is not Major.
+The adversarial weighing and score must be written down for each Critical or Major candidate. If you cannot write a FOR argument that clearly dominates the AGAINST argument, it is not Major.
 
 **Hard disqualifiers — these findings are automatically Minor-or-below regardless of reviewer framing:**
 - The spec shows correct code/example but surrounding prose is imprecise → Minor max
