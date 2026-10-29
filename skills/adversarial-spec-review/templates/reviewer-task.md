@@ -29,8 +29,6 @@ Mark task complete when done.
 <agent_prompt_template>
 
 ```
-Execute task #{task_id}.
-
 Read the spec at {spec_path} thoroughly. Also read these files for context:
 {file_list_with_reasons}
 
@@ -43,7 +41,7 @@ Focus on:
 
 {round_specific_instructions}
 
-Post findings as task comments with severity (Critical/Major/Minor). Cite section numbers. Be specific — vague findings get dropped in synthesis.
+Return findings in your final message with severity (Critical/Major/Minor). Cite section numbers. Be specific — vague findings get dropped in synthesis.
 
 SEVERITY CALIBRATION:
 - Critical: The spec as written would produce incorrect behavior, data loss, or security vulnerability if implemented literally. A developer following the spec would build the wrong thing.
@@ -52,7 +50,6 @@ SEVERITY CALIBRATION:
 
 IMPORTANT: Finding issues is NOT your goal. Determining spec readiness IS your goal. If the spec handles your focus areas correctly, report "zero Critical, zero Major" — that is a successful review, not a failed one. BE ACCURATE. You do not get points for inflating issues that are minor or cosmetic into Major, and you do not get points for deflating genuine issues to avoid reporting them. The only measure of a good review is accuracy — did you correctly identify what is and is not a problem? When dismissing a concern as "an implementer would handle this," verify: would the implementer KNOW this concern exists without the spec mentioning it? If not, flag it.
 
-Mark task complete when done.
 ```
 
 </agent_prompt_template>
@@ -124,7 +121,6 @@ The orchestrator fills these fields:
 | `{file_list_with_reasons}` | Same files but with "(for X context)" annotations |
 | `{numbered_focus_areas}` | Numbered list of specific questions/checks for this reviewer |
 | `{round_specific_instructions}` | Round 1: "Be thorough." Round 2+: "This is a CONVERGENCE round. Verify the fixes listed above are clean and check for regressions. Do NOT expand scope beyond Round 1's coverage. Do NOT dig deeper into areas that were clean in prior rounds. If the fixes are correct and no regressions exist, report zero Critical/Major — that is the expected outcome of a successful convergence round." |
-| `{task_id}` | Task ID from TaskCreate |
 | `{combined_lenses}` | Mode C only: All selected archetypes formatted as numbered lens sections, each with name, one-liner, and focus areas |
 | `{lens_count}` | Mode C only: Count of selected archetypes |
 

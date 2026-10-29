@@ -12,6 +12,7 @@ allowed-tools:
   - TaskList
   - TaskGet
   - AskUserQuestion
+  - Bash
   - Skill(reviewing-plans-adversarially)
 ---
 

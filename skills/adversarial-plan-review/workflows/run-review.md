@@ -1,6 +1,6 @@
 <process>
 
-Copy this checklist and track progress as you go:
+Before anything else, post a to-do list of every step below in your reply. Re-post it with steps ticked as each one finishes:
 
 ```
 Review Progress:
@@ -14,7 +14,7 @@ Review Progress:
 - [ ] Step 8: Regression-Safe Fixes (8a → 8b → 8c)
   - [ ] Step 8a: Apply fixes with impact tracing
   - [ ] Step 8b: Verify fixes (self-review gate — catch regressions before next round)
-  - [ ] Step 8c: Commit and ask about next round → loop back to Step 5
+  - [ ] Step 8c: Commit and ask about next round → loop back to Step 4
 - [ ] Step 9: Safety valve (if round 5 reached with open Critical/Major)
 ```
 
@@ -27,7 +27,7 @@ Read the plan file completely. Then analyze it for scope dimensions:
 2. **Find the source spec** — the plan should reference its source design document. Read it. If not referenced, ask the user which spec this plan implements.
 3. **Identify referenced files** — find all file paths (Create, Modify, Test), module names, function names, interface names mentioned in the plan. These are the files reviewers must read.
 4. **Scan for scope signals** — read the `<selection_index>` section in `references/reviewer-archetypes.md` (do NOT read the full archetype blocks yet). For each archetype in the index, count how many selection signals appear in the plan.
-5. **Note the plan's complexity** — task count, phase count, number of files touched, number of new vs modified files
+5. **Note the plan's complexity** — task count, phase count, number of files touched, number of new vs modified files. Name the 3 riskiest areas.
 
 Output: a mental map of the plan's scope dimensions and which archetypes match.
 </step_1>
@@ -37,10 +37,7 @@ Output: a mental map of the plan's scope dimensions and which archetypes match.
 
 **Read the `<catalog>`, `<selection_index>`, and `<selection_process>` sections of `references/reviewer-archetypes.md`** — these contain the archetype list, selection signals, and selection process. Do NOT read the full `<archetype>` blocks yet — those are loaded in Step 4 only for selected reviewers.
 
-Apply the selection process from reviewer-archetypes.md:
-- Select every archetype with 2+ signal matches
-- Always include Devil's Advocate
-- Do NOT cap at a fixed number — let the plan's complexity determine team size
+Apply the selection process from reviewer-archetypes.md.
 
 **Announce the team to the user before proceeding:**
 ```
@@ -53,7 +50,7 @@ Based on the plan's scope, I'm spawning N reviewers:
 
 Wait for user acknowledgment. The user may want to add or remove reviewers.
 
-**Mode C adaptation:** If the user chooses Mode C (Solo Reviewer) in Step 5, adapt the announcement: instead of "spawning N reviewers," say "the solo reviewer will cover N lenses" and list the same archetypes as combined lenses. The user can still add or remove lenses.
+**Mode C adaptation:** If the user then chooses Mode C (Solo Reviewer) in Step 5, restate the team there: instead of "spawning N reviewers," say "the solo reviewer will cover N lenses" and list the same archetypes as combined lenses. The user can still add or remove lenses.
 </step_2>
 
 <step_3>
@@ -79,7 +76,7 @@ Each reviewer gets the plan + spec + their domain-relevant files.
 
 **Read `templates/reviewer-task.md` now** — it contains the prompt template, dynamic fields, and focus area generation guidance.
 
-**Read the full `<archetype>` blocks now — but ONLY for the selected reviewers.** For each selected reviewer, read their `<archetype id="...">` block in `references/reviewer-archetypes.md` to get their detailed "What this reviewer checks" and "Severity calibration" sections. Do NOT read archetype blocks for reviewers not on the team.
+**Read the full `<archetype>` blocks now — but ONLY for the selected reviewers.** For each selected reviewer, read their `<archetype id="...">` block in `references/reviewer-archetypes.md` to get their detailed "What this reviewer checks" section. Do NOT read archetype blocks for reviewers not on the team.
 
 For each reviewer, generate 3-7 specific QUESTIONS (not instructions) based on:
 - The plan's task structure mapped to the reviewer's expertise
@@ -132,7 +129,7 @@ Each teammate should:
 1. Read the plan at {plan_path}
 2. Read the source spec at {spec_path}
 3. Read their assigned source files
-4. Post findings with severity (Critical/Major/Minor) and task/step citations
+4. Post findings with severity (Critical/Major/Minor), per the SEVERITY CALIBRATION block from templates/reviewer-task.md, pasted into each teammate's prompt, and task/step citations
 5. Challenge other teammates' findings when they disagree
 
 Use Opus for each teammate. Require plan approval before they start reviewing.
@@ -147,12 +144,10 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 **When to use:** Only when Agent Teams is unavailable (feature not enabled, etc.). **You MUST tell the user** before using this mode: "Agent Teams isn't available in this environment. Falling back to parallel subagents — reviewers won't be able to cross-challenge each other directly. I'll handle cross-challenge in synthesis."
 
 **How to use:**
-1. For each reviewer, create a task via TaskCreate with the task description from the template. Note the task ID.
-2. Create a synthesis task (blocked by all reviewer tasks via `addBlockedBy`).
-3. Spawn all reviewers **in parallel** using the Agent tool.
+1. Spawn all reviewers **in parallel** using the Agent tool.
    - Use `model: opus` for each reviewer
    - Each agent's prompt follows the agent_prompt_template from templates/reviewer-task.md with all dynamic fields filled
-4. Wait for all agents to complete.
+2. Wait for all agents to complete.
 
 **CRITICAL:** Do NOT use Mode B's mechanics (Agent tool) while claiming to use Mode A (Agent Teams). They are completely different features. If you find yourself typing `Agent tool` invocations, you are in Mode B.
 
@@ -173,9 +168,8 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 
 **How to use:**
 1. Combine all selected archetypes' focus areas into a single prompt following the `solo_agent_prompt_template` from templates/reviewer-task.md. Keep focus areas to the top 3-4 questions per lens (not the full 3-7) to manage total prompt length.
-2. Create one task via TaskCreate: "R{round}: Solo Comprehensive Review"
-3. Spawn ONE agent using the Agent tool with `model: opus`.
-4. The agent reviews through all lenses sequentially, performs a cross-lens pass, and returns consolidated findings.
+2. Spawn ONE agent using the Agent tool with `model: opus`.
+3. The agent reviews through all lenses sequentially, performs a cross-lens pass, and returns consolidated findings.
 
 **Key difference from Mode B:** Mode B spawns N independent agents in parallel — diversity of perspective catches blind spots through independent convergence. Mode C spawns 1 agent with N lenses combined — the solo reviewer sees connections across lenses that independent agents cannot, but may have blind spots that diversity would catch. The orchestrator compensates via mandatory spot-checking (see Step 6).
 </step_5>
@@ -187,11 +181,11 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 
 After all reviewers complete, apply synthesis-principles.md:
 
-1. **Collect all findings** from task comments/agent results
+1. **Collect all findings** from task comments (Mode A) or agent results (Modes B/C)
 2. **Cross-challenge:** check for independent convergence (2+ reviewers flagging same issue)
 3. **Verify single-reviewer findings** — read the actual spec and code to confirm or refute
-4. **Adversarial weighing (Rule 4 — MANDATORY)** — For every finding a reviewer rated Critical or Major, write the FOR/AGAINST/verdict weighing visibly before scoring. Apply hard disqualifiers. This is the primary defense against severity inflation — do not skip it.
-5. **Confidence-score each surviving finding** — For every finding that survived adversarial weighing, assign a confidence score (0-100) using the rubric in `<confidence_scoring>`. Write the score next to each finding. Apply thresholds: <60 = drop, 60-79 = Minor, 80+ = Major.
+4. **Adversarial weighing (Rule 4 — MANDATORY)** — For every Critical or Major candidate, write the FOR/AGAINST/verdict weighing visibly before scoring. Apply hard disqualifiers. This is the primary defense against severity inflation — do not skip it.
+5. **Confidence-score each surviving finding** — For every finding that survived Rules 1-3 (and Rule 4 for Critical/Major candidates), assign a confidence score (0-100) using the rubric in `<confidence_scoring>`. Write the score next to each finding. Apply thresholds: <60 = drop, 60-79 = Minor, 80+ = Major.
 6. **Drop noise** — remove style preferences and implementation details that survived scoring
 7. **Check for fix regressions** (round 2+) — did prior fixes create new problems?
 8. **Judge spec coverage** — holistically, does this plan fully implement the spec?
@@ -201,7 +195,7 @@ Produce the final issues list using the presentation format from synthesis-princ
 **Mode C adaptation:** When the round used Mode C (Solo Reviewer), synthesis changes:
 - Skip the cross-challenge step (there is only one reviewer) — instead, examine the reviewer's "Cross-Lens Observations" section for convergence signals (same issue surfacing under multiple lenses)
 - Every Critical and Major finding requires orchestrator verification against the actual spec and codebase (this is Rule 2 applied universally, since all findings are single-reviewer findings)
-- The orchestrator MUST spot-check the top 3 riskiest areas identified in Step 1 to verify the solo reviewer didn't miss anything — if the orchestrator finds issues the solo reviewer missed, those become orchestrator-originated findings and the round is NOT converged
+- The orchestrator MUST spot-check the top 3 riskiest areas identified in Step 1 to verify the solo reviewer didn't miss anything — if the orchestrator finds Critical/Major issues the solo reviewer missed, those become orchestrator-originated findings and the round is NOT converged
 - All other synthesis rules (severity calibration, noise dropping, fix regression checking, holistic spec coverage judgment) apply unchanged
 </step_6>
 
@@ -212,12 +206,12 @@ Present the round results to the user. End with one of:
 
 **If Critical/Major issues found:**
 ```
-Round N found X Critical, Y Major issues. Want me to apply fixes?
+Round N found X Critical, Y Major issues. Want me to apply fixes, and the K Minors shown?
 ```
 
 **If zero Critical/Major:**
 ```
-Plan is execution-ready. N rounds, M total reviewer passes, all converged on zero Critical/Major.
+Plan is execution-ready. N rounds, M total reviewer passes, all converged on zero Critical/Major. Want me to apply the K Minors shown?
 ```
 
 Wait for user response:
@@ -233,11 +227,11 @@ Apply approved fixes without introducing new errors: trace each fix's impact bef
 <step_8a>
 **Step 8a: Apply Fixes with Impact Tracing**
 
-For each approved Critical/Major issue, BEFORE editing:
+For each approved issue, BEFORE editing:
 
 1. **Trace impact radius.** Search the plan (using Grep) for every reference to the entity being changed — task numbers, file paths, dependency names, phase references. List them. These are the locations you must check after editing.
 2. **Read the target section** — read the actual file content around the edit point.
-3. **Apply the fix** using the Edit tool.
+3. **Apply the fix** using the Edit tool. First fix the text that caused the problem: correct it, simplify it, or remove it, whichever fixes it. Add new text only if that can't fix it, and keep it short.
 4. **Immediately check impact locations** — revisit each reference found in step 1. Update any that are now stale or inconsistent.
 
 The purpose of the impact trace is to make cascading updates part of the fix, not an afterthought discovered in the next review round.
@@ -283,14 +277,14 @@ After verification passes:
 
 1. Summarize what changed (list each fix briefly)
 2. **Commit the round's fixes** as a single commit with message format:
-   `docs: fix N Critical + M Major findings from adversarial review round R`
+   `docs: fix N Critical + M Major + K Minor findings from adversarial review round R`
    Include a body listing each fix for traceability. One commit per round — not per fix — because fixes within a round are semantically coupled and may touch overlapping sections.
 
 **MANDATORY: Do NOT auto-start the next round.** Present the fix summary to the user and ask:
 ```
 Round R fixes applied, verified, and committed. Ready to start Round R+1, or do you want to stop here?
 ```
-Wait for explicit user confirmation before proceeding. Only after the user confirms, proceed to Step 5 with updated round context:
+Wait for explicit user confirmation before proceeding. Only after the user confirms, proceed to Step 4 with updated round context:
 - Increment round number
 - Set round_context to list all fixes applied
 - Set round_specific_instructions to "Don't re-report fixed issues. Focus on what's STILL broken or what the fixes INTRODUCED."
@@ -325,7 +319,7 @@ This workflow is complete when:
 - [ ] Each round synthesized with critical judgment (not rubber-stamped)
 - [ ] User approved all fixes before they were applied
 - [ ] All fixes verified by orchestrator before committing (fix-to-finding, consistency scan, re-read)
-- [ ] Final round: all reviewers found zero Critical/Major
+- [ ] Final round: zero Critical/Major remain after synthesis
 - [ ] Orchestrator confirmed the verdict with own judgment
 - [ ] User received "execution-ready" declaration
 </success_criteria>

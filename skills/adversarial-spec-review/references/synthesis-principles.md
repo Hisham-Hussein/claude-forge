@@ -16,7 +16,7 @@ If only one reviewer flagged it, the orchestrator MUST verify it against the act
 **Rule 4: Adversarial weighing before scoring — MANDATORY for every Critical and Major candidate.**
 For every Critical or Major candidate that survives Rules 1-3, the orchestrator MUST complete a forced adversarial weighing before assigning a confidence score. This is the most important rule in synthesis — skipping it is the primary cause of severity inflation.
 
-**For every finding a reviewer rates Critical or Major, the orchestrator MUST write — visibly in the synthesis, not internally — three things:**
+**For every Critical or Major candidate, the orchestrator MUST write — visibly in the synthesis, not internally — three things:**
 
 1. **Case FOR this severity:** In 1-2 sentences, the strongest argument that this finding is real, would be hit in practice, and the implementer would not catch it without the spec mentioning it.
 2. **Case AGAINST this severity:** In 1-2 sentences, the strongest argument that this finding is not real, would not be hit in practice, or a competent implementer doing TDD would catch it naturally.
@@ -99,15 +99,15 @@ Score each finding (including Critical candidates that survived adversarial weig
     would LIKELY catch it, but it's a genuine gap worth noting. Defense-in-depth
     improvements (a second safety layer where the primary protection already works),
     documentation that prevents confusion, and ambiguities that could lead to
-    divergent implementations belong here.
+    divergent implementations belong here, and so does a principle breach that
+    breaks nothing (e.g. it only needs a declared exception).
     → Classified as **Minor**.
 
 80-100: High confidence. Verified real, will be hit in practice, and the existing
     approach is insufficient. The implementer would NOT catch this without the
     spec mentioning it. Directly impacts correctness or functionality. Or:
     violates a stated project principle in a way that breaks something (wrong
-    data, a failed flow, a failed deploy). A breach that breaks nothing (e.g.
-    it only needs a declared exception) is Minor.
+    data, a failed flow, a failed deploy).
     → Classified as **Major** (fix before implementation).
 
 IMPORTANT: "The fix is easy" is not a severity input; it does NOT upgrade
@@ -154,7 +154,7 @@ For each: title, confidence score, section reference, description, recommended f
 Include Rule 4 adversarial weighing: FOR argument, AGAINST argument, verdict
 
 ### Minor Issues (N) — confidence 60-79
-Only Minors that change what gets built (at most 5), duplicates merged. The rest: one line with their count.
+Only Minors that change what gets built (at most 5), duplicates merged. For each: title, reference, recommended fix. The rest: one line with their count.
 
 ### Dropped Findings
 Brief list of what reviewers flagged but the orchestrator downgraded or dropped, with:

@@ -30,8 +30,6 @@ Mark task complete when done.
 <agent_prompt_template>
 
 ```
-You are a teammate on an agent team (Claude Code Agent Teams). Claim task #{task_id} from the shared task list and execute it.
-
 Read the implementation plan at {plan_path} thoroughly. Also read the source spec at {spec_path} — the plan implements this spec. Also read these files for context:
 {file_list_with_reasons}
 
@@ -44,11 +42,15 @@ Focus on:
 
 {round_specific_instructions}
 
-Post findings as task comments with severity (Critical/Major/Minor). Cite task numbers and step numbers from the plan (e.g., "Task 5, Step 3"). Be specific — vague findings get dropped in synthesis.
+Return findings in your final message with severity (Critical/Major/Minor). Cite task numbers and step numbers from the plan (e.g., "Task 5, Step 3"). Be specific — vague findings get dropped in synthesis.
+
+SEVERITY CALIBRATION:
+- Critical: The plan as written would fail to execute, produce incorrect results, or miss a spec requirement entirely. A developer following the plan would build the wrong thing or get stuck.
+- Major: The plan has a real gap that would cause implementation problems, and the implementer would not catch it without the plan mentioning it.
+- Minor: Polish, style, or implementation details that are obvious to the implementer and wouldn't cause execution problems.
 
 IMPORTANT: Finding issues is NOT your goal. Determining plan readiness IS your goal. If the plan handles your focus areas correctly, report "zero Critical, zero Major" — that is a successful review, not a failed one. BE ACCURATE. You do not get points for inflating issues that are minor or cosmetic into Major, and you do not get points for deflating genuine issues to avoid reporting them. The only measure of a good review is accuracy — did you correctly identify what is and is not a problem? When dismissing a concern as "an implementer would handle this," verify: would the implementer KNOW this concern exists without the plan mentioning it? If not, flag it.
 
-Mark task complete when done.
 ```
 
 </agent_prompt_template>
@@ -77,7 +79,7 @@ REVIEW PROCESS:
 
 SEVERITY CALIBRATION:
 - Critical: The plan as written would fail to execute, produce incorrect results, or miss a spec requirement entirely. A developer following the plan would build the wrong thing or get stuck.
-- Major: The plan has a real gap that would cause implementation problems, but a competent developer might catch and fix it during execution. Still should be fixed in the plan.
+- Major: The plan has a real gap that would cause implementation problems, and the implementer would not catch it without the plan mentioning it.
 - Minor: Polish, style, or implementation details that are obvious to the implementer and wouldn't cause execution problems.
 
 IMPORTANT: Finding issues is NOT your goal. Determining plan readiness IS your goal. If the plan handles all focus areas correctly, report "zero Critical, zero Major" — that is a successful review, not a failed one. BE ACCURATE. You do not get points for inflating issues that are minor or cosmetic into Major, and you do not get points for deflating genuine issues to avoid reporting them. The only measure of a good review is accuracy — did you correctly identify what is and is not a problem? When dismissing a concern as "an implementer would handle this," verify: would the implementer KNOW this concern exists without the plan mentioning it? If not, flag it.
@@ -121,7 +123,6 @@ The orchestrator fills these fields:
 | `{file_list_with_reasons}` | Same files but with "(for X context)" annotations |
 | `{numbered_focus_areas}` | Numbered list of specific questions/checks for this reviewer |
 | `{round_specific_instructions}` | Round 1: "Be thorough." Round 2+: "Don't re-report fixed issues. Focus on what's STILL broken or what the fixes INTRODUCED." |
-| `{task_id}` | Task ID from TaskCreate |
 | `{combined_lenses}` | Mode C only: All selected archetypes formatted as numbered lens sections, each with name, one-liner, and focus areas |
 | `{lens_count}` | Mode C only: Count of selected archetypes |
 

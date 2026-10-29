@@ -101,9 +101,9 @@ For each ## section in the spec, produce a row:
 
 Coverage levels:
 - **Full** = task explicitly creates/implements the requirement with correct names, types, and behaviors
-- **Partial** = task covers the happy path but misses edge cases, error handling, or config the spec mentions → Major finding
-- **None** = no task addresses this requirement → Critical finding
-- A plan task with no row in the matrix = potential scope creep → Major finding
+- **Partial** = task covers the happy path but misses edge cases, error handling, or config the spec mentions
+- **None** = no task addresses this requirement
+- A plan task with no row in the matrix = potential scope creep
 
 Focus traceability on behavioral requirements (logic, workflows, validations, state transitions), not on structural requirements that are self-evident from the task's existence (table creation, field lists, env var setup).
 
@@ -135,7 +135,7 @@ Focus traceability on behavioral requirements (logic, workflows, validations, st
 - Are code snippets in the plan complete enough to implement from? Or are they pseudocode that requires interpretation?
 
 **Writing-plans format compliance (for code-producing tasks):**
-Code-producing tasks should have these structural elements (flag missing elements as Major):
+Code-producing tasks should have these structural elements (flag missing elements):
 - A **Files** block listing Create/Modify/Test with exact paths (not generic like "src/utils.ts")
 - Steps that follow the red-green-commit cycle: write test → run to verify it fails → implement → run to verify it passes → commit
 - Verification steps with exact commands AND expected output (not just "run tests")
@@ -152,7 +152,7 @@ Manual/infrastructure tasks (Airtable configuration, env var setup, deployment s
 
 **TDD Discipline & Test Coverage Reviewer**
 
-**Expertise:** Test-driven development cycle integrity, test quality, assertion specificity, mock appropriateness, red-green-commit discipline, AND three-layer test coverage completeness (unit, integration, E2E), test task traceability against implementation tasks, CLAUDE.md testing discipline principles T1–T8 enforcement, zero-gap test coverage verification, test-to-behavior mapping.
+**Expertise:** Test-driven development cycle integrity, test quality, assertion specificity, mock appropriateness, red-green-commit discipline, AND three-layer test coverage completeness (unit, integration, E2E), test task traceability against implementation tasks, the project's testing principles (T1–T8) enforcement, zero-gap test coverage verification, test-to-behavior mapping.
 
 **Selection signals in plan:**
 - Test-first steps (write test → verify fail → implement → verify pass)
@@ -171,7 +171,7 @@ Manual/infrastructure tasks (Airtable configuration, env var setup, deployment s
 
 This reviewer has two mandates. **Mandate A (TDD Discipline):** are the tests in this plan well-written, following TDD cycle and best practices? **Mandate B (Coverage Completeness):** are ALL the tests that SHOULD exist actually present in the plan? A plan can pass Mandate A with perfect red-green-commit discipline on 5 test cases while silently missing 15 scenarios that need testing. Both mandates must pass.
 
-This reviewer enforces the project's three-layer testing methodology as defined in CLAUDE.md principles T1–T8. The core coverage mandate: **nothing the plan adds should escape testing. Zero holes. Zero scenarios without coverage. Every behavior, every boundary, every pipeline — tested.**
+This reviewer enforces the project's three-layer testing methodology as defined in the project's testing principles (labeled T1–T8 below). The core coverage mandate: **nothing the plan adds should escape testing. Zero holes. Zero scenarios without coverage. Every behavior, every boundary, every pipeline — tested.**
 
 ### Mandate A: TDD Discipline
 
@@ -191,11 +191,11 @@ This reviewer enforces the project's three-layer testing methodology as defined 
 | Task 5: Airtable adapter | listInfluencers(), updateRecord() | Yes — mapper tests | No — no integration test task | Missing — part of pipeline | **GAP** |
 | Task 8: Campaign orchestrator | Full pipeline wiring | Yes — orchestration logic | N/A — tested via E2E | No E2E test task | **GAP** |
 
-Every "GAP" is a finding. Severity depends on which layer is missing (see calibration below).
+Every "GAP" is a finding.
 
 5. **Unit test behavior coverage (T1, T2).** For each task's unit tests, verify: (a) do the tests cover ALL behaviors the task introduces, not just the primary happy path? A matching engine task with 6 filter criteria needs tests for each criterion. A single "it matches" test is a T2 violation. (b) are edge cases tested — empty inputs, boundary values, null/undefined fields, partial data, error paths? (c) Count the behavioral assertions vs the behaviors introduced — if the ratio is less than 1:1, coverage is incomplete.
 
-6. **Integration test boundary audit (T7 — MANDATORY, BLOCKING).** Enumerate every adapter method the plan creates that talks to a real external system. For EACH one, verify the plan includes an integration test task or step that tests against the REAL system — not mocks. This is a blocking requirement per T7.
+6. **Integration test boundary audit (T7).** Enumerate every adapter method the plan creates that talks to a real external system. For EACH one, verify the plan includes an integration test task or step that tests against the REAL system — not mocks.
 
 Produce an explicit boundary-to-test traceability list:
 
@@ -205,9 +205,9 @@ Produce an explicit boundary-to-test traceability list:
 | Task 5 | fetchPosts() | Apify | None | **FAIL — T7 violation** |
 | Task 6 | generateContent() | OpenAI | None | **FAIL — T7 violation** |
 
-Every "FAIL" is a **Critical** finding. T7 is non-negotiable: an adapter method is not complete until its integration test passes against the real system. If the plan creates 5 adapter methods and only 3 have integration tests, the plan is incomplete — full stop.
+Every "FAIL" is a finding: an adapter method is not complete until its integration test passes against the real system. If the plan creates 5 adapter methods and only 3 have integration tests, the plan is incomplete — full stop.
 
-7. **E2E pipeline audit (T8 — MANDATORY, BLOCKING).** Identify every user-facing pipeline the plan creates, modifies, or completes. For EACH pipeline, verify the plan includes an E2E test task that exercises the FULL pipeline with zero mocks — real external services, real data, real write-back.
+7. **E2E pipeline audit (T8).** Identify every user-facing pipeline the plan creates, modifies, or completes. For EACH pipeline, verify the plan includes an E2E test task that exercises the FULL pipeline with zero mocks — real external services, real data, real write-back.
 
 Produce an explicit pipeline-to-E2E traceability list:
 
@@ -216,15 +216,14 @@ Produce an explicit pipeline-to-E2E traceability list:
 | Enrichment pipeline | Tasks 4, 6, 8 | LLM + Airtable → fields written | Task 9 | **PASS** |
 | Social import | Tasks 5, 7 | Apify + Airtable → Writing Samples | None | **FAIL — T8 violation** |
 
-Every "FAIL" is a **Critical** finding. T8 is non-negotiable: if the plan builds a pipeline, the plan must include an E2E test for that pipeline — not as a follow-up, not as tech debt, but as part of this plan.
+Every "FAIL" is a finding: if the plan builds a pipeline, the plan must include an E2E test for that pipeline — not as a follow-up, not as tech debt, but as part of this plan.
 
-**Planning check from T8:** "When writing implementation plans, include the E2E test as an explicit task — not a follow-up. If the plan adds a pipeline orchestrator without an E2E test task, the plan is incomplete."
 
 ### Mandate C: Testing Hygiene (T3–T6)
 
-8. **Test data realism (T3).** For each test in the plan's code snippets, examine the test fixtures and mock data. Does it use realistic, imperfect inputs — partial data, nulls, missing fields, edge-case shapes? Or is every test fixture a clean, complete, happy-path object? All-happy-path fixtures hide wiring problems (T3). If the plan's test code uses `{ name: "Test", score: 100, status: "Active" }` for every test case without any missing/null/malformed data, flag as Major.
+8. **Test data realism (T3).** For each test in the plan's code snippets, examine the test fixtures and mock data. Does it use realistic, imperfect inputs — partial data, nulls, missing fields, edge-case shapes? Or is every test fixture a clean, complete, happy-path object? All-happy-path fixtures hide wiring problems (T3). If the plan's test code uses `{ name: "Test", score: 100, status: "Active" }` for every test case without any missing/null/malformed data, flag it.
 
-9. **Error suppression prohibition (T4 — ABSOLUTE).** Scan every test step and test code snippet in the plan for any form of error suppression: `dangerouslyIgnoreUnhandledErrors`, blanket `try/catch` that swallows errors, `@ts-ignore` on test assertions, `--no-verify`, `.skip` without justification. If found, flag as **Critical**. T4 is absolute: error suppression is never acceptable — not as a first resort, not as a last resort, not under any circumstance. It masks real bugs and propagates bad patterns.
+9. **Error suppression prohibition (T4).** Scan every test step and test code snippet in the plan for any form of error suppression: `dangerouslyIgnoreUnhandledErrors`, blanket `try/catch` that swallows errors, `@ts-ignore` on test assertions, `--no-verify`, `.skip` without justification. If found, flag it. It masks real bugs and propagates bad patterns.
 
 10. **Gated test visibility (T5).** If the plan includes tests gated behind environment variables or opt-in flags (e.g., `describe.skipIf(!hasCredentials)`), verify: (a) the gating is explicit and documented, (b) the plan states what coverage is skipped when the gate is closed, (c) the plan does not treat skipped coverage as verified behavior. If a plan says "integration tests pass" but the tests were gated and skipped, that's a T5 violation.
 
@@ -234,13 +233,9 @@ Every "FAIL" is a **Critical** finding. T8 is non-negotiable: if the plan builds
 
 12. **Cross-task test gap scan.** After checking individual tasks, perform a holistic scan: walk through the spec's complete list of behaviors, boundaries, and pipelines. For each one, verify a plan task covers it with the appropriate test layer. Produce a final gap summary listing any behaviors, boundaries, or pipelines that have NO test coverage in any plan task. This is the "nothing escapes" check — the most important output of this reviewer.
 
-**Severity calibration for this domain:**
-- **Critical:** A plan task creates an adapter method with no integration test (T7 violation — blocking). A plan builds a user-facing pipeline with no E2E test task (T8 violation — blocking). A plan uses error suppression in test code (T4 violation — absolute). A behavioral component introduced by the plan has zero test coverage at any layer. The cross-task gap scan reveals untested behaviors.
-- **Major:** Unit tests exist but don't cover all behaviors a task introduces (partial T2 coverage). Test data is all-happy-path with no edge cases (T3 violation). Tests share mutable state or depend on execution order (T6 violation). Gated tests skip silently without documentation (T5 violation). A task claims "tests pass" but the test assertions are non-specific (`toBeDefined()`, `toBeTruthy()`). A task does not follow red-green-commit cycle (T1 violation).
-- **Minor:** Test descriptions could be more specific but cover the right behaviors. Edge case coverage is present but not exhaustive. Test organization could be cleaner.
-- **Not a finding:** The absence of a testing framework when the project already has one. Don't flag test count — coverage completeness matters, not quantity. Don't flag test style preferences (describe/it nesting depth, test file naming) when the project has established conventions.
+**Not a finding in this domain:** The absence of a testing framework when the project already has one. Don't flag test count — coverage completeness matters, not quantity. Don't flag test style preferences (describe/it nesting depth, test file naming) when the project has established conventions.
 
-**Files to read:** The plan (every task — test gaps hide in tasks that seem "too simple to test"), the source spec (critical — the authoritative list of what SHOULD be tested), CLAUDE.md (critical — contains T1–T8 principles that this reviewer enforces verbatim), existing test files (to understand patterns and what integration/E2E tests already exist), data model schema (to identify all external boundaries), architecture document (to identify all pipeline/adapter boundaries).
+**Files to read:** The plan (every task — test gaps hide in tasks that seem "too simple to test"), the source spec (critical — the authoritative list of what SHOULD be tested), CLAUDE.md (its testing principles, which this reviewer enforces), existing test files (to understand patterns and what integration/E2E tests already exist), data model schema (to identify all external boundaries), architecture document (to identify all pipeline/adapter boundaries).
 
 </archetype>
 
@@ -408,11 +403,7 @@ A single task that says "implement the prompt" without separating these concerns
 
 8. **Prompt text review opportunity.** Does the plan include the actual prompt text (system and user prompts) in the code snippets, or does it defer prompt writing to the implementer? The prompt text is the highest-leverage part of any LLM feature — reviewing it at plan time catches issues that are expensive to fix after implementation. A plan that says "write appropriate system prompt" without showing the text is too vague.
 
-**Severity calibration:**
-- **Critical:** Code snippet places computation inside the prompt module (layer violation). Tasks mix all three layers into one monolithic step. Output schema not enforced by structured output — prompt uses free-text formatting instructions instead.
-- **Major:** Aggregation logic in the wrong task (prompt module instead of caller). Prompt assembly tests say "test the prompt" without concrete assertions. Task ordering violates layer dependencies. Prompt text deferred entirely to implementer with no review. Output schema granularity mismatched to consumer (e.g., 10+ nested types for an LLM consumer when coarse string fields would produce richer output).
-- **Minor:** Prompt version not bumped for minor changes. Task decomposition combines two layers but with clear step boundaries within the task. Schema constraints slightly too strict or too loose.
-- **Not a finding:** Choice of XML vs markdown for prompt text (project convention). Specific LLM model selection. Prompt wording style preferences.
+**Not a finding in this domain:** Choice of XML vs markdown for prompt text (project convention). Specific LLM model selection. Prompt wording style preferences.
 
 **Deep reference:** Read `references/prompt-critic-reference.md` (in the adversarial-spec-review skill) for research-backed rationale on prompt engineering quality, the three-layer split in depth, and common prompt implementation issues. The reference is shared between spec and plan review — the principles are the same; only the review focus differs (spec = design correctness, plan = implementation correctness).
 
@@ -475,11 +466,7 @@ A single task that says "implement the prompt" without separating these concerns
 
 7. **Open/Closed assessment.** For the plan's key extension points (where new behaviors will be added in future phases), check: can new behavior be added by adding new code (new implementations of an existing interface), or does it require modifying existing code (adding cases to a switch, conditions to an if-chain)? If the spec identifies extension points and the plan implements them as closed switch statements, that's a divergence.
 
-**Severity calibration for this domain:**
-- **Critical:** The plan creates a dependency cycle between modules, or the plan's structure makes a stated project principle impossible to achieve later (e.g., architecture doc requires vendor portability but the plan hardwires vendor calls throughout domain logic with no adapter layer — retrofitting adapters would require rewriting every consumer).
-- **Major:** The plan clearly diverges from the spec's architectural decisions. The code would work, but it doesn't implement the approved design. Examples: domain logic importing from infrastructure when the spec prescribes the inverse, missing interface at a boundary the spec explicitly defines, a single file mixing 3+ concerns that the spec assigns to separate modules. Also applies to violations of principles explicitly stated in CLAUDE.md.
-- **Minor:** A principle is not perfectly followed but the violation is small scope, the plan doesn't contradict the spec (the spec is simply silent on this point), or the project doesn't explicitly state the principle. Example: a helper function that could be private is exported, but has only one consumer.
-- **Not a finding:** Theoretical perfection that neither the spec nor CLAUDE.md requires. Don't flag the absence of an interface when there's only one implementation and no stated portability requirement for that boundary.
+**Not a finding in this domain:** Theoretical perfection that neither the spec nor CLAUDE.md requires. Don't flag the absence of an interface when there's only one implementation and no stated portability requirement for that boundary.
 
 **Files to read:** The plan, the source spec (critical — contains the architectural decisions the plan should implement), the project's architecture document if separate, CLAUDE.md (for the Architectural Design Principles), existing module structure and interfaces, existing adapter/port implementations if any.
 
@@ -520,11 +507,7 @@ A single task that says "implement the prompt" without separating these concerns
 
 7. **Concurrency safety check.** For parallel or concurrent operations in the plan, check: is shared state protected? Can two parallel tasks write to the same record, counter, or file? If the plan uses Promise.all() on operations that modify shared state, race conditions are likely.
 
-**Severity calibration for this domain:**
-- **Critical:** The plan creates a pattern that will fail at expected production data volumes — e.g., loading all records with no pagination when the data model estimates 10K+ records, or an N+1 query inside a loop that runs per-campaign when there could be hundreds of campaigns. Also: the plan contradicts the spec's explicit performance decisions (spec says "batch in groups of 50," plan processes one-by-one).
-- **Major:** A performance issue that will cause noticeable degradation but not failure — e.g., O(n^2) algorithm on moderate-size data, missing caching for repeated expensive AI calls (cost waste), resource lifecycle issues that cause slow leaks. Also: the spec prescribes a performance strategy and the plan ignores it.
-- **Minor:** Suboptimal but functional at expected scale — e.g., an extra array copy in a pipeline that processes <100 items, a query that could use an index but the table has few records.
-- **Not a finding:** Micro-optimizations. Don't flag `Array.filter().map()` vs single-pass when the array is small. Don't flag the absence of connection pooling for a service that makes 1 request per minute.
+**Not a finding in this domain:** Micro-optimizations. Don't flag `Array.filter().map()` vs single-pass when the array is small. Don't flag the absence of connection pooling for a service that makes 1 request per minute.
 
 **Files to read:** The plan, the source spec (for performance decisions and expected data volumes), the data model schema (critical — for record count estimates and access pattern support), existing query patterns or database access code, existing caching implementations if any.
 
@@ -557,7 +540,7 @@ A single task that says "implement the prompt" without separating these concerns
 
 3. **Partial failure strategy.** For each multi-step workflow or pipeline in the plan, trace: what happens if step N fails after steps 1 through N-1 succeeded? Specifically: (a) are completed steps left in a consistent state, or is there dangling intermediate data? (b) can the workflow resume from the failure point, or must it restart from scratch? (c) does the system know it's in a partially-completed state? Both "all-or-nothing" and "best-effort" are valid strategies — but the plan must be explicit about which it uses, especially if the spec prescribes one.
 
-4. **Metrics hook point check.** For each pipeline stage, service boundary, and resource-consuming operation, check: can you answer "how fast, how often, and how reliably does this run?" from the planned code? The plan doesn't need to implement a full metrics framework, but it must leave clear hook points where metrics can be added — function boundaries that return timing info, error counters, cost accumulators. The distinction is between missing implementation (Minor) and missing hook points (Major — can't add metrics later without restructuring).
+4. **Metrics hook point check.** For each pipeline stage, service boundary, and resource-consuming operation, check: can you answer "how fast, how often, and how reliably does this run?" from the planned code? The plan doesn't need to implement a full metrics framework, but it must leave clear hook points where metrics can be added — function boundaries that return timing info, error counters, cost accumulators. The distinction is between missing implementation and missing hook points (can't add metrics later without restructuring).
 
 5. **Graceful degradation path check.** For each feature that depends on an external service, check: what is the user experience when that service is unavailable? If the AI model is down, does content generation crash the whole pipeline, or does it queue the work and notify the user? The plan should have an explicit answer for each external dependency — even if the answer is "fail fast and tell the user." An IMPLICIT failure mode (uncaught exception → process crash) is always worse than an explicit one. Compare against the spec's prescribed degradation strategy if defined.
 
@@ -565,11 +548,7 @@ A single task that says "implement the prompt" without separating these concerns
 
 7. **State consistency under failure check.** For each state machine in the plan, trace: can an entity get stuck in an intermediate state? If the backend sets a record to "Processing" status then crashes before setting it to "Complete" or "Failed," the record is stuck forever. Does the plan have a mechanism to detect and recover stuck states (timeouts, health checks, cleanup jobs)? Cross-reference with the spec's state machine definitions and recovery semantics.
 
-**Severity calibration for this domain:**
-- **Critical:** The plan creates a state machine that can get permanently stuck with no recovery mechanism, or a multi-step workflow where partial failure corrupts data with no cleanup. Also: the plan retries on permanent errors (infinite loop) or has no timeout on external calls in a synchronous request path (user-facing hang). Also: the spec explicitly prescribes a resilience strategy and the plan contradicts it.
-- **Major:** Missing structured logging at external service boundaries (no diagnostic trail for production issues), generic catch-all error handling that swallows error type information, no graceful degradation path for a core external dependency, no partial failure strategy for a multi-step pipeline when the spec requires one. Also applies to violations of CLAUDE.md's "graceful degradation" and "observability readiness" principles.
-- **Minor:** Missing metrics hook points that can be added later without restructuring, logging that could be more structured, error messages that are technically correct but not user-friendly.
-- **Not a finding:** The absence of a full observability framework when the plan is building v1 foundations. Don't flag "no Prometheus integration" — flag "no place to ADD metrics later." The distinction is between missing implementation and missing hook points.
+**Not a finding in this domain:** The absence of a full observability framework when the plan is building v1 foundations. Don't flag "no Prometheus integration" — flag "no place to ADD metrics later." The distinction is between missing implementation and missing hook points.
 
 **Files to read:** The plan, the source spec (critical — for prescribed resilience and observability requirements), the architecture document (for system boundaries and external dependencies), CLAUDE.md (for observability and graceful degradation principles), existing error handling patterns, existing logging utilities if any, state machine definitions from the data model schema.
 
@@ -607,11 +586,7 @@ A single task that says "implement the prompt" without separating these concerns
 
 6. **Access scope completeness.** After checking individual queries, step back and assess holistically: does the plan's authorization coverage match the spec's security model? If the spec requires persona isolation on 6 tables and the plan has 10 query methods, verify all 10 are correctly scoped. Enumerate any gaps with task/step references. Check for methods that are intentionally exempt (e.g., shared-items queries, tenant-wide tables) and verify the exemption is justified and documented.
 
-**Severity calibration for this domain:**
-- **Critical:** A data access call with no authorization filter where the spec requires tenant/persona isolation — this is a potential cross-tenant data leak. Also: user-supplied input interpolated directly into filter formulas with no escaping (formula injection). Also: secrets hardcoded in code snippets or included in error messages.
-- **Major:** ID-based record access with no ownership verification where the ID source is not provably trustworthy, or the exemption is not documented. Also: error messages that expose internal structure (field names, API URLs, record IDs) to callers without sanitization. Also: the spec prescribes a security pattern and the plan omits it. Also: incomplete authorization coverage — most queries are filtered but some are not, creating an inconsistent enforcement surface.
-- **Minor:** Error messages that are technically safe but could be more opaque. Secret handling that works but doesn't follow least-privilege patterns. Authorization filter present but using a pattern different from the spec's prescribed approach (works but inconsistent).
-- **Not a finding:** Theoretical attack vectors requiring compromised infrastructure. Don't flag the absence of encryption-at-rest when the storage platform handles it. Don't flag missing rate limiting unless the spec requires it.
+**Not a finding in this domain:** Theoretical attack vectors requiring compromised infrastructure. Don't flag the absence of encryption-at-rest when the storage platform handles it. Don't flag missing rate limiting unless the spec requires it.
 
 **Files to read:** The plan (focusing on every code snippet with data access calls), the source spec (critical — for the authorization/isolation model the plan should implement), CLAUDE.md (for security-at-boundaries and tenant isolation principles), existing query utilities and filter construction helpers, existing error handling and sanitization utilities, data model schema (for understanding which tables require scoping).
 
@@ -652,11 +627,7 @@ A single task that says "implement the prompt" without separating these concerns
 
 7. **Type assertion audit.** For every `as` type assertion or non-null assertion (`!`) in mapper code, check: is the assertion provably safe given prior validation, or is it suppressing a type error that indicates a real mapping gap? A `personaId as string` after `createPersonaId()` is safe (branded type unwrapping). An `as unknown as DomainType` bypasses all type checking at the most critical boundary — flag it. A `records[0]!` after a length guard (`if (records.length === 0) return err(...)`) is safe — the guard proves non-null.
 
-**Severity calibration for this domain:**
-- **Critical:** A mapper silently drops a field that the domain type marks as required — this produces `undefined` where consumers expect a value, causing downstream errors. Also: a linked record extraction that doesn't handle the empty-array case for a required relationship, producing `undefined` where an ID is expected. Also: a discriminated union dispatch that silently falls through on an unrecognized variant (data loss).
-- **Major:** A Zod-vs-mapper validation gap where a conditionally-required field passes through unvalidated (e.g., Influencer without `analysisStatus` accepted by Zod, not caught by mapper). Also: type coercion that produces wrong-but-plausible results (e.g., `Number("")` producing `0` instead of `undefined` for an unset numeric field). Also: discriminated union dispatch that is not exhaustive — missing variant compiles but produces wrong output. Also: mapper skips an optional field that downstream consumers actually use.
-- **Minor:** A type coercion that is technically redundant (field is already the correct type from storage). Also: field ordering in the mapper output that doesn't match the domain type declaration (cosmetic). Also: a linked record utility function choice that works but isn't the project's preferred pattern.
-- **Not a finding:** Optional fields intentionally omitted from the mapper when the domain type doesn't use them and no consumer accesses them (e.g., Attachment validated by Zod but discarded by mapper — intentional and documented). Don't flag mapper verbosity — explicit field-by-field mapping is preferable to object spread at this boundary. Don't flag the absence of runtime validation for fields that Zod already validates completely.
+**Not a finding in this domain:** Optional fields intentionally omitted from the mapper when the domain type doesn't use them and no consumer accesses them (e.g., Attachment validated by Zod but discarded by mapper — intentional and documented). Don't flag mapper verbosity — explicit field-by-field mapping is preferable to object spread at this boundary. Don't flag the absence of runtime validation for fields that Zod already validates completely.
 
 **Files to read:** The plan (focusing on mapper code snippets and domain type definitions), the data model schema (critical — the source of truth for field lists, types, and relationships), the source spec (for field mapping decisions and validation requirements), existing mapper implementations (to verify pattern consistency), existing Zod schemas, existing linked record extraction utilities, the domain type definitions the mappers target.
 

@@ -1,11 +1,11 @@
 ---
 name: reviewing-plans-adversarially
 description: Runs adversarial multi-round review of implementation plans for executability, task decomposition quality, dependency correctness, spec fidelity, and TDD readiness. Triggers on "review plan", "review this plan", "adversarial plan review", "plan review", "check plan quality", "validate plan", "plan ready for execution", or after creating an implementation plan. Spawns a dynamic team of domain-relevant reviewers that loop until convergence.
-allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Edit
+allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Edit, Bash
 ---
 
 <objective>
-Run adversarial multi-round review of an implementation plan using dynamically-selected agent teams. The orchestrator analyzes the plan's scope, spawns the right reviewers (not a fixed set), loops rounds of review with cross-challenge synthesis, and converges when zero Critical/Major issues remain. The plan is declared execution-ready only when all reviewers independently find nothing Critical or Major.
+Run adversarial multi-round review of an implementation plan using dynamically-selected agent teams. The orchestrator analyzes the plan's scope, spawns the right reviewers (not a fixed set), loops rounds of review with cross-challenge synthesis, and converges when zero Critical/Major issues remain. The plan is declared execution-ready only when nothing Critical or Major remains after synthesis.
 </objective>
 
 <essential_principles>
@@ -20,7 +20,7 @@ Reviewers that only read the plan produce shallow findings. The best findings co
 After each round's synthesis, the orchestrator critically evaluates every finding against the actual spec and codebase. Re-rank severity based on evidence. Downgrade theoretical issues. Upgrade issues verified against the spec or code. The user gets the orchestrator's honest assessment, not a raw dump of reviewer findings.
 
 **Principle 4: Convergence means zero Critical/Major, not zero findings.**
-Minor issues and polish suggestions are not blockers. The loop stops when reviewers find no Critical or Major issues. Do not manufacture issues to justify another round. If the plan is clean, say so.
+Minor issues and polish suggestions are not blockers. The loop stops when no Critical or Major issues remain after synthesis. Do not manufacture issues to justify another round. If the plan is clean, say so.
 
 **Principle 4a: Finding issues is not a goal. Readiness is the goal.**
 The purpose of the review is to determine whether the plan is execution-ready — not to produce a list of findings. Reporting zero issues is a valid outcome when the plan is genuinely clean. The orchestrator must downgrade findings where the reviewer is reaching — where the concern is theoretical, the plan already addresses it, or a competent implementer would handle it on the fly. BE ACCURATE. You do not get points for inflating issues that are minor or cosmetic into Major, and you do not get points for deflating genuine issues to avoid reporting them. The only measure of a good review is accuracy — did you correctly identify what is and is not a problem? When dismissing a concern as "an implementer would handle this," verify: would the implementer KNOW this concern exists without the plan mentioning it? If not, flag it.
@@ -29,7 +29,7 @@ The purpose of the review is to determine whether the plan is execution-ready �
 Plan edits are high-stakes — they change what gets built. Never auto-apply fixes. Present findings with your critical assessment, get user approval, then apply fixes. Then re-review.
 
 **Principle 6: Judge against executability fundamentals.**
-Every reviewer must evaluate through this lens in addition to their domain expertise:
+The orchestrator judges every finding through this lens in synthesis:
 - **Spec fidelity** — Does the plan build everything the spec requires? Does it build anything the spec doesn't require? Trace every spec requirement to a plan task.
 - **Task executability** — Can a developer pick up each task and implement it without ambiguity? Are file paths exact? Are code snippets complete? Are verification steps concrete?
 - **Dependency correctness** — Are task orderings correct? Can tasks marked as parallel actually run independently? Does each task have access to what prior tasks produced?
@@ -37,7 +37,7 @@ Every reviewer must evaluate through this lens in addition to their domain exper
 - **Build order soundness** — Does the sequence produce a working, testable system at each commit boundary? Or are there gaps where the code is broken between tasks?
 - **Scope control** — Does the plan stay within the spec's boundaries? Is there scope creep (tasks that add features not in the spec) or scope leak (spec requirements not covered)?
 
-These are not separate review items — they are the lens through which all findings are evaluated. A plan that covers all requirements but has impossible dependency orderings, or that follows TDD form but writes meaningless tests, has Major issues.
+These are not separate review items — they are the lens through which all findings are evaluated.
 
 </essential_principles>
 
@@ -71,7 +71,7 @@ All domain knowledge in `references/`:
 
 <success_criteria>
 Review is complete when:
-- All reviewers independently find zero Critical/Major issues in a round
-- The orchestrator's critical judgment confirms the finding
+- Zero Critical/Major issues remain after a round's synthesis
+- The orchestrator's critical judgment confirms the verdict
 - The user sees the "execution-ready" verdict
 </success_criteria>

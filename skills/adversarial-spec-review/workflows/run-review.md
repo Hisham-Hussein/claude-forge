@@ -1,6 +1,6 @@
 <process>
 
-Before anything else, create a to-do list of every step below (TaskCreate; if unavailable, post it in your reply). Update it as each step finishes:
+Before anything else, post a to-do list of every step below in your reply. Re-post it with steps ticked as each one finishes:
 
 ```
 Review Progress:
@@ -48,7 +48,7 @@ Based on the spec's domain dimensions, I'm spawning N reviewers:
 
 Wait for user acknowledgment. The user may want to add or remove reviewers.
 
-**Mode C adaptation:** If the user chooses Mode C (Solo Reviewer) in Step 5, adapt the announcement: instead of "spawning N reviewers," say "the solo reviewer will cover N lenses" and list the same archetypes as combined lenses. The user can still add or remove lenses.
+**Mode C adaptation:** If the user then chooses Mode C (Solo Reviewer) in Step 5, restate the team there: instead of "spawning N reviewers," say "the solo reviewer will cover N lenses" and list the same archetypes as combined lenses. The user can still add or remove lenses.
 </step_2>
 
 <step_3>
@@ -147,12 +147,10 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 **When to use:** Only when Agent Teams is unavailable (feature not enabled, etc.). **You MUST tell the user** before using this mode: "Agent Teams isn't available in this environment. Falling back to parallel subagents — reviewers won't be able to cross-challenge each other directly. I'll handle cross-challenge in synthesis."
 
 **How to use:**
-1. For each reviewer, create a task via TaskCreate with the task description from the template. Note the task ID.
-2. Create a synthesis task (blocked by all reviewer tasks via `addBlockedBy`).
-3. Spawn all reviewers **in parallel** using the Agent tool.
+1. Spawn all reviewers **in parallel** using the Agent tool.
    - Use `model: opus` for each reviewer
    - Each agent's prompt follows the agent_prompt_template from templates/reviewer-task.md with all dynamic fields filled
-4. Wait for all agents to complete.
+2. Wait for all agents to complete.
 
 **CRITICAL:** Do NOT use Mode B's mechanics (Agent tool) while claiming to use Mode A (Agent Teams). They are completely different features. If you find yourself typing `Agent tool` invocations, you are in Mode B.
 
@@ -173,9 +171,8 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 
 **How to use:**
 1. Combine all selected archetypes' focus areas into a single prompt following the `solo_agent_prompt_template` from templates/reviewer-task.md. Keep focus areas to the top 3-4 questions per lens (not the full 3-7) to manage total prompt length.
-2. Create one task via TaskCreate: "R{round}: Solo Comprehensive Review"
-3. Spawn ONE agent using the Agent tool with `model: opus`.
-4. The agent reviews through all lenses sequentially, performs a cross-lens pass, and returns consolidated findings.
+2. Spawn ONE agent using the Agent tool with `model: opus`.
+3. The agent reviews through all lenses sequentially, performs a cross-lens pass, and returns consolidated findings.
 
 **Key difference from Mode B:** Mode B spawns N independent agents in parallel — diversity of perspective catches blind spots through independent convergence. Mode C spawns 1 agent with N lenses combined — the solo reviewer sees connections across lenses that independent agents cannot, but may have blind spots that diversity would catch. The orchestrator compensates via mandatory spot-checking (see Step 6).
 </step_5>
@@ -187,10 +184,10 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 
 After all reviewers complete, apply synthesis-principles.md:
 
-1. **Collect all findings** from task comments/agent results
+1. **Collect all findings** from task comments (Mode A) or agent results (Modes B/C)
 2. **Cross-challenge:** check for independent convergence (2+ reviewers flagging same issue)
 3. **Verify single-reviewer findings** — read the actual code to confirm or refute
-4. **Adversarial weighing (Rule 4 — MANDATORY)** — For every finding a reviewer rated Critical or Major, write the FOR/AGAINST/verdict weighing visibly before scoring. Apply hard disqualifiers. This is the primary defense against severity inflation — do not skip it.
+4. **Adversarial weighing (Rule 4 — MANDATORY)** — For every Critical or Major candidate, write the FOR/AGAINST/verdict weighing visibly before scoring. Apply hard disqualifiers. This is the primary defense against severity inflation — do not skip it.
 5. **Confidence-score each surviving finding** — For every finding that survived Rules 1-3 (and Rule 4 for Critical/Major candidates), assign a confidence score (0-100) using the rubric in `<confidence_scoring>`. Write the score next to each finding. Apply thresholds: <60 = drop, 60-79 = Minor, 80+ = Major.
 6. **Drop noise** — remove implementation details and nitpicks that survived scoring
 7. **Check for fix regressions** (round 2+) — did prior fixes create new problems?
@@ -211,12 +208,12 @@ Present the round results to the user. End with one of:
 
 **If Critical/Major issues found:**
 ```
-Round N found X Critical, Y Major issues. Want me to apply fixes, and the N Minors shown?
+Round N found X Critical, Y Major issues. Want me to apply fixes, and the K Minors shown?
 ```
 
 **If zero Critical/Major:**
 ```
-Spec is implementation-ready. N rounds, M total reviewer passes, all converged on zero Critical/Major. Want me to apply the N Minors shown?
+Spec is implementation-ready. N rounds, M total reviewer passes, all converged on zero Critical/Major. Want me to apply the K Minors shown?
 ```
 
 Wait for user response:

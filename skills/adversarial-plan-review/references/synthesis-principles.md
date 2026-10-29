@@ -14,9 +14,9 @@ If only one reviewer flagged it, the orchestrator MUST verify it against the act
 "The task should use a more descriptive variable name" is a style preference. "The task creates a function with 3 parameters but the caller in Task 7 passes 4 arguments" is an executability flaw. Only executability flaws matter.
 
 **Rule 4: Adversarial weighing before scoring — MANDATORY for every Critical and Major candidate.**
-For every finding that survives Rules 1-3, the orchestrator MUST complete a forced adversarial weighing before assigning a confidence score. This is the most important rule in synthesis — skipping it is the primary cause of severity inflation.
+For every Critical or Major candidate that survives Rules 1-3, the orchestrator MUST complete a forced adversarial weighing before assigning a confidence score. This is the most important rule in synthesis — skipping it is the primary cause of severity inflation.
 
-**For every finding a reviewer rates Critical or Major, the orchestrator MUST write — visibly in the synthesis, not internally — three things:**
+**For every Critical or Major candidate, the orchestrator MUST write — visibly in the synthesis, not internally — three things:**
 
 1. **Case FOR this severity:** In 1-2 sentences, the strongest argument that this finding is real, would be hit in practice, and the implementer would not catch it without the plan mentioning it.
 2. **Case AGAINST this severity:** In 1-2 sentences, the strongest argument that this finding is not real, would not be hit in practice, or a competent implementer doing TDD would catch it naturally.
@@ -26,7 +26,7 @@ The orchestrator must genuinely try to defeat each finding. If the AGAINST argum
 
 **Then** assign a confidence score (0-100) using the rubric in `<confidence_scoring>`:
 - Score < 60: Drop (not reported to user)
-- Score 60-79: Minor — note for implementer, fix if easy
+- Score 60-79: Minor
 - Score 80+: Major — fix before execution
 - Critical: Must survive adversarial weighing AND be about execution failure, incorrect results, or missed spec requirements. A finding where the AGAINST argument holds any weight is not Critical.
 
@@ -69,7 +69,7 @@ Examples: missing task that creates a type other tasks import, dependency orderi
 **Major** — (confidence score 80+) The plan has a real gap that would cause execution problems AND the implementer would not catch it without the plan mentioning it. Verified real, will be hit in practice.
 Examples: vague step that needs more specificity, test that only covers happy path for complex logic, task that partially covers a spec requirement but misses edge cases, file path that looks wrong.
 
-**Minor** — (confidence score 60-79) Real gap, but likely caught by a competent implementer. Note for implementer, fix if easy. Findings scoring below 60 are dropped entirely.
+**Minor** — (confidence score 60-79) Real gap, but likely caught by a competent implementer. Findings scoring below 60 are dropped entirely.
 Examples: commit message could be more descriptive, test variable names are generic, step could mention an existing utility function, defense-in-depth improvements where primary coverage already exists.
 
 </severity_calibration>
@@ -96,19 +96,19 @@ Score each finding (including Critical candidates that survived adversarial weig
     would LIKELY catch it, but it's a genuine gap worth noting. Defense-in-depth
     improvements (a second safety layer where the primary coverage already works),
     documentation that prevents confusion, and ambiguities that could lead to
-    divergent implementations belong here.
-    → Classified as **Minor** (note for implementer, fix if easy).
+    divergent implementations belong here, and so does a principle breach that
+    breaks nothing (e.g. it only needs a declared exception).
+    → Classified as **Minor**.
 
 80-100: High confidence. Verified real, will be hit in practice, and the existing
     approach is insufficient. The implementer would NOT catch this without the
     plan mentioning it. Directly impacts correctness or functionality. Or:
-    directly violates a stated project principle (CLAUDE.md / architecture doc).
+    violates a stated project principle in a way that breaks something (wrong
+    data, a failed flow, a failed deploy).
     → Classified as **Major** (fix before execution).
 
-IMPORTANT: "The fix is easy" is not a severity input. A trivially fixable gap
-can still be Minor (score 60-79) if a developer would catch it. Ease of fix
-determines whether a Minor is "fix if easy" vs "note for implementer" — it does
-NOT upgrade Minor to Major.
+IMPORTANT: "The fix is easy" is not a severity input; it does NOT upgrade
+Minor to Major.
 
 IMPORTANT: "Pattern-setting story" is not an automatic severity amplifier. A
 finding in a pattern-setting story is Major only if it scores 80+ on its own
@@ -120,34 +120,22 @@ catch and handle it?
 
 <principle_violation_calibration>
 
-Some archetypes (Software Architecture, Performance & Scalability, Observability & Resilience) review the plan's code against the approved spec's design decisions and the project's stated principles. Their findings follow a different evidence chain than functional-coverage archetypes: plan code → spec/principle divergence, not plan task → spec requirement gap.
-
-When evaluating these findings:
-
-1. **Spec divergence outranks general principles.** If the approved spec explicitly prescribes an architectural decision (e.g., "use adapter pattern for Airtable") and the plan's code violates it, this is a strong Major candidate — the plan doesn't implement the approved design. Rule 4 adversarial weighing still applies, but the AGAINST argument should have no weight for a genuine spec divergence (the spec was already reviewed and approved). If the AGAINST argument does hold weight (e.g., the spec's decision was superseded by a later decision), that's a signal to re-examine the spec, not to suppress the finding.
-
-2. **CLAUDE.md principles are project-level requirements.** If CLAUDE.md states a principle (e.g., "vendor portability," "depend on abstractions") and the plan violates it, treat it like a stated requirement — Major if the violation is structural and affects the codebase broadly. If CLAUDE.md doesn't state the principle, downgrade to Minor.
-
-3. **Check scope of impact.** A violation in a utility function used once is Minor. The same violation in a core service used by every pipeline stage is Major — fixing it later touches everything.
-
-4. **Check if the plan is phase-appropriate.** If this is a Phase 1/MVP plan and the spec or architecture doc explicitly defers certain concerns to later phases, a violation of a deferred concern is Minor at most. But if the plan creates a structure that PREVENTS the deferred concern from being addressed later (e.g., hardwiring vendor calls so deeply that adding adapters later requires rewriting every consumer), that's Major regardless of phase.
-
-5. **The "would they know?" test still applies.** If a principle violation is something a competent developer would recognize and fix during implementation without the plan mentioning it, it's Minor. If the violation is structural (wrong module boundary, missing adapter layer, generic catch-all where classification is needed) and the developer would follow the plan's structure faithfully, it's Major — they wouldn't know to deviate from the plan.
+If the spec or architecture doc explicitly defers a concern to a later phase, a violation of that deferred concern is Minor at most.
 
 </principle_violation_calibration>
 
 <convergence_criteria>
 
 The review loop STOPS when ALL of these are true:
-1. All reviewers report zero Critical and zero Major findings
+1. Zero Critical and zero Major findings remain after synthesis
 2. The orchestrator's critical judgment agrees (no reviewer missed anything obvious)
 3. No prior-round fixes introduced regressions
 
-The orchestrator declares: "Plan is execution-ready. N rounds, M total reviewers, all converged on zero Critical/Major."
+The orchestrator declares: "Plan is execution-ready. N rounds, M total reviewer passes, all converged on zero Critical/Major."
 
 If after 5 rounds there are still Critical/Major issues, the orchestrator should pause and tell the user: "After 5 rounds we're still finding issues. The plan may need a structural rethink, not just iterative fixes. Here's what's still broken: [list]."
 
-**Mode C note:** For Mode C (Solo Reviewer), convergence requires the solo reviewer to report zero Critical/Major AND the orchestrator's spot-check of the top 3 riskiest areas to find no additional issues. A clean solo pass without the orchestrator's spot-check is NOT convergent.
+**Mode C note:** For Mode C (Solo Reviewer), convergence requires zero Critical/Major after synthesis AND the orchestrator's spot-check of the top 3 riskiest areas to find no additional Critical/Major issues. A clean solo pass without the orchestrator's spot-check is NOT convergent.
 
 </convergence_criteria>
 
@@ -169,7 +157,7 @@ For each: title, confidence score, section/task reference, description, recommen
 Include Rule 4 adversarial weighing: FOR argument, AGAINST argument, verdict
 
 ### Minor Issues (N) — confidence 60-79
-For each: title, confidence score, section/task reference, brief description, recommendation (note for implementer / fix if easy)
+Only Minors that change what gets built (at most 5), duplicates merged. For each: title, reference, recommended fix. The rest: one line with their count.
 
 ### Dropped Findings
 Brief list of what reviewers flagged but the orchestrator downgraded or dropped, with:
