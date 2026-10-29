@@ -14,7 +14,7 @@ If only one reviewer flagged it, the orchestrator MUST verify it against the act
 "The spec doesn't specify the exact function name" is an implementation detail. "The spec says to use upsert but upsert can create ghost records" is a design flaw. Only design flaws matter.
 
 **Rule 4: Adversarial weighing before scoring — MANDATORY for every Critical and Major candidate.**
-For every finding that survives Rules 1-3, the orchestrator MUST complete a forced adversarial weighing before assigning a confidence score. This is the most important rule in synthesis — skipping it is the primary cause of severity inflation.
+For every Critical or Major candidate that survives Rules 1-3, the orchestrator MUST complete a forced adversarial weighing before assigning a confidence score. This is the most important rule in synthesis — skipping it is the primary cause of severity inflation.
 
 **For every finding a reviewer rates Critical or Major, the orchestrator MUST write — visibly in the synthesis, not internally — three things:**
 
@@ -26,7 +26,7 @@ The orchestrator must genuinely try to defeat each finding. If the AGAINST argum
 
 **Then** assign a confidence score (0-100) using the rubric in `<confidence_scoring>`:
 - Score < 60: Drop (not reported to user)
-- Score 60-79: Minor — note for implementer, fix if easy
+- Score 60-79: Minor
 - Score 80+: Major — fix before implementation
 - Critical: Must survive adversarial weighing AND be about incorrect behavior, data loss, or security. A finding where the AGAINST argument holds any weight is not Critical.
 
@@ -46,7 +46,7 @@ Each round of fixes can create regressions. Explicitly ask: "Did fixing X break 
 After collecting findings, the orchestrator must answer: "If a developer implements this spec literally, will the stated objective be achieved?" This is not about individual issues — it's a holistic assessment. A spec can have zero individual Critical findings yet still fail to achieve its goal due to cumulative gaps or a flawed overall approach. If the answer is "no" or "probably not," that is a Critical finding even if no single reviewer flagged it.
 
 **Rule 7: Apply stricter severity calibration in Round 2+.**
-In Round 1, a borderline finding may reasonably be kept as Major — it's the first pass, and caution is appropriate. In Round 2+, apply a HIGHER bar: if an issue was in scope during Round 1 but wasn't caught by any reviewer, it is almost certainly Minor (if it were truly Major, at least one of N reviewers would have flagged it). The only findings that can be Major in Round 2+ are: (a) regressions introduced by Round N-1 fixes, or (b) issues that were literally invisible until a Round N-1 fix revealed them. Everything else is Minor by default — the orchestrator must justify upgrading it with specific evidence of why prior rounds couldn't have caught it.
+In Round 2+, apply a HIGHER bar: if an issue was in scope during Round 1 but wasn't caught by any reviewer, it is almost certainly Minor (if it were truly Major, at least one of N reviewers would have flagged it). The only findings that can be Major in Round 2+ are: (a) regressions introduced by Round N-1 fixes, or (b) issues that were literally invisible until a Round N-1 fix revealed them. Everything else is Minor by default — the orchestrator must justify upgrading it with specific evidence of why prior rounds couldn't have caught it.
 
 </cross_challenge_rules>
 
@@ -58,9 +58,9 @@ When Mode C (Solo Reviewer) is used, the cross-challenge rules adapt:
 
 **Rule 2 adaptation:** Becomes the DEFAULT for all findings. Every Critical and Major finding from the solo reviewer requires orchestrator verification against the actual codebase. This is more work for the orchestrator but is essential — a single reviewer has more potential blind spots than a team.
 
-**Rules 3-6:** Apply unchanged.
+**Rules 3-7:** Apply unchanged.
 
-**Orchestrator spot-check requirement:** After processing the solo reviewer's findings, the orchestrator MUST independently examine the top 3 riskiest areas of the spec (as identified in Step 1 analysis). If the orchestrator finds issues the solo reviewer missed, those are added as orchestrator-originated findings. This compensates for the loss of multi-reviewer diversity.
+**Orchestrator spot-check requirement:** After processing the solo reviewer's findings, the orchestrator MUST independently examine the top 3 riskiest areas of the spec (as identified in Step 1 analysis; Round 2+: the areas the fixes touched). If the orchestrator finds issues the solo reviewer missed, those are added as orchestrator-originated findings. This compensates for the loss of multi-reviewer diversity.
 
 </solo_reviewer_adaptation>
 
@@ -72,7 +72,7 @@ Examples: protection mechanism that doesn't actually protect, write path that de
 **Major** — (confidence score 80+) The spec has a real gap that would cause implementation problems AND the implementer would not catch it without the spec mentioning it. Verified real, will be hit in practice.
 Examples: missing env vars, unspecified interface changes, contradictions between sections, missing error handling for likely scenarios.
 
-**Minor** — (confidence score 60-79) Real gap, but likely caught by a competent implementer. Note for implementer, fix if easy. Findings scoring below 60 are dropped entirely.
+**Minor** — (confidence score 60-79) Real gap, but likely caught by a competent implementer. Findings scoring below 60 are dropped entirely.
 Examples: formula field not named, section cross-references missing, batch size rationale not documented, defense-in-depth improvements where primary protection already exists.
 
 </severity_calibration>
@@ -100,18 +100,18 @@ Score each finding (including Critical candidates that survived adversarial weig
     improvements (a second safety layer where the primary protection already works),
     documentation that prevents confusion, and ambiguities that could lead to
     divergent implementations belong here.
-    → Classified as **Minor** (note for implementer, fix if easy).
+    → Classified as **Minor**.
 
 80-100: High confidence. Verified real, will be hit in practice, and the existing
     approach is insufficient. The implementer would NOT catch this without the
     spec mentioning it. Directly impacts correctness or functionality. Or:
-    directly violates a stated project principle (CLAUDE.md / architecture doc).
+    violates a stated project principle in a way that breaks something (wrong
+    data, a failed flow, a failed deploy). A breach that breaks nothing (e.g.
+    it only needs a declared exception) is Minor.
     → Classified as **Major** (fix before implementation).
 
-IMPORTANT: "The fix is easy" is not a severity input. A trivially fixable gap
-can still be Minor (score 60-79) if a developer would catch it. Ease of fix
-determines whether a Minor is "fix if easy" vs "note for implementer" — it does
-NOT upgrade Minor to Major.
+IMPORTANT: "The fix is easy" is not a severity input; it does NOT upgrade
+Minor to Major.
 
 IMPORTANT: "Pattern-setting story" is not an automatic severity amplifier. A
 finding in a pattern-setting story is Major only if it scores 80+ on its own
@@ -124,15 +124,15 @@ catch and handle it?
 <convergence_criteria>
 
 The review loop STOPS when ALL of these are true:
-1. All reviewers report zero Critical and zero Major findings
+1. Zero Critical and zero Major findings remain after synthesis
 2. The orchestrator's critical judgment agrees (no reviewer missed anything obvious)
 3. No prior-round fixes introduced regressions
 
-The orchestrator declares: "Spec is implementation-ready. N rounds, M total reviewers, all converged on zero Critical/Major."
+The orchestrator declares: "Spec is implementation-ready. N rounds, M total reviewer passes, all converged on zero Critical/Major."
 
 If after 5 rounds there are still Critical/Major issues, the orchestrator should pause and tell the user: "After 5 rounds we're still finding issues. The spec may need a structural rethink, not just iterative fixes. Here's what's still broken: [list]."
 
-**Mode C note:** For Mode C (Solo Reviewer), convergence requires the solo reviewer to report zero Critical/Major AND the orchestrator's spot-check of the top 3 riskiest areas to find no additional issues. A clean solo pass without the orchestrator's spot-check is NOT convergent.
+**Mode C note:** For Mode C (Solo Reviewer), convergence requires zero Critical/Major after synthesis AND the orchestrator's spot-check of the top 3 riskiest areas (Round 2+: the areas the fixes touched) to find no additional Critical/Major issues. A clean solo pass without the orchestrator's spot-check is NOT convergent.
 
 </convergence_criteria>
 
@@ -154,7 +154,7 @@ For each: title, confidence score, section reference, description, recommended f
 Include Rule 4 adversarial weighing: FOR argument, AGAINST argument, verdict
 
 ### Minor Issues (N) — confidence 60-79
-For each: title, confidence score, section reference, brief description, recommendation (note for implementer / fix if easy)
+Only Minors that change what gets built (at most 5), duplicates merged. The rest: one line with their count.
 
 ### Dropped Findings
 Brief list of what reviewers flagged but the orchestrator downgraded or dropped, with:

@@ -1,6 +1,6 @@
 <process>
 
-Copy this checklist and track progress as you go:
+Before anything else, create a to-do list of every step below (TaskCreate; if unavailable, post it in your reply). Update it as each step finishes:
 
 ```
 Review Progress:
@@ -13,7 +13,7 @@ Review Progress:
 - [ ] Step 7: Present to user and get decision
 - [ ] Step 8a: Apply fixes with impact tracing
 - [ ] Step 8b: Verify fixes (self-review gate — catch regressions before next round)
-- [ ] Step 8c: Commit and ask about next round → loop back to Step 5
+- [ ] Step 8c: Commit and ask about next round → loop back to Step 4
 - [ ] Step 9: Safety valve (if round 5 reached with open Critical/Major)
 ```
 
@@ -25,7 +25,7 @@ Read the spec file completely. Then analyze it for domain dimensions:
 1. **Extract section structure** — list all ## headings and their topics
 2. **Identify referenced files** — find all file paths, module names, function names, interface names mentioned in the spec. These are the files reviewers must read.
 3. **Scan for domain signals** — for each archetype in reviewer-archetypes.md, count how many selection signals appear in the spec
-4. **Note the spec's scope** — is it a narrow change (1-2 sections of concern) or a broad design (5+ interacting systems)?
+4. **Note the spec's scope** — is it a narrow change (1-2 sections of concern) or a broad design (5+ interacting systems)? Name the 3 riskiest areas.
 
 Output: a mental map of the spec's domain dimensions and which archetypes match.
 </step_1>
@@ -35,10 +35,7 @@ Output: a mental map of the spec's domain dimensions and which archetypes match.
 
 **Read `references/reviewer-archetypes.md` now** — it contains the archetype catalog and selection process.
 
-Apply the selection process from reviewer-archetypes.md:
-- Select every archetype with 2+ signal matches
-- Always include Devil's Advocate
-- Do NOT cap at a fixed number — let the spec's complexity determine team size
+Apply the selection process from reviewer-archetypes.md.
 
 **Announce the team to the user before proceeding:**
 ```
@@ -68,7 +65,7 @@ For each reviewer, determine which files they must read:
 
 Use Glob and Grep to find files by name/pattern if needed. Don't guess paths — verify they exist.
 
-Each reviewer gets the spec + their domain-relevant files.
+Each reviewer gets the spec + their domain-relevant files. Prompt Critic also gets this skill's `references/prompt-critic-reference.md` (absolute path).
 </step_3>
 
 <step_4>
@@ -135,7 +132,7 @@ Create an agent team with {N} teammates for adversarial spec review:
 Each teammate should:
 1. Read the spec at {spec_path}
 2. Read their assigned source files
-3. Post findings with severity (Critical/Major/Minor) and section citations
+3. Post findings with severity (Critical/Major/Minor), per the SEVERITY CALIBRATION block from templates/reviewer-task.md, pasted into each teammate's prompt, and section citations
 4. Challenge other teammates' findings when they disagree
 
 Use Opus for each teammate. Require plan approval before they start reviewing.
@@ -194,7 +191,7 @@ After all reviewers complete, apply synthesis-principles.md:
 2. **Cross-challenge:** check for independent convergence (2+ reviewers flagging same issue)
 3. **Verify single-reviewer findings** — read the actual code to confirm or refute
 4. **Adversarial weighing (Rule 4 — MANDATORY)** — For every finding a reviewer rated Critical or Major, write the FOR/AGAINST/verdict weighing visibly before scoring. Apply hard disqualifiers. This is the primary defense against severity inflation — do not skip it.
-5. **Confidence-score each surviving finding** — For every finding that survived adversarial weighing, assign a confidence score (0-100) using the rubric in `<confidence_scoring>`. Write the score next to each finding. Apply thresholds: <60 = drop, 60-79 = Minor, 80+ = Major.
+5. **Confidence-score each surviving finding** — For every finding that survived Rules 1-3 (and Rule 4 for Critical/Major candidates), assign a confidence score (0-100) using the rubric in `<confidence_scoring>`. Write the score next to each finding. Apply thresholds: <60 = drop, 60-79 = Minor, 80+ = Major.
 6. **Drop noise** — remove implementation details and nitpicks that survived scoring
 7. **Check for fix regressions** (round 2+) — did prior fixes create new problems?
 
@@ -203,7 +200,7 @@ Produce the final issues list using the presentation format from synthesis-princ
 **Mode C adaptation:** When the round used Mode C (Solo Reviewer), synthesis changes:
 - Skip the cross-challenge step (there is only one reviewer) — instead, examine the reviewer's "Cross-Lens Observations" section for convergence signals (same issue surfacing under multiple lenses)
 - Every Critical and Major finding requires orchestrator verification against the actual codebase (this is Rule 2 applied universally, since all findings are single-reviewer findings)
-- The orchestrator MUST spot-check the top 3 riskiest areas identified in Step 1 to verify the solo reviewer didn't miss anything — if the orchestrator finds issues the solo reviewer missed, those become orchestrator-originated findings and the round is NOT converged
+- The orchestrator MUST spot-check the top 3 riskiest areas identified in Step 1 (Round 2+: the areas the fixes touched) to verify the solo reviewer didn't miss anything — if the orchestrator finds Critical/Major issues the solo reviewer missed, those become orchestrator-originated findings and the round is NOT converged
 - All other synthesis rules (severity calibration, noise dropping, fix regression checking, holistic goal achievement judgment) apply unchanged
 </step_6>
 
@@ -214,12 +211,12 @@ Present the round results to the user. End with one of:
 
 **If Critical/Major issues found:**
 ```
-Round N found X Critical, Y Major issues. Want me to apply fixes?
+Round N found X Critical, Y Major issues. Want me to apply fixes, and the N Minors shown?
 ```
 
 **If zero Critical/Major:**
 ```
-Spec is implementation-ready. N rounds, M total reviewer passes, all converged on zero Critical/Major.
+Spec is implementation-ready. N rounds, M total reviewer passes, all converged on zero Critical/Major. Want me to apply the N Minors shown?
 ```
 
 Wait for user response:
@@ -231,11 +228,11 @@ Wait for user response:
 <step_8a>
 **Step 8a: Apply Fixes with Impact Tracing**
 
-For each approved Critical/Major issue, BEFORE editing:
+For each approved issue, BEFORE editing:
 
 1. **Trace impact radius.** Search the spec (using Grep) for every reference to the entity being changed — field names, table names, state names, relationship names. List them. These are the locations you must check after editing.
 2. **Read the target section** — read the actual file content around the edit point.
-3. **Apply the fix** using the Edit tool.
+3. **Apply the fix** using the Edit tool. First fix the text that caused the problem: correct it, simplify it, or remove it, whichever fixes it. Add new text only if that can't fix it, and keep it short.
 4. **Immediately check impact locations** — revisit each reference found in step 1. Update any that are now stale or inconsistent.
 
 The purpose of the impact trace is to make cascading updates part of the fix, not an afterthought discovered in the next review round.
@@ -281,14 +278,14 @@ After verification passes:
 
 1. Summarize what changed (list each fix briefly)
 2. **Commit the round's fixes** as a single commit with message format:
-   `docs: fix N Critical + M Major findings from adversarial review round R`
+   `docs: fix N Critical + M Major + K Minor findings from adversarial review round R`
    Include a body listing each fix for traceability. One commit per round — not per fix — because fixes within a round are semantically coupled and may touch overlapping sections.
 
 **MANDATORY: Do NOT auto-start the next round.** Present the fix summary to the user and ask:
 ```
 Round R fixes applied, verified, and committed. Ready to start Round R+1, or do you want to stop here?
 ```
-Wait for explicit user confirmation before proceeding. Only after the user confirms, proceed to Step 5 with updated round context:
+Wait for explicit user confirmation before proceeding. Only after the user confirms, proceed to Step 4 with updated round context:
 - Increment round number
 - Set round_context to list all fixes applied
 - Set round_specific_instructions — use the convergence-mode text from templates/reviewer-task.md (NOT the Round 1 text)
@@ -298,7 +295,7 @@ Wait for explicit user confirmation before proceeding. Only after the user confi
 - NEVER tell reviewers to "go deeper", "find what was missed", "expand scope", or "look harder"
 - Round N+1 focus areas must be NARROWER than Round N — fix verification and regression checks only (see Step 4 Round 2+ rules)
 - Consider switching to Mode C (Solo Reviewer) for Round 2+ — convergence rounds don't need the diversity of 5 parallel agents; a single focused pass verifying fixes is more cost-effective and less prone to scope creep
-- The orchestrator's Round N+1 prompt must include: "This is a convergence round. Your job is to verify fixes are clean and confirm readiness. Zero findings is the expected outcome if the fixes are correct. Do NOT expand scope."
+- The orchestrator's Round N+1 prompt must include the Round 2+ `{round_specific_instructions}` text from templates/reviewer-task.md.
 </step_8c>
 
 <step_9>
@@ -328,7 +325,7 @@ This workflow is complete when:
 - [ ] Each round synthesized with critical judgment (not rubber-stamped)
 - [ ] User approved all fixes before they were applied
 - [ ] All fixes verified by orchestrator before committing (fix-to-finding, consistency scan, re-read)
-- [ ] Final round: all reviewers found zero Critical/Major
+- [ ] Final round: zero Critical/Major remain after synthesis
 - [ ] Orchestrator confirmed the verdict with own judgment
 - [ ] User received "implementation-ready" declaration
 </success_criteria>

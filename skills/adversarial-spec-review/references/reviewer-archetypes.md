@@ -18,7 +18,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - State Machine Reviewer — status transitions, race conditions, concurrent state
 - Operational Readiness Reviewer — monitoring, alerting, debugging, day-2 ops
 - Competitive Coder — regex precision, algorithmic edge cases, parsing correctness
-- Test Architect — three-layer test coverage, unit/integration/E2E completeness, CLAUDE.md T1-T8 compliance
+- Test Architect — three-layer test coverage, unit/integration/E2E completeness, project testing principles
 - Prompt Critic — prompt-as-code architecture, prompt engineering quality, LLM input/output design
 - Devil's Advocate (mandatory) — end-to-end flows, contradictions, blind spots
 - Selection Process — how to pick the right team
@@ -306,7 +306,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 - Check for platform-specific race conditions (e.g., automation trigger timing, webhook delivery guarantees, eventual consistency)
 - Verify platform migration paths exist — if the design requires upgrading tiers mid-project, what's the rollback plan?
 - Identify vendor lock-in risks: what happens if the platform changes a feature or deprecates an API?
-- When a platform claim cannot be verified from code or documentation alone, flag it as "Assumption Requiring Manual Verification" with severity Major — present these separately in synthesis rather than silently accepting the spec's claim
+- When a platform claim cannot be verified from code or documentation alone, flag it as "Assumption Requiring Manual Verification" rather than silently accepting the spec's claim
 
 **Files to read:** Platform integration code, API client wrappers, configuration files, any platform-specific documentation referenced in the spec.
 
@@ -408,7 +408,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 
 **Test Architect**
 
-**Expertise:** Three-layer test coverage completeness (unit, integration, E2E), test strategy soundness, CLAUDE.md testing discipline principles T1–T8 compliance, boundary-to-test traceability, pipeline-to-E2E traceability, zero-gap test coverage verification.
+**Expertise:** Three-layer test coverage completeness (unit, integration, E2E), test strategy soundness, compliance with the project's testing principles, boundary-to-test traceability, pipeline-to-E2E traceability, zero-gap test coverage verification.
 
 **Selection signals in spec:**
 - New adapter methods or external service integrations (Airtable, OpenAI, Apify, LinkedIn)
@@ -422,7 +422,7 @@ The orchestrator MUST NOT default to a fixed count. Select as many reviewers as 
 
 **What this reviewer checks:**
 
-This reviewer enforces the project's three-layer testing methodology as defined in CLAUDE.md principles T1–T8. The core mandate: **nothing the spec adds should escape testing. Zero holes. Zero scenarios without coverage.**
+This reviewer enforces the project's three-layer testing methodology as defined in the project's testing principles (labeled T1–T8 below). The core mandate: **nothing the spec adds should escape testing. Zero holes. Zero scenarios without coverage.**
 
 1. **Three-layer coverage matrix.** For every behavioral component the spec introduces, produce a coverage assessment across all three layers:
 
@@ -434,12 +434,12 @@ This reviewer enforces the project's three-layer testing methodology as defined 
 
 Coverage levels:
 - **Full** = spec explicitly addresses testing at all applicable layers
-- **Partial** = spec addresses some layers but misses others → Major finding
-- **None** = spec has no test strategy for this component → Critical finding
+- **Partial** = spec addresses some layers but misses others
+- **None** = spec has no test strategy for this component
 
-2. **Unit test completeness (T1, T2).** For every behavioral function or module the spec introduces, verify: (a) does the spec prescribe or imply unit tests? (b) do the described tests exercise **behavior, not just signatures** (T2)? A spec that says "test the matching engine" without specifying what behaviors to test (filter logic, sort order, exclusion rules, edge cases) is insufficient. (c) are edge cases addressed — empty inputs, boundary values, error paths, partial data? A matching engine with 6 filter criteria needs tests for each criterion independently AND in combination. A single "it matches" test is a T2 violation.
+2. **Unit test completeness (T1 = unit coverage, T2 = behavior).** For every behavioral function or module the spec introduces, verify: (a) does the spec prescribe or imply unit tests? (b) do the described tests exercise **behavior, not just signatures** (T2)? A spec that says "test the matching engine" without specifying what behaviors to test (filter logic, sort order, exclusion rules, edge cases) is insufficient. (c) are edge cases addressed — empty inputs, boundary values, error paths, partial data? A matching engine with 6 filter criteria needs tests for each criterion independently AND in combination. A single "it matches" test is a T2 violation.
 
-3. **Integration test boundary audit (T7 — MANDATORY).** Enumerate every adapter method the spec introduces that communicates with a real external system. For EACH one, verify the spec includes an integration test requirement against the real system — not mocks. This is a **blocking requirement per T7**: an adapter method is not complete until its integration test passes against the real system. Unit tests verify logic; integration tests verify the external system behaves as assumed. Mocked clients hide contract mismatches. Produce an explicit boundary-to-test traceability list:
+3. **Integration test boundary audit (T7 — MANDATORY).** Enumerate every adapter method the spec introduces that communicates with a real external system. For EACH one, verify the spec includes an integration test requirement against the real system — not mocks. Unit tests verify logic; integration tests verify the external system behaves as assumed. Mocked clients hide contract mismatches. Produce an explicit boundary-to-test traceability list:
 
 | Adapter Method | External System | Integration Test Specified? | Verdict |
 |---|---|---|---|
@@ -447,32 +447,28 @@ Coverage levels:
 | fetchPosts() | Apify/LinkedIn | No | **FAIL — T7 violation** |
 | generateContent() | OpenAI | No | **FAIL — T7 violation** |
 
-Every "FAIL" is a Critical finding. T7 is non-negotiable.
+Every "FAIL" is a finding.
 
-4. **E2E pipeline audit (T8 — MANDATORY).** Identify every user-facing pipeline the spec creates, modifies, or completes — an orchestrated flow that wires multiple adapters and engine logic into an end-to-end workflow. For EACH pipeline, verify the spec includes an E2E test requirement that exercises the full pipeline with zero mocks — real external services, real data, real write-back. This is a **blocking requirement per T8**: if the spec adds a pipeline, the spec is not complete without an E2E test for that pipeline. Produce an explicit pipeline-to-E2E traceability list:
+4. **E2E pipeline audit (T8 — MANDATORY).** Identify every user-facing pipeline the spec creates, modifies, or completes — an orchestrated flow that wires multiple adapters and engine logic into an end-to-end workflow. For EACH pipeline, verify the spec includes an E2E test requirement that exercises the full pipeline with zero mocks — real external services, real data, real write-back. Produce an explicit pipeline-to-E2E traceability list:
 
 | Pipeline | Components Wired | E2E Test Specified? | Verdict |
 |---|---|---|---|
 | Enrichment pipeline | LLM + Airtable → fields written | Yes — spec Section 9 | Pass |
 | Social import pipeline | Apify + Airtable → Writing Samples | No | **FAIL — T8 violation** |
 
-Every "FAIL" is a Critical finding. T8 is non-negotiable.
+Every "FAIL" is a finding.
 
-5. **Test data realism check (T3).** For every test scenario the spec describes, verify: does it use realistic, imperfect inputs? Partial data, nulls, missing fields, edge-case shapes? All-happy-path fixtures hide wiring problems. If the spec's test examples are all clean/perfect data, flag it as Major — T3 requires realistic test data.
+5. **Test data realism check (T3).** For every test scenario the spec describes, verify: does it use realistic, imperfect inputs? Partial data, nulls, missing fields, edge-case shapes? All-happy-path fixtures hide wiring problems. If the spec's test examples are all clean/perfect data, flag it — T3 requires realistic test data.
 
 6. **Test isolation check (T6).** If the spec describes test suites or test setup patterns, verify: do tests depend on each other's state, execution order, or side effects? Shared mutable state between tests is a T6 violation. Each test must set up its own preconditions. Exception: integration/E2E tests may share expensive resources (API clients, Airtable records) in `beforeAll`, but must not depend on test execution order.
 
-7. **Error suppression prohibition check (T4).** If the spec's test strategy mentions or implies any form of error suppression to make tests pass (`dangerouslyIgnoreUnhandledErrors`, blanket `try/catch`, `@ts-ignore`, `--no-verify`), flag it as Critical. T4 is absolute: error suppression is never acceptable — not as a first resort, not as a last resort, not under any circumstance.
+7. **Error suppression prohibition check (T4).** If the spec's test strategy mentions or implies any form of error suppression to make tests pass (`dangerouslyIgnoreUnhandledErrors`, blanket `try/catch`, `@ts-ignore`, `--no-verify`), flag it.
 
 8. **Gated test visibility check (T5).** If the spec introduces tests gated behind opt-in flags (environment variables, feature flags, cost-bearing test suites), verify the spec makes the gating explicit and documents what coverage is skipped when the gate is closed. Silent skipping of gated tests violates T5.
 
-**Severity calibration for this domain:**
-- **Critical:** A spec introduces an adapter method with no integration test requirement (T7 violation). A spec introduces a user-facing pipeline with no E2E test requirement (T8 violation). A spec proposes error suppression to make tests pass (T4 violation). A behavioral component has zero test coverage at any layer.
-- **Major:** A spec addresses some test layers but misses others (partial coverage). Tests exercise signatures but not behavior (T2 violation). Test data is all-happy-path with no edge cases (T3 violation). Tests share mutable state or depend on execution order (T6 violation). Gated tests skip silently without documentation (T5 violation).
-- **Minor:** Test descriptions could be more specific but cover the right behaviors. Test data is realistic but doesn't cover every edge case. Cosmetic test organization issues.
-- **Not a finding:** The absence of a testing framework choice when the project already has one. Don't flag missing test infrastructure that already exists in the codebase. Don't flag test count — coverage completeness matters, not test quantity.
+**Not a finding in this domain:** The absence of a testing framework choice when the project already has one. Don't flag missing test infrastructure that already exists in the codebase. Don't flag test count — coverage completeness matters, not test quantity.
 
-**Files to read:** The spec (every section — test gaps hide in sections that seem non-testable), the project's CLAUDE.md (critical — contains T1–T8 principles that this reviewer enforces verbatim), existing test files (to understand current testing patterns and frameworks), data model schema (to identify external boundaries), architecture document (to identify pipeline/adapter boundaries).
+**Files to read:** The spec (every section — test gaps hide in sections that seem non-testable), the project's CLAUDE.md (its testing principles, which this reviewer enforces), existing test files (to understand current testing patterns and frameworks), data model schema (to identify external boundaries), architecture document (to identify pipeline/adapter boundaries).
 
 </archetype>
 
@@ -534,11 +530,7 @@ Every "FAIL" is a Critical finding. T8 is non-negotiable.
 
 8. **Prompt version and observability.** Does the prompt module export a version string? A task ID? Can outputs be traced back to the exact prompt version that produced them? If the spec changes the prompt significantly, is the version bumped?
 
-**Severity calibration for this domain:**
-- **Critical:** Computation inside the prompt module (layer violation). The prompt module has side effects or fetches data (purity violation). Output schema missing or not enforced by structured output. Prompt text contains contradictory instructions. Over-structured output schema for an LLM consumer (e.g., 10+ nested schemas for a field the LLM should produce as prose — proven to compress quality).
-- **Major:** Deterministic values delegated to LLM instead of computed in code. Input schema missing fields the prompt needs. Output schema constraints incompatible with the LLM provider. Prompt sections ambiguous or poorly delineated. Token budget exceeds model limits for realistic input. Few-shot examples contradict instructions. Authoritative rules placed in user message instead of system/developer message. Instruction explicitness mismatched to target model (e.g., vague outcome-only prompt for GPT-4.1, or 15+ rigid steps for a reasoning model).
-- **Minor:** Prompt text could be more concise. Structural markup style inconsistent with project conventions. Version not bumped for minor changes. Token budget suboptimal but within limits. Static/dynamic content ordering suboptimal for caching but within token limits. Few-shot count outside 3-5 range without measured justification. Prompt prose style mismatches desired output style.
-- **Not a finding:** Choice of XML vs markdown vs delimiters for prompt structuring (this is a project convention, not a quality issue). Specific LLM provider choice. Model selection (fast vs quality tier).
+**Not a finding in this domain:** Choice of XML vs markdown vs delimiters for prompt structuring (this is a project convention, not a quality issue). Specific LLM provider choice. Model selection (fast vs quality tier).
 
 **Project-specific enhancement:** If the project has a prompt architecture section in its architecture document (search for "Prompt Architecture", "prompt-as-code", or `.prompt.ts` patterns), read it — it may define project-specific conventions for prompt module structure, naming, file organization, and text formatting. If the project has prompt engineering research (search `artifacts/research/` for "prompt engineering" or "best practices"), read it for project-specific evidence-backed techniques. These project-specific docs enhance the review but are not required — the core principles above are sufficient for any project.
 
@@ -563,7 +555,7 @@ Every "FAIL" is a Critical finding. T8 is non-negotiable.
 - What operational concerns are missing? (monitoring, alerting, debugging)
 - What happens when things go wrong in ways the spec didn't anticipate?
 - List 3-5 topics that a spec of this type SHOULD address but doesn't. For each, assess whether the omission is acceptable (obvious to implementer) or dangerous (could cause implementation to diverge from intent)
-- Did the fixes from prior rounds introduce new problems?
+- Round 2+: only this check — did the fixes from prior rounds introduce new problems?
 
 **Files to read:** All files other reviewers read, plus entry points and orchestration code.
 

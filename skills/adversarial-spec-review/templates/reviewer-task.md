@@ -29,7 +29,7 @@ Mark task complete when done.
 <agent_prompt_template>
 
 ```
-You are a teammate on an agent team (Claude Code Agent Teams). Claim task #{task_id} from the shared task list and execute it.
+Execute task #{task_id}.
 
 Read the spec at {spec_path} thoroughly. Also read these files for context:
 {file_list_with_reasons}
@@ -44,6 +44,11 @@ Focus on:
 {round_specific_instructions}
 
 Post findings as task comments with severity (Critical/Major/Minor). Cite section numbers. Be specific — vague findings get dropped in synthesis.
+
+SEVERITY CALIBRATION:
+- Critical: The spec as written would produce incorrect behavior, data loss, or security vulnerability if implemented literally. A developer following the spec would build the wrong thing.
+- Major: The spec has a real gap that would cause implementation problems, and the implementer would not catch it without the spec mentioning it.
+- Minor: Documentation polish, missing implementation details that are obvious to the implementer, or edge cases that can be handled during implementation.
 
 IMPORTANT: Finding issues is NOT your goal. Determining spec readiness IS your goal. If the spec handles your focus areas correctly, report "zero Critical, zero Major" — that is a successful review, not a failed one. BE ACCURATE. You do not get points for inflating issues that are minor or cosmetic into Major, and you do not get points for deflating genuine issues to avoid reporting them. The only measure of a good review is accuracy — did you correctly identify what is and is not a problem? When dismissing a concern as "an implementer would handle this," verify: would the implementer KNOW this concern exists without the spec mentioning it? If not, flag it.
 
@@ -76,7 +81,7 @@ REVIEW PROCESS:
 
 SEVERITY CALIBRATION:
 - Critical: The spec as written would produce incorrect behavior, data loss, or security vulnerability if implemented literally. A developer following the spec would build the wrong thing.
-- Major: The spec has a real gap that would cause implementation problems, but a competent developer might catch and fix it during implementation. Still should be fixed in the spec.
+- Major: The spec has a real gap that would cause implementation problems, and the implementer would not catch it without the spec mentioning it.
 - Minor: Documentation polish, missing implementation details that are obvious to the implementer, or edge cases that can be handled during implementation.
 
 IMPORTANT: Finding issues is NOT your goal. Determining spec readiness IS your goal. If the spec handles all focus areas correctly, report "zero Critical, zero Major" — that is a successful review, not a failed one. BE ACCURATE. You do not get points for inflating issues that are minor or cosmetic into Major, and you do not get points for deflating genuine issues to avoid reporting them. The only measure of a good review is accuracy — did you correctly identify what is and is not a problem? When dismissing a concern as "an implementer would handle this," verify: would the implementer KNOW this concern exists without the spec mentioning it? If not, flag it.

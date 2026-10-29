@@ -1,11 +1,11 @@
 ---
 name: reviewing-specs-adversarially
 description: Runs adversarial multi-round review of design specs, architecture docs, and technical specifications for correctness and implementation-readiness. Triggers on "review spec", "review this design", "adversarial review", "spec review", or after creating a design document. Spawns a dynamic team of domain-relevant reviewers that loop until convergence.
-allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Edit
+allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Edit, Bash
 ---
 
 <objective>
-Run adversarial multi-round review of a design specification using dynamically-selected agent teams. The orchestrator analyzes the spec's domain dimensions, spawns the right reviewers (not a fixed set), loops rounds of review with cross-challenge synthesis, and converges when zero Critical/Major issues remain. The spec is declared implementation-ready only when all reviewers independently find nothing Critical or Major.
+Run adversarial multi-round review of a design specification using dynamically-selected agent teams. The orchestrator analyzes the spec's domain dimensions, spawns the right reviewers (not a fixed set), loops rounds of review with cross-challenge synthesis, and converges when zero Critical/Major issues remain. The spec is declared implementation-ready only when nothing Critical or Major remains after synthesis.
 </objective>
 
 <essential_principles>
@@ -20,7 +20,7 @@ Reviewers that only read the spec produce shallow findings. The best findings co
 After each round's synthesis, the orchestrator critically evaluates every finding against the actual codebase. Re-rank severity based on evidence. Downgrade theoretical issues. Upgrade issues verified in code. The user gets the orchestrator's honest assessment, not a raw dump of reviewer findings.
 
 **Principle 4: Convergence means zero Critical/Major, not zero findings.**
-Minor issues and documentation polish are not blockers. The loop stops when reviewers find no Critical or Major issues. Do not manufacture issues to justify another round. If the spec is clean, say so.
+Minor issues and documentation polish are not blockers. The loop stops when no Critical or Major issues remain after synthesis. Do not manufacture issues to justify another round. If the spec is clean, say so.
 
 **Principle 4a: Finding issues is not a goal. Readiness is the goal.**
 The purpose of the review is to determine whether the spec is implementation-ready — not to produce a list of findings. Reporting zero issues is a valid outcome when the spec is genuinely clean. The orchestrator must downgrade findings where the reviewer is reaching — where the concern is theoretical, the spec already addresses it, or a competent implementer would handle it without spec guidance. BE ACCURATE. You do not get points for inflating issues that are minor or cosmetic into Major, and you do not get points for deflating genuine issues to avoid reporting them. The only measure of a good review is accuracy — did you correctly identify what is and is not a problem? When dismissing a concern as "an implementer would handle this," verify: would the implementer KNOW this concern exists without the spec mentioning it? If not, flag it.
@@ -29,7 +29,7 @@ The purpose of the review is to determine whether the spec is implementation-rea
 Spec edits are high-stakes. Never auto-apply fixes. Present findings with your critical assessment, get user approval, then apply fixes. Then re-review.
 
 **Principle 6: For software specs, judge against engineering fundamentals.**
-When the spec describes a software system, every reviewer must evaluate through this lens in addition to their domain expertise:
+When the spec describes a software system, the orchestrator judges every finding through this lens in synthesis:
 - **Goal achievement** — Will the design, if implemented literally, actually achieve the spec's stated objectives? Trace the logic end-to-end.
 - **Logical correctness** — Are there logical gaps, race conditions, or contradictions in the specified behavior?
 - **Maintainability and ease of change** — Does the design support long-term evolution? Are responsibilities cleanly separated (SOLID principles)? Will future developers understand and modify this confidently?
@@ -38,7 +38,7 @@ When the spec describes a software system, every reviewer must evaluate through 
 - **Performance under realistic load** — Are hot paths identified? Are there latent scaling problems at 10x growth?
 - **Observability** — Can the system be debugged in production? Are there logging/monitoring hooks at key decision points? Will operators know when something is wrong and where to look?
 
-These are not separate review items — they are the lens through which all findings are evaluated. A design that works but is untestable, or that's correct but unmaintainable, has Major issues.
+These are not separate review items — they are the lens through which all findings are evaluated.
 
 </essential_principles>
 
@@ -70,7 +70,7 @@ All domain knowledge in `references/`:
 
 <success_criteria>
 Review is complete when:
-- All reviewers independently find zero Critical/Major issues in a round
-- The orchestrator's critical judgment confirms the finding
+- Zero Critical/Major issues remain after a round's synthesis
+- The orchestrator's critical judgment confirms the verdict
 - The user sees the "implementation-ready" verdict
 </success_criteria>
