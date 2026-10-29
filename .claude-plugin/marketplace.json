@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Custom skills, agents, and commands for enhanced Claude Code workflows",
-    "version": "1.0.0"
+    "version": "1.0.5"
   },
   "plugins": [
     {
       "name": "claude-forge",
       "source": "./",
       "description": "Skills, agents, and commands for requirements engineering, contract verification, and productivity workflows",
-      "version": "1.0.0",
+      "version": "1.0.5",
       "strict": true
     }
   ]

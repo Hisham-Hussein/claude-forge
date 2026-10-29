@@ -7,6 +7,7 @@ allowed-tools:
   - Grep
   - Agent
   - Edit
+  - Write
   - TaskCreate
   - TaskUpdate
   - TaskList

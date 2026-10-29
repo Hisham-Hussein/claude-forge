@@ -57,6 +57,12 @@ claude --plugin-dir ~/.claude/plugins/marketplaces/claude-forge
 | `/claude-forge:fork-terminal` | Distribute terminal tasks |
 | `/claude-forge:update-roadmap` | Update project roadmap |
 
+### Hooks (1)
+
+| Hook | Description |
+|------|-------------|
+| `review-gate` | Step gates for `adversarial-spec-review`: blocks spawning reviewers, editing the spec, committing it and ending the turn after spec edits until that step's gate file exists in `.review-state/round-N/`. No-op unless `.review-state/active.json` exists; `Explore`, `Plan` and `claude-code-guide` agents are never gated. |
+
 ## Usage
 
 Skills are automatically invoked by Claude based on context. Commands can be invoked with `/claude-forge:command-name`.

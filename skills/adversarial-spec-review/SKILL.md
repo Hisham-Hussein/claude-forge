@@ -1,7 +1,7 @@
 ---
 name: reviewing-specs-adversarially
 description: Runs adversarial multi-round review of design specs, architecture docs, and technical specifications for correctness and implementation-readiness. Triggers on "review spec", "review this design", "adversarial review", "spec review", or after creating a design document. Spawns a dynamic team of domain-relevant reviewers that loop until convergence.
-allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Edit, Bash
+allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Edit, Write, Bash
 ---
 
 <objective>
@@ -44,7 +44,7 @@ These are not separate review items — they are the lens through which all find
 
 <prerequisites>
 
-Three execution modes exist (Agent Teams, Parallel Subagents, Solo Reviewer) — see Step 5 of the workflow for details and the critical distinctions between them.
+Three execution modes exist (Agent Teams, Parallel Subagents, Solo Reviewer) — see `steps/05-spawn.md` for details and the critical distinctions between them.
 
 </prerequisites>
 
@@ -58,7 +58,23 @@ The skill handles everything: reads the spec, selects the right reviewer team, r
 </quick_start>
 
 <routing>
-This skill has one workflow. Proceed directly to `workflows/run-review.md`.
+Run these steps in order. At each step, READ ITS FILE NOW (not earlier, not from memory), then do every instruction in it. If a read comes back truncated, read the rest before acting.
+
+Gate files go in `.review-state/` in the session's working directory (`N` = current round). Hooks block the next action until the gate file exists; they do not check quality, so do the step, then write its file. Before the team OK, use Read/Grep/Glob or a read-only helper agent (`Explore`, `Plan`, `claude-code-guide`) only; any other agent spawn counts as a reviewer and is gated. Write gate files and `active.json` with the Write tool.
+
+0.  `steps/00-checklist.md` — post the checklist. Create `.review-state/active.json` = `{"spec": "<absolute spec path>", "round": 1}`, append `.review-state/` to the file `git rev-parse --git-path info/exclude` prints (works in worktrees), write `.review-state/round-1/0-checklist.md` (the checklist as posted).
+1.  `steps/01-analyze.md`
+2.  `steps/02-team.md` — announce the team and WAIT for the user's OK. Then write `round-N/2-team-ok.md` (quote the user's words).
+3.  `steps/03-files.md`
+4.  `steps/04-focus.md`
+5.  `steps/05-spawn.md`
+6.  `steps/06-synthesize.md`
+7.  `steps/07-present.md` — WAIT for the user's decision. Then write `round-N/7-approved.md` (quote the user's words and list the approved findings).
+8a. `steps/08a-apply-fixes.md` — write `round-N/8a-impact-trace.md` (per finding: references found, sections to re-check) BEFORE any spec edit.
+8b. `steps/08b-verify.md` — write `round-N/8b-verification.md` with headings `## Pass 1`, `## Pass 2`, `## Pass 3` and what each found.
+8c. `steps/08c-commit-loop.md` — commit; ask before the next round. For a new round: set `round` in `active.json` to N+1 and write `round-<N+1>/0-checklist.md` and `round-<N+1>/2-team-ok.md` after the user confirms.
+9.  `steps/09-safety-valve.md` (if round 5 has open Critical/Major)
+10. `steps/10-finish.md` — when the review ends (converged, stopped, or user says stop), delete `.review-state/active.json`.
 </routing>
 
 <reference_index>
@@ -73,4 +89,5 @@ Review is complete when:
 - Zero Critical/Major issues remain after a round's synthesis
 - The orchestrator's critical judgment confirms the verdict
 - The user sees the "implementation-ready" verdict
+- `.review-state/active.json` is deleted (the review is over; otherwise the gates keep blocking in later sessions)
 </success_criteria>

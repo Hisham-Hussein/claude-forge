@@ -1,0 +1,20 @@
+{
+  "description": "Step gates for the adversarial-spec-review skill (no-op unless .review-state/active.json exists)",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent|Task|Edit|Write|MultiEdit|Bash",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-gate.mjs\"", "timeout": 10 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-gate.mjs\"", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}

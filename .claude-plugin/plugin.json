@@ -1,7 +1,7 @@
 {
   "name": "claude-forge",
   "description": "Custom skills, agents, and commands for enhanced Claude Code workflows - requirements engineering, contract verification, and productivity tools",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "author": {
     "name": "Hisham"
   },
