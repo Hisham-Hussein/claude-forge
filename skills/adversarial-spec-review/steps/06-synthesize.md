@@ -5,7 +5,7 @@
 
 After all reviewers complete, apply synthesis-principles.md:
 
-1. **Collect all findings** from task comments (Mode A) or agent results (Modes B/C)
+1. **Collect all findings** from task comments (Mode A), agent results (Modes B/C) or Codex `{slug}-review.md` files (Codex engine). With the Mixed engine, a finding raised by both a Claude and a Codex reviewer counts as independent convergence
 2. **Cross-challenge:** check for independent convergence (2+ reviewers flagging same issue)
 3. **Verify single-reviewer findings** — read the actual code to confirm or refute
 4. **Adversarial weighing (Rule 4 — MANDATORY)** — For every Critical or Major candidate, write the FOR/AGAINST/verdict weighing visibly before scoring. Apply hard disqualifiers. This is the primary defense against severity inflation — do not skip it.

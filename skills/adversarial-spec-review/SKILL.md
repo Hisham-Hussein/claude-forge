@@ -44,7 +44,7 @@ These are not separate review items — they are the lens through which all find
 
 <prerequisites>
 
-Three execution modes exist (Agent Teams, Parallel Subagents, Solo Reviewer) — see `steps/05-spawn.md` for details and the critical distinctions between them.
+Three execution modes exist (Agent Teams, Parallel Subagents, Solo Reviewer) and, for Modes B and C, three reviewer engines (Claude, Codex, Mixed) — see `steps/05-spawn.md` for details and the critical distinctions between them. The Codex engine needs the `codex` plugin.
 
 </prerequisites>
 
@@ -60,7 +60,7 @@ The skill handles everything: reads the spec, selects the right reviewer team, r
 <routing>
 Run these steps in order. At each step, READ ITS FILE NOW (not earlier, not from memory), then do every instruction in it. If a read comes back truncated, read the rest before acting.
 
-Gate files go in `.review-state/` in the session's working directory (`N` = current round). Hooks block the next action until the gate file exists; they do not check quality, so do the step, then write its file. Before the team OK, use Read/Grep/Glob or a read-only helper agent (`Explore`, `Plan`, `claude-code-guide`) only; any other agent spawn counts as a reviewer and is gated. Write gate files and `active.json` with the Write tool.
+Gate files go in `.review-state/` in the session's working directory (`N` = current round). Hooks block the next action until the gate file exists; they do not check quality, so do the step, then write its file. Before the team OK, use Read/Grep/Glob or a read-only helper agent (`Explore`, `Plan`, `claude-code-guide`) only; any other agent spawn, and any Codex job (`codex-companion.mjs`), counts as a reviewer and is gated. Write gate files and `active.json` with the Write tool.
 
 0.  `steps/00-checklist.md` — post the checklist. Create `.review-state/active.json` = `{"spec": "<absolute spec path>", "round": 1}`, append `.review-state/` to the file `git rev-parse --git-path info/exclude` prints (works in worktrees), write `.review-state/round-1/0-checklist.md` (the checklist as posted).
 1.  `steps/01-analyze.md`

@@ -106,6 +106,8 @@ if (tool === "Agent" || tool === "Task") {
     need(["7-approved.md", "8a-impact-trace.md"], "7/8a");
   }
 } else if (tool === "Bash") {
+  // A Codex job is a reviewer seat (Codex engine), gated like an Agent spawn; setup/status/result/cancel are not.
+  if (/codex-companion\.mjs["']?\s+(task|review|adversarial-review)\b/.test(String(ti.command || ""))) need(["0-checklist.md", "2-team-ok.md"], "0/2");
   // Heredoc bodies are data (e.g. a gate file that mentions the spec), not commands.
   const cmd = String(ti.command || "").replace(/<<-?\s*["']?(\w+)["']?[^\n]*\n[\s\S]*?\n\s*\1\s*(?=\n|$)/g, (m) => m.split("\n")[0]);
   // Paths in the command that resolve to the spec (basename alone is not enough),
