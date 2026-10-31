@@ -19,7 +19,7 @@ reviews. Same rigor, single agent.
 And which engine runs the reviewers (Modes B and C)?
 
 **Claude** — Claude subagents (Opus).
-**Codex** — OpenAI Codex, read-only (default gpt-6.1-sol, high effort; name another
+**Codex** — OpenAI Codex, read-only (default gpt-6-astra, high effort; name another
 model or effort to change it).
 **Mixed** (Mode B only) — about half the reviewers on each. Two model families have
 different blind spots; agreement across them is stronger evidence.
@@ -113,12 +113,12 @@ Every command below starts by resolving the plugin path in the same Bash call (v
 3. Run it with Bash, `run_in_background: true`, one call per seat (Codex seats may run in parallel; they only read):
    ```
    CX=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1) && \
-   node "$CX"scripts/codex-companion.mjs task --model gpt-6.1-sol --effort high \
+   node "$CX"scripts/codex-companion.mjs task --model gpt-6-astra --effort high \
      --prompt-file .review-state/round-N/codex/{slug}-prompt.md \
      > .review-state/round-N/codex/{slug}-review.md 2> .review-state/round-N/codex/{slug}.log
    ```
    No `--write`: the job runs in Codex's read-only sandbox. Stdout is the reviewer's final message; the `.log` holds progress.
-4. **Model and effort:** the default is `gpt-6.1-sol` with `high`. If the user names another model or effort, in any wording ("Codex on 6-astra", "medium effort"), use it for every Codex seat or only the seats they name.
+4. **Model and effort:** the default is `gpt-6-astra` with `high`. If the user names another model or effort, in any wording ("Codex on 6.1-sol", "medium effort"), use it for every Codex seat or only the seats they name.
 5. When every job has exited, read each `{slug}-review.md`. An empty file or a non-zero exit is a failed seat: check its `.log`, rerun it once, and if it fails again tell the user and offer that seat on Claude.
 
 **Mixed (Mode B only):** split the seats about evenly between Claude and Codex. State the split when you announce the spawn: "{Archetype} — Claude", "{Archetype} — Codex".
