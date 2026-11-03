@@ -58,6 +58,7 @@ Safe to trim now — decisions are captured in LOG.md.
 - **Remove completed items entirely** — do NOT leave struck-through items in Next Up. A completed item cluttering #1 misleads fresh agents about what to work on next.
 - If an item was promoted from Backlog to Next Up, replace the Backlog entry with a pointer (e.g., "Promoted to Next Up #1") or remove it entirely. Never have the same item described in both sections.
 - Keep "Next Up" to roughly 5 items
+- **LABELS:** Every QUEUE item starts with one bold work-area label, e.g. `**[BACK END]**`. The project's allowed labels are listed once in a `Labels:` line near the top of QUEUE.md (create it on first use from the labels already in the file, merging near-duplicates; keep the list short, about six). Use only listed labels; add a new one only when the work truly fits none. Label new items, relabel items whose label is missing or not on the list, and use the same labels on ACTIVE.md's Current Focus items, Success Criteria headings and How to Continue steps.
 - **CRITICAL:** If clearing ACTIVE.md, ensure "Next Up" has at least one item (check project directives, strategic docs, or conversation context for logical next steps)
 - **FRESH-AGENT CHECK (mandatory):** After all QUEUE.md edits, re-read Next Up #1 and ask: "If a fresh agent reads this right now with zero context, will it know exactly what to work on?" If #1 is a completed item, a vague reference, or points to something that doesn't match ACTIVE.md's Current Focus — fix it before proceeding.
 
