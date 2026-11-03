@@ -1,7 +1,6 @@
 ---
 name: update-roadmap
 description: Updates roadmap folder (ACTIVE.md, QUEUE.md, LOG.md) based on conversation progress and git history. Maintains continuity across sessions by synchronizing roadmap/ with actual work done.
-disable-model-invocation: true
 ---
 
 # Update Roadmap
