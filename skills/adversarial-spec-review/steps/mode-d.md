@@ -14,7 +14,7 @@ Review Progress (Mode D):
 - [ ] D1: Read and analyze the spec (Step 1)
 - [ ] D2: Mechanical checks before round 1
 - [ ] D3: Spawn a fresh reviewer for round N
-- [ ] D4: Judge every finding against the evidence
+- [ ] D4: Judge every finding against the evidence (spike where nothing settles it)
 - [ ] D5: Fix with Steps 8a and 8b (spike first where a fix depends on outside behaviour)
 - [ ] D6: Re-run the mechanical checks, commit, report the round
 - [ ] D7: Stop rule: next round, or the final Minor pass and Step 10
@@ -33,7 +33,7 @@ Review Progress (Mode D):
 - A new reviewer every round. Never continue a previous round's reviewer.
 
 **D4: Judge every finding against the evidence.** Before any verdict:
-- Open the cited spec lines and the cited evidence for each finding; confirm or refute it there. Never accept a finding, its severity or its suggested fix at face value. When a finding's truth depends on outside behaviour no evidence settles, spike it (D5) before the verdict, instead of Rule 2's downgrade-and-flag.
+- Open the cited spec lines and the cited evidence for each finding; confirm or refute it there. Never accept a finding, its severity or its suggested fix at face value. When a finding's truth depends on outside behaviour no evidence settles, spike it (D5) before the verdict, instead of Rule 2's downgrade-and-flag. A finding about the project's own code is settled by reading the code; one that stays inconclusive goes in the round report as unverified.
 - Apply Rules 2–6 of `references/synthesis-principles.md`. Rule 7 does not apply: each Mode D round is a fresh review, so a Major found late is still Major.
 - Re-rank on evidence: upgrade (a Minor can become Major), downgrade, or drop with a one-line reason. Wiring, items the spec leaves to the builder, and risks the spec accepts are not findings unless the acceptance is unreasonable.
 - Every Critical or Major candidate gets the Rule 4 FOR/AGAINST weighing, written down.
@@ -42,10 +42,11 @@ Review Progress (Mode D):
 - Write `round-N/7-approved.md`: the user's Mode D quote, then per finding: fix or drop, judged severity, one-line reason.
 
 **D5: Fix with Steps 8a and 8b.**
-- **Spike before fix:** when a finding or a fix depends on how an outside system behaves (a library, API, browser or provider) and no existing evidence (a spike result, a cited source line, the vendor's docs) proves it, prove it first with a spike, record the result where the project keeps spike findings, and cite it in the spec. Never write such behaviour into the spec from memory. Run spikes before the round's first spec edit: the gate blocks every `git commit` while the spec has unverified edits.
+- **Spike before fix:** when a finding or a fix depends on how an outside system behaves (a library, API, browser or provider) and no existing evidence (a spike result, a cited source line, the vendor's docs) proves it, prove it first with a spike, record the result where the project keeps spike findings (its own commit, apart from the spec's), and cite it in the spec. Never write such behaviour into the spec from memory. Run spikes before the round's first spec edit: the gate blocks every `git commit` while the spec has unverified edits.
 - Read `steps/08a-apply-fixes.md` and `steps/08b-verify.md` now and do both for every fix of the round. Write `round-N/8a-impact-trace.md` before the first spec edit and `round-N/8b-verification.md` (headings `## Pass 1`, `## Pass 2`, `## Pass 3`) before the commit. No fix goes in without them.
 
 **D6: Re-run the checks, commit, report.**
+- A round with nothing judged worth fixing skips D5 and the commit; report it and go to D7.
 - Re-run the D2 script. Fix what it finds the same way (D5).
 - Commit the round as one commit: `docs: fix N Critical + M Major + K Minor findings from adversarial review round R`, with a body listing each fix.
 - Report the round to the user in a few lines: judged counts, what was fixed, what was dropped and why. Do not wait for an answer.

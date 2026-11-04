@@ -1,4 +1,6 @@
 
+**Step 10: Finish.** Delete `.review-state/` (`active.json` and every round folder), so the gates stop and no old gate file satisfies a later review's gates.
+
 </process>
 
 <success_criteria>
@@ -12,4 +14,5 @@ This workflow is complete when:
 - [ ] Final round: zero Critical/Major remain after synthesis
 - [ ] Orchestrator confirmed the verdict with own judgment
 - [ ] User received "implementation-ready" declaration
+- [ ] `.review-state/` deleted
 </success_criteria>
