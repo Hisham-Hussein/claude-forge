@@ -22,19 +22,43 @@
 
 ### Page Inventory
 
-| Page ID | Page Name | Source Activity | Page Type | Nav Level |
-|---------|-----------|-----------------|-----------|-----------|
-| PG-001 | [name] | SM-XXX | [listing/detail/form/dashboard/landing] | [primary/secondary/utility] |
+| Page ID | Page Name | Source Stories | Page Type | Nav Level |
+|---------|-----------|----------------|-----------|-----------|
+| PG-001 | [name] | SM-XXX, SM-XXX | [listing/detail/form/dashboard/landing] | [primary/secondary/utility] |
 
 ### Navigation Model
 
 **Primary model:** [flat / hierarchical / hub-and-spoke / filtered-view / sequential]
 
-[Description of how pages connect, entry/exit points, deep linking strategy]
+[Description of how pages connect, deep linking strategy]
+
+**Navigation table** (every link between pages):
+
+| From | Label / trigger | To |
+|------|-----------------|----|
+| PG-XXX | "[exact label]" | PG-XXX |
+
+**Entry points:**
+
+| Entry point | Lands on | Who / when |
+|-------------|----------|------------|
+| [e.g., sign-in, shared link, notification] | PG-XXX | [persona, situation] |
 
 ### Content Hierarchy
 
 [Per-page content priority stacking: P1 (primary) through P4 (ambient)]
+
+### Competitor Patterns (only when the UX Brief lists competitor research)
+
+| ID | Pattern | Seen in | Source | Serves | Recommendation | Decision |
+|----|---------|---------|--------|--------|----------------|----------|
+| CP-01 | [pattern] | [competitors] | [file / URL] | [SM-XXX] | [Adopt / Adapt / Skip: why] | [user's decision] |
+
+**Story-map gaps:**
+
+| Pattern | Seen in | Source | Why no story fits | Decision |
+|---------|---------|--------|-------------------|----------|
+| [pattern] | [competitors] | [file / URL] | [one line] | [accept / reject] |
 
 ---
 
@@ -56,26 +80,50 @@
 
 ### [Page Name] (PG-XXX)
 
-**Base tier (mobile):**
+**Base tier ([primary device from the UX Brief]):**
 ```
 [Text-based wireframe showing content zones, element order, spatial relationships]
 [Use abstract spacing: XS, S, M, L, XL]
+[Name design-system components where one fits, if the brief lists a design system]
 ```
 
-**Tablet adds:** [what changes]
-**Desktop adds:** [what changes]
+**[Other tier] changes:** [what changes]
+**[Other tier] changes:** [what changes]
 
-[Repeat for each page]
+**Fields:** [field name | type | source (data-model table.column or API property, if the brief lists a data model) | allowed values]
+
+**Data states:**
+
+| State | Pattern | Microcopy ([each language in the brief]) |
+|-------|---------|-----------|
+| Loading | [skeleton / spinner / none] | [what appears] |
+| Empty ([first-use / no-results / user-cleared]) | [type] | **Headline:** "[exact text]" **Body:** "[exact text]" **CTA:** "[exact label]" |
+| Error | [inline / banner / page] | "[what + why + recovery action]" |
+| Partial | [hide / degrade / replace] | [strategy, if the page has more than one data source] |
+| Success | [none / inline / toast / banner] | "[exact confirmation text]" |
+
+**Mirroring (right-to-left languages only):** [what flips; what does not]
+
+[Repeat for each page. Close the section with **Data-model gaps**: fields a page needs that the data model lacks, if the brief lists one.]
 
 ---
 
 ## Section 5: Component Specifications
+
+### Component Inventory (only when the UX Brief lists a design system)
+
+| Element | Design-system component | Used in | Source |
+|---------|-------------------------|---------|--------|
+| [e.g., creator results] | [e.g., data table] | PG-XXX, PG-XXX | SM-XXX |
+
+[Full specifications below cover only components the design system lacks, and the added behaviour of existing components used in product-specific ways.]
 
 ### Atoms
 
 #### [Component Name] — Atom
 
 **Purpose:** [What it does, traced to SM-XXX / US-XXX]
+**Used in:** [PG-XXX, PG-XXX]
 
 | State | Visual Description | Behavior |
 |-------|-------------------|----------|
@@ -92,6 +140,7 @@
 
 **Composition:** [Which atoms compose this molecule]
 **Purpose:** [Traced to SM-XXX / US-XXX]
+**Used in:** [PG-XXX, PG-XXX]
 
 | State | Visual Description | Behavior |
 |-------|-------------------|----------|
@@ -105,12 +154,25 @@
 
 **Composition:** [Which molecules/atoms compose this organism]
 **Purpose:** [Traced to SM-XXX / US-XXX]
+**Used in:** [PG-XXX, PG-XXX]
 
 | State | Visual Description | Behavior |
 |-------|-------------------|----------|
 | ... | ... | ... |
 
 **Accessibility:** [Semantic HTML, ARIA, keyboard, focus management]
+
+### Button Automation Table
+
+| Location | Label | Trigger | Automation | Result | Error handling | Confirmation |
+|----------|-------|---------|------------|--------|----------------|--------------|
+| PG-XXX | "[exact label]" | [user action] | [what the system does] | [what changes in the UI] | [what happens on failure] | [for destructive actions, or "none"] |
+
+### Navigation Buttons Table
+
+| From | Label | To |
+|------|-------|----|
+| PG-XXX | "[exact label]" | PG-XXX |
 
 ---
 
@@ -123,11 +185,26 @@
 - **Feedback model:** [optimistic / pessimistic]
 - **Animation:** [duration category] + [easing]
 - **Keyboard:** [Tab, Enter/Space, Escape behavior]
-- **Mobile variant:** [touch target, gesture differences]
+- **Other-tier variant:** [for each tier other than the base tier: touch target, gesture differences]
 - **Reduced motion:** [fallback behavior]
 - **Source:** SM-XXX / US-XXX
 
 [Repeat for each interactive element. Filter interactions get expanded specification: placement, application method, boolean logic, clear/reset, no-results, URL persistence.]
+
+### State Machine: [Status field name] (from SM-XXX)
+
+[One per status field whose value changes over time. Every state from the field's allowed values; every transition names its trigger (the exact button or system event); mark the initial and terminal states; include failure transitions.]
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Submitted: author clicks "Submit"
+    Submitted --> Approved: reviewer clicks "Approve"
+    Submitted --> Draft: reviewer clicks "Send back"
+    Submitted --> Failed: submission service errors
+    Failed --> Draft: author clicks "Try again"
+    Approved --> [*]
+```
 
 ---
 
@@ -145,18 +222,20 @@
 
 #### [Component Name]
 
-| Aspect | Mobile | Tablet | Desktop |
-|--------|--------|--------|---------|
-| Layout | [description] | [description] | [description] |
-| Navigation | [model] | [model] | [model] |
-| Content visibility | [what's visible] | [what's added] | [what's added] |
+| Aspect | [Base tier from the UX Brief] | [Other tier] | [Other tier] |
+|--------|-------------------------------|--------------|--------------|
+| Layout | [description] | [what changes] | [what changes] |
+| Navigation | [model] | [what changes] | [what changes] |
+| Content visibility | [what's visible] | [what changes] | [what changes] |
 | Typography scale | [tier ratio] | [tier ratio] | [tier ratio] |
 
 **Transformation pattern:** [column-drop / stack / collapse / replace / hide / reposition]
 
 ---
 
-## Section 8: Data States
+## Section 8: Component Data States
+
+[Only components whose states differ from their page's; page-level states are in Section 4. If there are none, write "None: all components share their page's states."]
 
 ### [Component Name] — Data States
 
@@ -224,9 +303,9 @@ flowchart TD
 
 ## Section 11: Traceability Matrix
 
-| UX Element | Plan Section | Source ID | Source Description |
-|------------|-------------|-----------|-------------------|
-| [element] | [section ref] | SM-XXX / US-XXX | [activity/story name] |
+| UX Element | Page(s) | Plan Section | Source ID | Source Description |
+|------------|---------|-------------|-----------|-------------------|
+| [element] | PG-XXX | [section ref] | SM-XXX / US-XXX | [activity/story name] |
 
 ### Coverage Summary
 

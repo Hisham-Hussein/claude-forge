@@ -3,6 +3,7 @@
 > **Reviewed:** [UX plan file paths]
 > **Against:** [Story map path] | [PRD path or "not provided"]
 > **Review mode:** [Plan Quality Review / Implementation Compliance Review]
+> **Depth:** [lean / full] (sections and checks out of scope at lean depth are N/A)
 > **Date:** [Review date]
 
 ---
@@ -77,17 +78,17 @@ Note for future refinement. Not actionable now.
 
 | Section | Status | Notes |
 |---------|--------|-------|
-| 1. Overview & Principles | [Present/Missing/Incomplete] | [detail] |
-| 2. Information Architecture | [Present/Missing/Incomplete] | [detail] |
-| 3. Visual Hierarchy | [Present/Missing/Incomplete] | [detail] |
-| 4. Page Layouts | [Present/Missing/Incomplete] | [detail] |
-| 5. Component Specs | [Present/Missing/Incomplete] | [detail] |
-| 6. Interaction Patterns | [Present/Missing/Incomplete] | [detail] |
-| 7. Responsive Behavior | [Present/Missing/Incomplete] | [detail] |
-| 8. Data States | [Present/Missing/Incomplete] | [detail] |
-| 9. Accessibility | [Present/Missing/Incomplete] | [detail] |
-| 10. User Flows | [Present/Missing/Incomplete] | [detail] |
-| 11. Traceability | [Present/Missing/Incomplete] | [detail] |
+| 1. Overview & Principles | [Present/Missing/Incomplete/N/A] | [detail] |
+| 2. Information Architecture | [Present/Missing/Incomplete/N/A] | [detail] |
+| 3. Visual Hierarchy | [Present/Missing/Incomplete/N/A] | [detail] |
+| 4. Page Layouts | [Present/Missing/Incomplete/N/A] | [detail] |
+| 5. Component Specs | [Present/Missing/Incomplete/N/A] | [detail] |
+| 6. Interaction Patterns | [Present/Missing/Incomplete/N/A] | [detail] |
+| 7. Responsive Behavior | [Present/Missing/Incomplete/N/A] | [detail] |
+| 8. Data States | [Present/Missing/Incomplete/N/A] | [detail] |
+| 9. Accessibility | [Present/Missing/Incomplete/N/A] | [detail] |
+| 10. User Flows | [Present/Missing/Incomplete/N/A] | [detail] |
+| 11. Traceability | [Present/Missing/Incomplete/N/A] | [detail] |
 
 **Placeholder count:** [N] placeholders found | [N] in critical paths | [N] in secondary elements
 

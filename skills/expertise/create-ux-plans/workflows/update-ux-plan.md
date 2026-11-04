@@ -11,12 +11,14 @@
 <inputs>
 
 **Required:**
-- Existing UX plan files in `.charter/` (any subset of: `UX-DESIGN-PLAN.md`, `UX-LAYOUTS.md`, `UX-COMPONENTS.md`, `UX-INTERACTIONS.md`, `UX-FLOWS.md`)
+- Existing UX plan files in `.charter/` (any subset of: `UX-DESIGN-PLAN.md`, `UX-LAYOUTS.md`, `UX-COMPONENTS.md`, `UX-INTERACTIONS.md`, `UX-ACCESSIBILITY.md`, `UX-FLOWS.md`), and the UX Brief in `.charter/UX-CONSTRAINTS.md` (languages, base tier, data model)
 - Change specification from the user (page merges, removals, additions, or story-level changes)
 
 **Optional:**
 - Story map (`.charter/STORY-MAP.md`) — needed for traceability verification when stories change
 - Updated user stories — needed when story-level changes are involved
+
+**Depth.** Read `depth` from `.charter/UX-GENERATION-STATUS.md` (no manifest, or no `depth` field: treat as full). In a lean plan (UX-DESIGN-PLAN, UX-FLOWS, UX-LAYOUTS only), skip every step and impact-map row for UX-COMPONENTS.md and UX-INTERACTIONS.md. To turn a lean plan into a full one, use the "Extending a lean plan to full" path in `create-ux-plan.md`, not this workflow.
 
 If no `.charter/UX-*.md` files exist, inform the user that there is no existing plan to update and suggest using the `create-ux-plan` workflow instead.
 
@@ -32,15 +34,15 @@ If no `.charter/UX-*.md` files exist, inform the user that there is no existing 
 
 Read all `.charter/UX-*.md` files (excluding `UX-COMPLIANCE-REPORT.md`, which is a historical record and never modified by this workflow). Build an internal index of:
 
-- **Pages:** Every PG-XXX with its name, Interface, page type, source stories, and nav level
-- **Navigation:** Every cross-Interface button with source page, target page, label, and trigger
-- **Components:** Every component pattern with its "Used in: PG-XXX" list
+- **Pages:** Every PG-XXX with its name, section (or Interface, if the plan groups pages), page type, source stories, and nav level
+- **Navigation:** Every navigation table entry (from page, label, to page) and every entry point
+- **Components:** Every component spec's "Used in: PG-XXX" line, or the component inventory's "Used in" column
 - **Buttons:** Every entry in the button automation table (location, trigger, automation, result)
-- **Empty states:** Every entry in the per-page empty states table
+- **Data states:** Every page's data-states block in UX-LAYOUTS.md (empty, loading, error, partial, success); in a full plan made by an earlier version, the per-page empty states table in UX-COMPONENTS.md instead
 - **Traceability:** Every story-to-page mapping in the traceability matrix
 - **Flows:** Every PG-XXX reference in user flow prose and Mermaid diagrams
-- **Visual hierarchy:** Every PG-XXX reference in scanning patterns, content hierarchy, and status color system
-- **Interactions:** Every PG-XXX reference in state machines, filter specs, and inline editing lists
+- **Visual hierarchy:** Every PG-XXX reference in scanning patterns, content hierarchy, and the status color system (if the plan has one)
+- **Interactions:** Every PG-XXX reference in state machines, filter specs, and any other interaction spec
 
 This index is the "before" snapshot. It drives the impact analysis in Step 3.
 
@@ -58,12 +60,13 @@ Accept the user's change set in any format (natural language, structured list, o
 - Identify where its stories and functionality are reassigned (other existing pages, or flagged as dropped)
 
 **Page addition:**
-- Identify the new page with its proposed name, Interface, page type, and source stories
+- Identify the new page with its proposed name, section (or Interface), page type, and source stories
 - Assign the next available PG-XXX ID (find the current max and increment by 1)
 
 **Story-level change:**
 - Identify which stories are added, modified, or removed
 - Identify which existing pages are affected
+- If an added story matches a Story-map gap (UX-DESIGN-PLAN.md Section 2, under Competitor Patterns), move that pattern into the Competitor Patterns table with Serves = the new SM-XXX, ask the user for its decision (Adopt / Adapt / Skip), and remove it from the gaps
 
 ### Step 3: Build Impact Map
 
@@ -79,10 +82,11 @@ For page merges, the impact map should cover at minimum:
 | File | Sections Affected |
 |------|-------------------|
 | UX-DESIGN-PLAN.md | Page inventory table, navigation table, entry points table, content hierarchy, scanning pattern lists, page count |
-| UX-LAYOUTS.md | Absorbed page wireframe (remove), absorbing page wireframe (integrate content) |
+| UX-LAYOUTS.md | Absorbed page wireframe and data states (remove), absorbing page wireframe and data states (integrate content) |
 | UX-FLOWS.md | Flow prose (page references), Mermaid diagrams (node labels), traceability matrix (story-to-page mappings), coverage summary (page counts) |
-| UX-COMPONENTS.md | "Used in" lists, empty states table, button automation table, navigation buttons table |
-| UX-INTERACTIONS.md | State machine references, filter spec page lists, inline editing page lists |
+| UX-COMPONENTS.md | "Used in" lists (or the component inventory's "Used in" column), button automation table, navigation buttons table |
+| UX-INTERACTIONS.md | State machine references, filter spec page lists, any other interaction-spec page lists (if present) |
+| UX-ACCESSIBILITY.md | Per-component accessibility entries and page references (if the file exists) |
 
 **Present the impact map to the user and wait for confirmation before proceeding.** This is a mandatory gate — do not begin edits without user approval of the scope.
 
@@ -97,13 +101,13 @@ For page merges, the impact map should cover at minimum:
 Process each change against the IA:
 
 **For page merges:**
-1. Remove the absorbed page's row from its Interface's page inventory table
+1. Remove the absorbed page's row from the page inventory table
 2. Update the absorbing page's row:
    - Merge Source Stories (union of both pages' stories, deduplicated)
    - Update Page Name if the combined page has a new name
    - Update Page Type if the merge changes the page's primary type
-3. Update the opening page count (e.g., "6 Interfaces containing N pages")
-4. Update the cross-Interface navigation table:
+3. Update the page count wherever the plan states it
+4. Update the navigation table:
    - Any button targeting the absorbed page → redirect to the absorbing page
    - Any button sourced from the absorbed page → move to the absorbing page
    - Remove buttons that navigated between the two now-merged pages (they become in-page sections)
@@ -111,24 +115,24 @@ Process each change against the IA:
 6. **Do NOT renumber remaining pages.** Gaps in PG-XXX numbering are intentional.
 
 **For page removals:**
-1. Remove the page's row from its Interface's page inventory table
+1. Remove the page's row from the page inventory table
 2. Reassign its Source Stories to the pages specified in the change set
 3. Update page count
 4. Remove or redirect navigation entries that targeted the removed page
 5. Update entry points table if affected
 
 **For page additions:**
-1. Add a new row to the appropriate Interface's page inventory table
+1. Add a new row to the page inventory table
 2. Use the next available PG-XXX ID
 3. Add navigation entries as specified in the change set
 4. Update page count
 
 ### Step 5: Update Content Hierarchy & Visual Hierarchy (UX-DESIGN-PLAN.md Sections 2-3)
 
-1. Update per-Interface content priority descriptions to reflect merged/removed/added pages
-2. Update scanning pattern page lists — the parenthetical PG-XXX lists after each pattern type (Dashboard, List, Form, Record Review, Calendar, Gallery)
+1. Update per-page content priority descriptions to reflect merged/removed/added pages
+2. Update the scanning pattern of each merged, added or removed page
 3. If a merge changes a page's effective type (e.g., dashboard absorbs a list), update the page's scanning pattern assignment
-4. Update the status color system "Used In" column if affected
+4. If the plan has a Status Color System, update its "Used In" column if affected
 
 ### Step 6: Update Page Layouts (UX-LAYOUTS.md)
 
@@ -139,24 +143,25 @@ Process each change against the IA:
    - If different types (e.g., dashboard absorbs a list): add the absorbed content as a new section within the absorbing page's wireframe, positioned by content priority
 3. Update the absorbing page's title if the name changed
 4. Update the absorbing page's content priority description to cover the merged content
-5. **The merged wireframe must read as if it were designed as one page from the start** — do not simply concatenate
+5. Merge the two pages' data-states blocks; update empty-state microcopy if the merged content changes what the page is empty of, in every language the brief lists, and update the page's mirroring note if it has one
+6. **The merged wireframe must read as if it were designed as one page from the start** — do not simply concatenate
 
 **For page removals:**
 1. Remove the page's entire wireframe section
 2. If the page's content is redistributed to other pages, update those receiving pages' wireframes to include the relevant content
 
 **For page additions:**
-1. Create a new wireframe section following the conventions for that page type
+1. Create a new wireframe section, with its data-states block, following the conventions for that page type and the UX Brief (base tier, languages, data model)
 2. Use existing pages of the same type as structural models
 
 ### Step 7: Update Interaction Patterns (UX-INTERACTIONS.md)
 
 1. Update page references in state machine descriptions (e.g., "Expert imports on PG-001")
 2. Update filter interaction specs — which pages have which filters (persona, status, time range, category)
-3. Update inline editing page lists
+3. Update any other page lists in the interaction specs (for example inline editing), if present
 4. If a merge combines functionality that had separate interaction descriptions, consolidate the descriptions
 5. If a removal eliminates the only page hosting an interaction, move the interaction to its new host page
-6. Update the feedback model page list if form pages are affected (explicit save vs. optimistic)
+6. Update the feedback model page list, if the plan has one and form pages are affected (explicit save vs. optimistic)
 
 </phase>
 
@@ -168,14 +173,14 @@ Process each change against the IA:
 
 Update in this order:
 
-1. **"Used in" lists on every component pattern:** For each pattern (Dashboard, List-Review Queue, List-Data Management, Form, Record Review, Calendar, Gallery):
+1. **"Used in" lines on every component spec (or the inventory's "Used in" column):**
    - Merges: replace absorbed PG-XXX with absorbing PG-XXX (avoid duplicates if absorbing page is already listed)
    - Removals: remove the PG-XXX entirely
    - Additions: add new PG-XXX to the appropriate pattern
 
-2. **Per-page empty states table:** Remove entries for absorbed/removed pages. Add entries for new pages. Update entries for absorbing pages if their empty state message should change due to merged content.
+2. **Button automation table:** Update the Location column for any button that was on a removed/absorbed page. Remove buttons that no longer exist. Add buttons for new pages.
 
-3. **Button automation table:** Update the Location column for any button that was on a removed/absorbed page. Remove buttons that no longer exist. Add buttons for new pages.
+3. **Per-page empty states table** (only in full plans made by an earlier version, which keep page empty states here): remove entries for absorbed/removed pages, add entries for new pages, update absorbing pages' entries.
 
 4. **Navigation buttons table:** Update From and To page references. Remove entries where the navigation was between two now-merged pages. Add entries for new cross-page navigation.
 
@@ -190,13 +195,12 @@ Update in this order:
 2. **Mermaid diagrams:** Update node labels, remove nodes for absorbed pages, redirect connections to absorbing pages. Simplify edges where two-page navigation becomes in-page navigation.
 
 3. **Story-to-page traceability matrix:**
-   - Coverage by Activity table: update UX Pages column, update page counts per activity
-   - Per-Story Traceability table: update UX Page(s) column for every story that referenced changed pages
+   - Traceability matrix: update the Page(s) column for every element on a changed page
    - Update element descriptions if they referenced the absorbed page by name
 
 4. **Coverage summary:** Update total page count and any derived statistics
 
-5. **Orphan UX elements note:** Update if any cross-cutting pages were affected
+5. **Gap notes** (if present: Data-model gaps at the end of UX-LAYOUTS.md, Story-map gaps under Competitor Patterns in UX-DESIGN-PLAN.md Section 2): update if any affected pages appear in them
 
 ### Step 10: Global PG-XXX Reference Sweep
 
@@ -230,7 +234,7 @@ In practice:
 
 ### Step 12: Run verify-ux-consistency.md
 
-Execute the full 10-check consistency verification from `workflows/verify-ux-consistency.md`:
+Execute the consistency verification from `workflows/verify-ux-consistency.md` (all 10 checks at full depth; at lean depth it marks the inapplicable ones N/A):
 
 1. Page name consistency (IA vs. layouts)
 2. Navigation table completeness
@@ -261,7 +265,7 @@ Report to the user:
 
 - **Files modified** and approximate number of changes per file
 - **Pages merged/removed/added** with before and after counts
-- **Final page count** across all Interfaces
+- **Final page count**
 - **Cross-references updated** (count of PG-XXX substitutions)
 - **Verification summary** from Step 12 (pass/fail per check, issues found and fixed)
 - **Manual review items** — any changes that altered the meaning of existing UX decisions (flag for human review)
@@ -310,13 +314,13 @@ The update is complete when:
 - [ ] No references to absorbed/removed page IDs remain in any file (global sweep confirms)
 - [ ] Page numbering gaps are preserved (no renumbering occurred)
 - [ ] Unchanged content is preserved verbatim
-- [ ] verify-ux-consistency.md passes (all 10 checks, or all severity 3+ auto-fixed)
+- [ ] verify-ux-consistency.md passes (every check applicable to the depth, or all severity 3+ auto-fixed)
 - [ ] UX-COMPLIANCE-REPORT.md is untouched, with a note about re-audit reported to user
 - [ ] Impact map was presented to and confirmed by user before edits began
 - [ ] Updated file report delivered to user with change summary
 - [ ] All "Used in" lists on component patterns reflect the current page set
 - [ ] Traceability matrix reflects current story-to-page mappings with no orphaned references
 - [ ] All Mermaid diagrams reference only existing pages
-- [ ] Cross-Interface navigation table references only existing pages with correct names and targets
+- [ ] Navigation table references only existing pages with correct names and targets
 
 </success_criteria>

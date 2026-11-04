@@ -1,6 +1,6 @@
 ---
 name: create-ux-plans
-description: Plan UX patterns and design specifications. Use when asked to "create UX design", "create UX specifications", "help me plan the UX", "review UX plan", "audit UX compliance", "update UX plan", or "verify UX consistency". Handles the full UX spec lifecycle — create from story maps, review existing plans for quality/compliance, update plans for changed stories, and verify cross-document consistency.
+description: Plan UX patterns and design specifications. Use when asked to "create UX design", "create UX specifications", "help me plan the UX", "UX plan before mockups or design concepts", "lean UX plan", "UX plan informed by competitors", "review UX plan", "audit UX compliance", "update UX plan", "extend the UX plan to full", or "verify UX consistency". Handles the full UX spec lifecycle — create from story maps, review existing plans for quality/compliance, update plans for changed stories, and verify cross-document consistency.
 ---
 
 <objective>
@@ -10,10 +10,11 @@ Manage the full UX specification lifecycle — create, review, update, and verif
 <quick_start>
 This skill detects existing UX plan files and routes to the appropriate workflow:
 
-- **No `.charter/UX-*.md` files exist** → Create workflow (from story map)
+- **No `.charter/UX-*.md` files exist** → Create workflow (from story map). It looks through the project first, then interviews the user (scope, depth, primary device, languages, design system, data model, competitor research) before writing anything.
 - **Files exist + user says "review"** → Compliance audit (10-phase, severity-rated findings)
 - **Files exist + user says "update"** → Incremental update (surgical edits, no regeneration)
 - **Files exist + user says "verify"** → Consistency check (10 cross-document checks)
+- **Lean plan exists + user says "full" / "extend"** → Create workflow, which resumes at Stage 4
 
 Each workflow is in `workflows/` — the routing section determines which to load.
 </quick_start>
@@ -21,10 +22,10 @@ Each workflow is in `workflows/` — the routing section determines which to loa
 <success_criteria>
 Per-workflow success criteria (each workflow file defines its own detailed criteria):
 
-- **Create:** 6 UX documents in `.charter/` via sequential pipeline, each verified by fresh subagent, 100% traceability, constraint manifest written, generation status shows all documents verified/approved
+- **Create:** a user-confirmed UX Brief, then the documents for the chosen depth in `.charter/` (lean: 3; full: 6) via sequential pipeline, each verified by fresh subagent, 100% traceability, generation status shows every document verified, approved or skipped
 - **Review:** Compliance report written to `.charter/UX-COMPLIANCE-REPORT.md` with verdict (PASS/PASS WITH NOTES/FAIL)
 - **Update:** All changes applied, no stale PG-XXX references, verify-ux-consistency passes
-- **Verify:** All 10 cross-document checks run, severity 3+ issues auto-fixed, summary reported
+- **Verify:** Every cross-document check applicable to the depth run, severity 3+ issues auto-fixed, summary reported
 </success_criteria>
 
 <essential_principles>
@@ -45,6 +46,10 @@ Every UX decision must link to a story map activity (SM-XXX) or user story (US-X
 "High emphasis, positioned top-left" is good. "#1E40AF, 24px, left: 16px" is not. But "clicking the chip toggles the filter and updates the grid immediately" IS specific enough. Be abstract about appearance, precise about behavior.
 </principle>
 
+<principle name="build-on-what-exists">
+When the project already has a design system or a data model, the plan uses them: it maps elements to existing components, takes fields from the real schema, and flags gaps instead of inventing. A second, competing definition of the same component or field drifts from the first.
+</principle>
+
 <principle name="accessibility-is-structural">
 Semantic HTML choices, focus management, and keyboard navigation are part of the component spec, not a bolt-on appendix. Accessibility lives within each component specification, not in a separate section.
 </principle>
@@ -56,8 +61,9 @@ Semantic HTML choices, focus management, and keyboard navigation are part of the
 **BEFORE presenting the intake menu, check for existing output:**
 
 1. Glob for `.charter/UX-DESIGN-PLAN.md` and `.charter/UX-*.md` files
-2. If UX plan files exist → the plan has already been generated. Tell the user: "UX plan files already exist in `.charter/`. Options: **review** (compliance audit), **update** (apply changes), or **re-create** (regenerate from scratch)."
-3. If no UX plan files exist → proceed to create workflow
+2. If `.charter/UX-GENERATION-STATUS.md` lists any document still `pending`, `generating`, `verifying` or `failed-verification` → a run was interrupted. Offer **resume** first (the create workflow continues from the first unfinished stage), alongside re-create.
+3. Otherwise, if UX plan files exist → the plan has already been generated. Tell the user: "UX plan files already exist in `.charter/`. Options: **review** (compliance audit), **update** (apply changes), **extend to full** (lean plans only: adds documents 4-6), or **re-create** (regenerate from scratch)."
+4. If no UX plan files exist → proceed to create workflow
 
 This detection MUST happen before asking the user anything. If the user's invocation message already contains intent (e.g., "review the UX plans"), match that intent directly — do NOT ask again.
 
@@ -67,7 +73,7 @@ This detection MUST happen before asking the user anything. If the user's invoca
 
 What would you like to do?
 
-1. Create a UX design plan from a story map
+1. Create a UX design plan from a story map (lean or full)
 2. Review an existing UX plan (quality audit, compliance check, or implementation review)
 3. Update a UX plan for new or changed stories
 4. Verify consistency across UX plan files (lightweight cross-document check)
@@ -81,7 +87,7 @@ What would you like to do?
 
 | Response | Workflow File |
 |----------|----------|
-| 1, "create", "generate", "new", "plan", "design" | `workflows/create-ux-plan.md` |
+| 1, "create", "generate", "new", "plan", "design", "full", "extend" | `workflows/create-ux-plan.md` |
 | 2, "review", "audit", "check", "compliance" | `workflows/review-ux-compliance.md` |
 | 3, "update", "change", "modify", "revise" | `workflows/update-ux-plan.md` |
 | 4, "verify", "consistency", "cross-check" | `workflows/verify-ux-consistency.md` |
@@ -98,6 +104,7 @@ All domain knowledge in `references/`:
 **Validation:** nielsen-heuristics.md (50-question quality gate for plan validation)
 **Components:** atomic-design.md (classification + state completeness discipline)
 **Accessibility:** accessibility-wcag.md (per-component ARIA, keyboard, focus, contrast)
+**Competitors:** competitor-research.md (shared research file format, short sourced research step, Adopt / Adapt / Skip patterns table)
 **Layout:** responsive-patterns.md (breakpoint tiers, layout transformations, touch targets, typography scaling)
 **Data States:** data-states.md (loading, empty, error, success, partial state patterns + microcopy)
 **Behavior:** interaction-patterns.md (filter, card, animation, feedback, navigation, micro-interactions)
@@ -109,7 +116,7 @@ All domain knowledge in `references/`:
 
 | Workflow | Purpose |
 |----------|---------|
-| create-ux-plan.md | 6-stage sequential pipeline: generates UX documents one at a time with per-document verification. Each stage reads verified prior documents from disk. Stages 1-3 gate on user approval. Resume-capable via status manifest. |
+| create-ux-plan.md | Sequential pipeline: Stage 0 builds the UX Brief (project search + interview), then generates UX documents one at a time (lean: Stages 1-3; full: 1-6) with per-document verification. Each stage reads verified prior documents from disk. Stages 1-3 gate on user approval. Resume-capable via status manifest; a lean plan extends to full. |
 | verify-ux-consistency.md | Lightweight cross-document consistency check — runs automatically after create, catches internal inconsistencies between split files |
 | review-ux-compliance.md | Audit UX plan quality and/or implementation compliance — 10-phase review with severity-rated findings |
 | update-ux-plan.md | Incrementally update a UX plan — merge, remove, or add pages; apply story-level changes — without regenerating from scratch |
@@ -118,13 +125,13 @@ All domain knowledge in `references/`:
 
 | Stage | File | Document Produced |
 |-------|------|-------------------|
-| 0 | stages/stage-0-context-detection.md | UX-CONSTRAINTS.md + UX-GENERATION-STATUS.md |
+| 0 | stages/stage-0-context-detection.md | UX-CONSTRAINTS.md (with the UX Brief) + UX-GENERATION-STATUS.md |
 | 1 | stages/stage-1-design-plan.md | UX-DESIGN-PLAN.md (Sections 1-3) |
 | 2 | stages/stage-2-flows.md | UX-FLOWS.md (Sections 10-11) |
-| 3 | stages/stage-3-layouts.md | UX-LAYOUTS.md (Section 4) |
-| 4 | stages/stage-4-components.md | UX-COMPONENTS.md (Section 5) |
-| 5 | stages/stage-5-interactions.md | UX-INTERACTIONS.md (Sections 6-8) |
-| 6 | stages/stage-6-accessibility.md | UX-ACCESSIBILITY.md (Section 9, conditional) |
+| 3 | stages/stage-3-layouts.md | UX-LAYOUTS.md (Section 4, with page data states) |
+| 4 | stages/stage-4-components.md | UX-COMPONENTS.md (Section 5, full depth) |
+| 5 | stages/stage-5-interactions.md | UX-INTERACTIONS.md (Sections 6-8, full depth) |
+| 6 | stages/stage-6-accessibility.md | UX-ACCESSIBILITY.md (Section 9, full depth, conditional) |
 
 </workflows_index>
 
@@ -134,7 +141,7 @@ All domain knowledge in `references/`:
 |----------|---------|
 | ux-design-plan-template.md | 11-section output structure for UX-DESIGN-PLAN.md |
 | ux-compliance-report-template.md | Compliance report output structure for review workflow |
-| ux-constraints-template.md | Platform constraint manifest format for pipeline Phase 0 |
+| ux-constraints-template.md | UX Brief + platform constraint manifest format for Stage 0 |
 | ux-generation-status-template.md | Pipeline state manifest for resume capability |
 
 </templates_index>

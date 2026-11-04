@@ -66,7 +66,9 @@ Search for UX plan files. Catalog what exists:
 
 If a single `UX-DESIGN-PLAN.md` contains all sections, use that. If split, read all files.
 
-Flag any missing files immediately — a missing file is a severity-4 finding.
+Read `.charter/UX-GENERATION-STATUS.md` for the plan's `depth` and `.charter/UX-CONSTRAINTS.md` for the UX Brief (no manifest, or no `depth` field: treat as full). Audit against the brief: its base tier, languages, design system and data model are the plan's own decisions, not gaps.
+
+Flag any missing files immediately — a missing file is a severity-4 finding. A document the status file marks `skipped` (lean depth, or platform handles accessibility) is absent by design: not a finding.
 
 ### Step 2: Read Story Map
 
@@ -98,7 +100,8 @@ Create an internal index of everything to audit:
 | Page layouts | [N] | UX-LAYOUTS.md |
 | Component patterns | [N] | UX-COMPONENTS.md |
 | Interaction patterns | [N] | UX-INTERACTIONS.md |
-| Data state specs | [N] | UX-INTERACTIONS.md Section 8 |
+| Page data states | [N] | UX-LAYOUTS.md (each page's data-states block) |
+| Component data states | [N] | UX-INTERACTIONS.md Section 8 (full depth) |
 | User flows | [N] | UX-FLOWS.md Section 10 |
 | Traceability entries | [N] | UX-FLOWS.md Section 11 |
 | Story map stories in scope | [N] | STORY-MAP.md |
@@ -122,12 +125,14 @@ Verify all required sections exist. Use this checklist:
 | 3 | Visual Hierarchy Map | UX-DESIGN-PLAN.md | Hierarchy table with role + emphasis per element + scanning pattern per page type |
 | 4 | Page Layouts | UX-LAYOUTS.md | Text wireframe per page + content priority |
 | 5 | Component Specifications | UX-COMPONENTS.md | Component patterns with state tables |
-| 6 | Interaction Patterns | UX-INTERACTIONS.md | State machines, filter specs, button specs |
+| 6 | Interaction Patterns | UX-INTERACTIONS.md | Interaction specs, filter specs, a state machine per changing status field (button tables are in UX-COMPONENTS.md Section 5) |
 | 7 | Responsive Behavior | UX-INTERACTIONS.md | Per-tier behavior for relevant components |
-| 8 | Data States | UX-INTERACTIONS.md | Loading/empty/error/success per dynamic component |
+| 8 | Data States | UX-INTERACTIONS.md | Loading/empty/error/success per component whose states differ from its page's (may state "none"; page states are in UX-LAYOUTS.md) |
 | 9 | Accessibility | UX-FLOWS.md or UX-ACCESSIBILITY.md | Global requirements + per-component notes |
 | 10 | User Flows | UX-FLOWS.md | Step-by-step flows with decision branches and error recovery |
 | 11 | Traceability Matrix | UX-FLOWS.md | Story → UX element mapping + coverage summary + Nielsen's validation |
+
+Page-level data states (loading, empty, error, partial, success, with microcopy) are expected in UX-LAYOUTS.md with each page, at both depths (a full plan made by an earlier version may keep them in a per-page empty states table in UX-COMPONENTS.md; accept that location); Section 8 holds only component-level states. At lean depth, sections 5-9 are out of scope (N/A), not missing. At full depth with UX-ACCESSIBILITY.md skipped because the platform handles accessibility, Section 9 is N/A; the inline accessibility notes in UX-COMPONENTS.md cover it.
 
 **Severity:** Missing section = severity 4 (catastrophic). Section present but incomplete = severity 2-3 depending on what's missing.
 
@@ -184,7 +189,7 @@ For every UX element in the plan:
 2. Verify the referenced story actually exists in the story map
 
 **Finding types:**
-- UX element with no story source = severity 2 (invented requirement — either remove or flag story map gap)
+- UX element with no story source = severity 2 (invented requirement — either remove or flag story map gap). Rows under Story-map gaps are proposals awaiting a story, not UX elements: not findings.
 - UX element references non-existent story = severity 2 (broken reference)
 
 ### Step 11: Cross-Document Reference Integrity
@@ -196,6 +201,8 @@ Verify all cross-references between documents are valid:
 - Every component pattern referenced in layouts exists in UX-COMPONENTS
 - Every interaction referenced in flows exists in UX-INTERACTIONS
 - Navigation model entry/exit points reference real pages
+
+When the brief lists a design system, a design-system component named in the layouts counts as a valid reference if it is in that system's component list. At lean depth, the two UX-COMPONENTS / UX-INTERACTIONS lines above are N/A, except that design-system components named in layouts are still checked against the design system's list.
 
 **Severity:** Broken cross-reference = severity 2 (confusing but not blocking). Broken navigation flow = severity 3 (workflow gap).
 
@@ -230,7 +237,9 @@ If the plan defines a status pipeline (e.g., content status, recommendation stat
 2. Verify the state machine covers all transitions (no dead-end states, no orphan states)
 3. Verify every page that displays status uses the same values
 4. Verify every button that changes status targets a valid status value
-5. Verify color assignments are consistent across all documents
+5. If the plan has a Status Color System, verify color assignments are consistent across all documents
+
+At lean depth there are no state machines (they live in UX-INTERACTIONS.md): item 2 is N/A; run items 1 and 3-5 on the layouts and UX-DESIGN-PLAN.md.
 
 **Severity:** Dead-end state in pipeline = severity 3. Missing transition = severity 3. Inconsistent color = severity 2.
 
@@ -271,6 +280,8 @@ For each question, record:
 
 **Minimum pass threshold:** No severity 3+ findings. Severity 1-2 findings are reported but don't block.
 
+**Lean depth:** a question that only UX-COMPONENTS.md, UX-INTERACTIONS.md or UX-ACCESSIBILITY.md could answer (component states, interaction feedback, keyboard support, accessibility specs) is **N/A**, unless the layouts or flows already address it. When the brief lists a design system, a question about behaviour its components already provide counts as **Pass (inherited)**, citing the design system.
+
 ### Step 17: Cross-Heuristic Consistency Checks
 
 Run these mandatory cross-checks:
@@ -310,7 +321,7 @@ For each component pattern in the plan, apply the state applicability matrix fro
 | Partial | Component has multiple data sources | Is partial failure strategy specified (degrade vs. error)? |
 | Disabled | Component can be conditionally unavailable | Is disabled state + reason specified? |
 
-**How to count:** For each component, count applicable states and documented states. Report as ratio.
+**How to count:** For each component, count applicable states and documented states. Report as ratio. When the brief lists a design system, a component listed in the inventory as an existing design-system component inherits that system's interaction states (default, hover, focus, active, disabled): count them as documented, and audit only its data states and product-specific behaviour. At lean depth, run this step on the page data states in UX-LAYOUTS.md only.
 
 **Severity:** Primary interaction missing a state (e.g., draft review queue with no error state) = severity 3. Secondary component missing a state = severity 2. Metadata component missing a state = severity 1.
 
@@ -340,6 +351,8 @@ For every button in the plan:
 5. **Confirmation** specified where needed (destructive actions guarded)
 
 **Severity:** Button with no automation spec = severity 3 (developer doesn't know what it does). Button with automation but no error handling = severity 2.
+
+At lean depth, button specs are out of scope (they live in UX-COMPONENTS.md): check only that each button's label and target appear in the layouts or flows; items 2-5 are N/A.
 
 </phase>
 
@@ -389,6 +402,8 @@ For every filter interaction in the plan, verify against the filter specificatio
 
 **Severity:** Missing filter spec items = severity 2 per item. No-results handling missing = severity 3.
 
+At lean depth, filter interaction specs are out of scope: check only item 6, in each filtered page's data states in UX-LAYOUTS.md; items 1-5 and 7-8 are N/A.
+
 </phase>
 
 <phase name="8-platform-compliance">
@@ -415,6 +430,8 @@ If the plan specifies a target platform (e.g., Airtable Interfaces, specific fra
 3. If platform does NOT handle these natively: verify full responsive and accessibility specs exist per reference file requirements
 
 **Severity:** Custom frontend with no responsive specs = severity 4. Platform-native responsive with no exception notes = severity 1.
+
+At lean depth, item 3 checks only that each page in UX-LAYOUTS.md has its base tier and the other tiers' changes; accessibility specs are N/A.
 
 </phase>
 

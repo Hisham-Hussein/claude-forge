@@ -233,7 +233,7 @@ Filter chips: optimistic. Search: semi-optimistic (debounce 300ms). External lin
 **Keyboard**: [Tab focus, Enter/Space, Escape]
 **Feedback**: [Optimistic / Pessimistic / None]
 **Animation**: [Duration category] + [Easing]
-**Mobile**: [Touch target size, gesture variant]
+**Other-tier variant**: [For each tier other than the base tier: touch target size, gesture variant]
 **Reduced motion**: [Fallback when animations disabled]
 ```
 

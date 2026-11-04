@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: full-depth-greenfield-mobile
+expected_outcome: |
+  A full-depth UX plan for a small greenfield project with nothing to build on.
+  Stage 0 searches the project, finds no design system, data model or PRD, and
+  records a UX Brief (scope MVP, depth full, primary device mobile, English only,
+  design system none, data model none, competitor research none). All six documents are written in .charter/.
+  Layouts use mobile as the base tier and carry each page's data states with exact
+  microcopy. Components are fully specified (no design system to defer to).
+context:
+  scaffold_script: place-files.sh

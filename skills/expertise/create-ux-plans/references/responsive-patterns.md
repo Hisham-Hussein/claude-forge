@@ -93,15 +93,14 @@ Standards: WCAG 2.5.5 (AAA) 44x44 CSS px | WCAG 2.5.8 (AA) 24x24 CSS px | Apple 
 
 </touch_targets>
 
-<mobile_first_specification>
+<base_tier_specification>
 
-**Default: Mobile-first specification direction.** Forces content prioritization; additive language is clearer ("sidebar becomes visible" > "sidebar is hidden"); aligns with Tailwind/Bootstrap mobile-first queries.
+**The base tier is the UX Brief's primary device**, chosen in Stage 0. Describe it fully, then list what each other tier changes.
 
-**Exception:** Enterprise dashboards with >80% desktop traffic -- desktop-first may be more natural.
+- **Mobile base** (consumer and on-the-move products, or "both equally"): forces content prioritization; additive language is clearer ("sidebar becomes visible" > "sidebar is hidden"); aligns with Tailwind/Bootstrap mobile-first queries. Pattern: `+ sidebar becomes visible`, `+ filter bar replaces button`.
+- **Desktop base** (dense data work done at a desk: dashboards, admin tools, data tables): the desktop layout is where the product's decisions live. Pattern: list what narrower tiers change (`table → card list`, `filter sidebar → filter sheet behind a button`), and say which tasks the narrow tiers do not support, if any.
 
-**Pattern:** Describe mobile fully as base tier, then list what each wider tier _adds_ (`+ sidebar becomes visible`, `+ filter bar replaces button`).
-
-</mobile_first_specification>
+</base_tier_specification>
 
 <responsive_typography>
 
@@ -117,8 +116,8 @@ Standards: WCAG 2.5.5 (AAA) 44x44 CSS px | WCAG 2.5.8 (AA) 24x24 CSS px | Apple 
 
 ## Recommended Pairing
 
-- Mobile (base): 1.125-1.200 (tighter hierarchy)
-- Desktop (max): 1.200-1.333 (stronger differentiation)
+- Mobile: 1.125-1.200 (tighter hierarchy)
+- Desktop: 1.200-1.333 (stronger differentiation)
 - Use semantic step names (+1, +2, etc.) not pixel values. Steps: -1 caption, 0 body, +1 subheading, +2 H3, +3 H2, +4 H1, +5 display/hero.
 
 ## Accessibility Constraint
@@ -134,7 +133,7 @@ WCAG 1.4.4: Text must be resizable to 200% without loss of content. No viewport-
 | Anti-Pattern | Remedy |
 |-------------|--------|
 | **"It stacks"** — mobile spec only says elements stack vertically | Specify explicit stacking order with priority; define hidden vs. collapsed vs. preserved |
-| **Desktop-only thinking** — detailed desktop, footnote says "responsive" | Start with mobile tier; describe each tier explicitly |
+| **Base-tier-only thinking** — detailed base tier, footnote says "responsive" | Start with the UX Brief's base tier; describe each other tier's changes explicitly |
 | **Pixel-value leakage** — "768px breakpoint" in UX plan | Use semantic tier names and abstract sizing |
 | **Implicit behaviors** — assuming developer will "figure out" mobile nav | Every component needs explicit responsive behavior per tier |
 | **Missing intermediate tiers** — only mobile and desktop | Define at least 3 tiers; tablet is often hardest |
@@ -182,12 +181,14 @@ Hook Card Grid:
 
 ## Responsive Specification Table Template
 
-| Aspect | Mobile | Tablet | Desktop |
-|--------|--------|--------|---------|
-| Layout | [description] | [description] | [description] |
-| Navigation | [model] | [model] | [model] |
-| Content visibility | [what's visible] | [what's added] | [what's added] |
-| Interactive elements | [touch targets] | [touch/pointer] | [pointer primary] |
+Columns follow the UX Brief: the base tier first, then the other tiers. Section 7 of `templates/ux-design-plan-template.md` uses this table without the Interactive elements row.
+
+| Aspect | [Base tier] | [Other tier] | [Other tier] |
+|--------|-------------|--------------|--------------|
+| Layout | [description] | [what changes] | [what changes] |
+| Navigation | [model] | [what changes] | [what changes] |
+| Content visibility | [what's visible] | [what changes] | [what changes] |
+| Interactive elements | [touch targets or pointer] | [what changes] | [what changes] |
 | Typography scale | [tier ratio] | [tier ratio] | [tier ratio] |
 
 </examples>

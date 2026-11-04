@@ -9,6 +9,8 @@ constrained: [true/false]
 constraint_manifest: .charter/UX-CONSTRAINTS.md
 story_map: [path to story map]
 scope: [MVP / slice name]
+depth: [lean / full]
+# lean: UX-COMPONENTS, UX-INTERACTIONS, UX-ACCESSIBILITY are "skipped" with reason "lean depth"
 documents:
   UX-DESIGN-PLAN:
     status: pending
@@ -31,17 +33,19 @@ documents:
     verification_loop: 0
   UX-COMPONENTS:
     status: pending
+    reason: null
     checks_passed: null
     checks_total: null
     verification_loop: 0
   UX-INTERACTIONS:
     status: pending
+    reason: null
     checks_passed: null
     checks_total: null
     verification_loop: 0
   UX-ACCESSIBILITY:
     status: pending
-    # may be set to "skipped" with reason during Phase 0
+    # may be set to "skipped" with reason during Stage 0 ("lean depth" or "platform handles a11y")
     reason: null
     checks_passed: null
     checks_total: null

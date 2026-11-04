@@ -11,8 +11,9 @@ Stage 1 verified and approved (UX-DESIGN-PLAN.md with IA available)
 ### Inputs (re-read from disk)
 - Story map
 - Constraint manifest
-- **UX-DESIGN-PLAN.md** (verified — the IA is the foundation for flows)
+- **UX-DESIGN-PLAN.md** (verified — the IA is the foundation for flows, and its Competitor Patterns decisions, if any)
 - User stories (if available — acceptance criteria enrich flow detail)
+- Competitor research files the brief lists, if any (their recorded steps)
 
 ### References to Load
 - `references/nielsen-heuristics.md`
@@ -36,7 +37,7 @@ Fix IA issues discovered here by editing UX-DESIGN-PLAN.md (update page inventor
 
 #### Section 10: User Flows
 
-For each major user task from the story map, create a step-by-step flow:
+For each major user task from the story map, create a step-by-step flow. Where a flow follows a Competitor Patterns row decided as Adopt or Adapt, cite its CP-ID at the step it shapes; rows decided as Skip are not used:
 
 - **Entry point:** How does the user start this task?
 - **Steps:** What does the user do at each point? Reference pages from the IA by PG-XXX.
@@ -54,9 +55,9 @@ Trace each flow to its source: SM-XXX.
 
 Build the traceability table linking every UX decision to its source:
 
-| UX Element | Plan Section | Source ID | Source Description |
-|------------|-------------|-----------|-------------------|
-| [element] | [section ref] | SM-XXX / US-XXX | [activity/story name] |
+| UX Element | Page(s) | Plan Section | Source ID | Source Description |
+|------------|---------|-------------|-----------|-------------------|
+| [element] | PG-XXX | [section ref] | SM-XXX / US-XXX | [activity/story name] |
 
 **Coverage check:** Every story map activity in scope must have at least one UX element. Flag gaps.
 

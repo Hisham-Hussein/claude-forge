@@ -3,9 +3,9 @@
 ## Stage 6: UX-ACCESSIBILITY.md (Conditional)
 
 ### Conditional Execution
-This stage is **skipped** when the detected platform handles accessibility natively (e.g., Airtable Interface Designer generates accessible markup automatically). The skip decision is made in Phase 0 and recorded in the generation status manifest.
+This stage is **skipped** when the plan is lean, or when the detected platform handles accessibility natively (e.g., Airtable Interface Designer generates accessible markup automatically). The skip decision is made in Stage 0 and recorded in the generation status manifest.
 
-When skipped, the accessibility requirements already specified inline with each component in UX-COMPONENTS.md (Stage 4) are sufficient.
+When skipped because the platform handles accessibility, the accessibility requirements already specified inline with each component in UX-COMPONENTS.md (Stage 4) are sufficient. A lean plan never reaches this stage.
 
 ### Output
 `.charter/UX-ACCESSIBILITY.md` — Section 9 of the output template (Accessibility)
@@ -15,8 +15,9 @@ Stages 1-5 verified (all prior documents available)
 
 ### Inputs (re-read from disk)
 - Story map
-- Constraint manifest
+- Constraint manifest (including the UX Brief)
 - All 5 prior verified documents (DESIGN-PLAN, FLOWS, LAYOUTS, COMPONENTS, INTERACTIONS)
+- **Design system** and front-end rules files listed in the brief, if any (their accessibility rules)
 
 ### References to Load
 - `references/accessibility-wcag.md`
@@ -38,9 +39,11 @@ Append findings to constraint manifest under `## Stage-Specific Constraints > ##
 - Color independence: No information conveyed through color alone
 - Text resize: All content accessible at 200% zoom without horizontal scroll
 
+If the brief lists a design system that already states some of these rules, cite where it states them instead of restating them, and specify only what it leaves out. If the brief lists a right-to-left language, add: the page's `lang` and `dir` follow the chosen language, and mixed-direction content (Latin handles or numbers inside right-to-left text) is isolated so it reads in the right order.
+
 **Per-component accessibility:**
 
-For each component in UX-COMPONENTS.md, verify against the validation checklist from accessibility-wcag reference:
+For each component with a full specification in UX-COMPONENTS.md (inventory rows that use a design-system component inherit its accessibility), verify against the validation checklist from accessibility-wcag reference:
 
 - [ ] Semantic HTML element specified (not just ARIA role)
 - [ ] ARIA roles/states listed (only where native HTML insufficient)
