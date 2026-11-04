@@ -8,7 +8,7 @@ Review Progress:
 - [ ] Step 2: Select the review team (announce to user, get acknowledgment)
 - [ ] Step 3: Identify files for reviewers (spec + source + config + types + tests)
 - [ ] Step 4: Generate focus areas per reviewer (specific questions, not instructions)
-- [ ] Step 5: Ask user for mode (Agent Teams vs Parallel Subagents vs Solo Reviewer), then spawn reviewers
+- [ ] Step 5: Ask user for mode (Agent Teams vs Parallel Subagents vs Solo Reviewer vs Independent Reviewer Loop), then spawn reviewers
 - [ ] Step 6: Synthesize with critical judgment (cross-challenge, severity calibration)
 - [ ] Step 7: Present to user and get decision
 - [ ] Step 8a: Apply fixes with impact tracing
@@ -16,4 +16,6 @@ Review Progress:
 - [ ] Step 8c: Commit and ask about next round → loop back to Step 4
 - [ ] Step 9: Safety valve (if round 5 reached with open Critical/Major)
 ```
+
+If the user's request names Mode D (Independent Reviewer Loop), post the Mode D checklist from `steps/mode-d.md` instead.
 

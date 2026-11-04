@@ -5,7 +5,7 @@ allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGe
 ---
 
 <objective>
-Run adversarial multi-round review of a design specification using dynamically-selected agent teams. The orchestrator analyzes the spec's domain dimensions, spawns the right reviewers (not a fixed set), loops rounds of review with cross-challenge synthesis, and converges when zero Critical/Major issues remain. The spec is declared implementation-ready only when nothing Critical or Major remains after synthesis.
+Run adversarial multi-round review of a design specification using dynamically-selected agent teams. The orchestrator analyzes the spec's domain dimensions, spawns the right reviewers (not a fixed set), loops rounds of review with cross-challenge synthesis, and converges when zero Critical/Major issues remain. The spec is declared implementation-ready only when nothing Critical or Major remains after synthesis. Mode D instead runs one fresh independent reviewer per round and fixes each round without asking (`steps/mode-d.md`).
 </objective>
 
 <essential_principles>
@@ -26,7 +26,7 @@ Minor issues and documentation polish are not blockers. The loop stops when no C
 The purpose of the review is to determine whether the spec is implementation-ready — not to produce a list of findings. Reporting zero issues is a valid outcome when the spec is genuinely clean. The orchestrator must downgrade findings where the reviewer is reaching — where the concern is theoretical, the spec already addresses it, or a competent implementer would handle it without spec guidance. BE ACCURATE. You do not get points for inflating issues that are minor or cosmetic into Major, and you do not get points for deflating genuine issues to avoid reporting them. The only measure of a good review is accuracy — did you correctly identify what is and is not a problem? When dismissing a concern as "an implementer would handle this," verify: would the implementer KNOW this concern exists without the spec mentioning it? If not, flag it.
 
 **Principle 5: Always pause for user approval before editing.**
-Spec edits are high-stakes. Never auto-apply fixes. Present findings with your critical assessment, get user approval, then apply fixes. Then re-review.
+Spec edits are high-stakes. Never auto-apply fixes. Present findings with your critical assessment, get user approval, then apply fixes. Then re-review. In Mode D, the user's choice of Mode D is this approval for every round of that review.
 
 **Principle 6: For software specs, judge against engineering fundamentals.**
 When the spec describes a software system, the orchestrator judges every finding through this lens in synthesis:
@@ -44,7 +44,7 @@ These are not separate review items — they are the lens through which all find
 
 <prerequisites>
 
-Three execution modes exist (Agent Teams, Parallel Subagents, Solo Reviewer) and, for Modes B and C, three reviewer engines (Claude, Codex, Mixed) — see `steps/05-spawn.md` for details and the critical distinctions between them. The Codex engine needs the `codex` plugin.
+Four execution modes exist (Agent Teams, Parallel Subagents, Solo Reviewer, Independent Reviewer Loop) and, for Modes B, C and D, three reviewer engines (Claude, Codex, Mixed; Mixed is Mode B only) — see `steps/05-spawn.md` for details and the critical distinctions between them. The Codex engine needs the `codex` plugin.
 
 </prerequisites>
 
@@ -64,6 +64,9 @@ Gate files go in `.review-state/` in the session's working directory (`N` = curr
 
 0.  `steps/00-checklist.md` — post the checklist. Create `.review-state/active.json` = `{"spec": "<absolute spec path>", "round": 1}`, append `.review-state/` to the file `git rev-parse --git-path info/exclude` prints (works in worktrees), write `.review-state/round-1/0-checklist.md` (the checklist as posted).
 1.  `steps/01-analyze.md`
+
+**Mode D:** if the user's request names Mode D (Independent Reviewer Loop), or the user picks it at Step 5, read `steps/mode-d.md` now and follow it in place of Steps 2–9 (it runs Steps 8a and 8b itself). Steps 0, 1 and 10 still apply.
+
 2.  `steps/02-team.md` — announce the team and WAIT for the user's OK. Then write `round-N/2-team-ok.md` (quote the user's words).
 3.  `steps/03-files.md`
 4.  `steps/04-focus.md`
