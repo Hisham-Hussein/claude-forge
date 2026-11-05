@@ -33,7 +33,7 @@ claude --plugin-dir ~/.claude/plugins/marketplaces/claude-forge
 | `fix-drift` | Fix contract drifts between directives and scripts |
 | `fork-terminal` | Distribute tasks across multiple terminal sessions |
 | `ship-learn-next` | Process learning content and ship insights |
-| `reviewing-documents` | Independent reviewer loop on any non-code document until it is ready for its next reader (`/review-doc`) |
+| `reviewing-documents` | Independent reviewer loop on any non-code document until it is ready for its next reader |
 | `skills-discovery` | Discover and install agent skills |
 | `tapestry` | Unified content extraction and action planning |
 | `youtube-transcript` | Download and process YouTube transcripts |
