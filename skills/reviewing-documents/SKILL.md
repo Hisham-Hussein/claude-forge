@@ -85,7 +85,7 @@ Check what a script can check, so the reviewer's rounds go to judgment:
 - Gate files: `round-N/0-checklist.md` (the checklist as posted) and `round-N/2-team-ok.md` (quote the request that started this review; the same quote stands for every round).
 - Prompt: `templates/reviewer-prompt.md`, every field filled from the brief. Round 2+ also reviews the whole document fresh.
 - A new reviewer every round, never a previous round's reviewer: a fresh reader is the point of the loop.
-- **Claude:** one Agent call, `model: opus`.
+- **Claude:** one Agent call, `model: sonnet`.
 - **Codex:** one read-only job, from the directory that holds `.review-state/`. Write the prompt to `.review-state/round-N/codex/solo-prompt.md`, then run in the background:
   ```
   CX=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1) && \
