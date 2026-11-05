@@ -17,5 +17,5 @@ Review Progress:
 - [ ] Step 9: Safety valve (if round 5 reached with open Critical/Major)
 ```
 
-If the user's request names Mode D (Independent Reviewer Loop), post the Mode D checklist from `steps/mode-d.md` instead.
+If the user's request names Mode D (Independent Reviewer Loop), read `steps/mode-d.md` instead of posting this list.
 

@@ -21,7 +21,7 @@ round reviews the spec's decisions, not its wiring. I judge every finding, fix w
 fixing each round without asking, and stop at the first round with nothing I judge
 Critical/Major, after fixing its worthwhile Minors.
 
-And which engine runs the reviewers (Modes B, C and D)?
+And which engine runs the reviewers (Modes B and C)?
 
 **Claude** — Claude subagents (Opus).
 **Codex** — OpenAI Codex, read-only (default gpt-6-astra, high effort; name another
@@ -32,7 +32,7 @@ different blind spots; agreement across them is stronger evidence.
 
 If the user's message already names the mode, engine, model or effort, use it and skip that part of the question.
 
-**If the user picks Mode D:** read `steps/mode-d.md` now and continue from its D2; the rest of this step does not apply. Rewrite `round-1/0-checklist.md` (the Mode D checklist as posted) and `round-1/2-team-ok.md` (quoting the user's choice of Mode D).
+**If the user picks Mode D:** read `steps/mode-d.md` now; the rest of this step does not apply.
 
 Four modes are available. They are fundamentally different — do NOT confuse them.
 
@@ -101,11 +101,11 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 
 ### Mode D: Independent Reviewer Loop
 
-**What it is:** one fresh reviewer per round, reviewing decisions only, with the orchestrator judging and fixing each round without asking until a round has nothing judged Critical or Major. It runs its own loop in place of Steps 2–9 (using Steps 8a and 8b): see `steps/mode-d.md`.
+**What it is:** one fresh reviewer per round, with the orchestrator judging and fixing each round without asking until a round has nothing judged Critical or Major. It is the `reviewing-documents` skill: see `steps/mode-d.md`.
 
 ### Reviewer engine: Claude, Codex or Mixed
 
-The engine decides who runs each reviewer seat in Modes B, C and D; the prompts, severity calibration and synthesis stay the same. Mode A is Claude only (Agent Teams are Claude sessions). If the user picks Codex or Mixed with Mode A, say so and offer Mode B.
+The engine decides who runs each reviewer seat in Modes B and C; the prompts, severity calibration and synthesis stay the same. Mode A is Claude only (Agent Teams are Claude sessions). If the user picks Codex or Mixed with Mode A, say so and offer Mode B.
 
 **Claude:** the Agent tool with `model: opus`, as above.
 
@@ -114,7 +114,7 @@ The engine decides who runs each reviewer seat in Modes B, C and D; the prompts,
 Every command below starts by resolving the plugin path in the same Bash call (variables do not survive between calls), and runs from the directory that holds `.review-state/`.
 
 1. Check once per review: `CX=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1) && node "$CX"scripts/codex-companion.mjs setup --json` must report `"ready": true`. If not, tell the user to run `/codex:setup` and offer the Claude engine.
-2. Write the reviewer's prompt with the Write tool to `.review-state/round-N/codex/{slug}-prompt.md` (`{slug}` = the archetype in kebab case; Modes C and D: `solo`): the same `agent_prompt_template` (Mode C: `solo_agent_prompt_template`; Mode D: `mode_d_prompt_template`) with every field filled, then this block:
+2. Write the reviewer's prompt with the Write tool to `.review-state/round-N/codex/{slug}-prompt.md` (`{slug}` = the archetype in kebab case; Mode C: `solo`): the same `agent_prompt_template` (Mode C: `solo_agent_prompt_template`) with every field filled, then this block:
    ```
    You are one reviewer on a team; another agent synthesizes. Review only. Do not edit any
    file, do not invoke review skills, and do not spawn agents. Your final message is your

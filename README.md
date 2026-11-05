@@ -15,7 +15,7 @@ claude --plugin-dir ~/.claude/plugins/marketplaces/claude-forge
 
 ## Contents
 
-### Skills (17)
+### Skills (18)
 
 | Skill | Description |
 |-------|-------------|
@@ -33,6 +33,7 @@ claude --plugin-dir ~/.claude/plugins/marketplaces/claude-forge
 | `fix-drift` | Fix contract drifts between directives and scripts |
 | `fork-terminal` | Distribute tasks across multiple terminal sessions |
 | `ship-learn-next` | Process learning content and ship insights |
+| `reviewing-documents` | Independent reviewer loop on any non-code document until it is ready for its next reader (`/review-doc`) |
 | `skills-discovery` | Discover and install agent skills |
 | `tapestry` | Unified content extraction and action planning |
 | `youtube-transcript` | Download and process YouTube transcripts |
@@ -61,7 +62,7 @@ claude --plugin-dir ~/.claude/plugins/marketplaces/claude-forge
 
 | Hook | Description |
 |------|-------------|
-| `review-gate` | Step gates for `adversarial-spec-review`: blocks spawning reviewers (Claude agents or Codex jobs), editing the spec, committing it and ending the turn after spec edits until that step's gate file exists in `.review-state/round-N/`. No-op unless `.review-state/active.json` exists; `Explore`, `Plan` and `claude-code-guide` agents are never gated. |
+| `review-gate` | Step gates for `adversarial-spec-review` and `reviewing-documents`: blocks spawning reviewers (Claude agents or Codex jobs), editing the spec, committing it and ending the turn after spec edits until that step's gate file exists in `.review-state/round-N/`. No-op unless `.review-state/active.json` exists; `Explore`, `Plan` and `claude-code-guide` agents are never gated. |
 
 ## Usage
 

@@ -105,32 +105,6 @@ Issues that span multiple lenses or holistic concerns about overall spec readine
 
 </solo_agent_prompt_template>
 
-<mode_d_prompt_template>
-
-```
-You are an independent reviewer of a design spec. Repo: {repo_root}. Spec: {spec_path} ({spec_summary}).
-
-{mode_d_round_context}
-
-SCOPE: DECISIONS ONLY. The spec holds what it must decide: intent, goals, non-goals and anti-goals, constraints, rules and behaviours, data and permissions, security choices, external assumptions, and the tests each decision needs. Wiring (function names, signatures, file layout, which module calls which, exact SQL or test code, step order, a library choice the spec does not make, option names beyond what a decision needs) is left to the implementation plan ON PURPOSE. Do NOT raise "the spec doesn't say which function/file/module/library…", "doesn't give the exact SQL/test code", or anything a competent builder settles while writing the plan. {left_to_builder_note} Accepted risks stated in the spec are not findings unless the acceptance is unreasonable.
-
-Look for: decisions that are wrong, unsafe, contradictory, or missing such that the product breaks or a real problem appears later — security holes, data loss or corruption, race conditions and deadlocks, reachable states with no defined behaviour, a rule contradicting another, a claim not backed by the cited evidence, a goal with no decision serving it.
-
-Evidence, not memory:
-{evidence_list}
-Cite file:line for every claim about a library or our code; if unverifiable, say "unverified".
-
-Severity, honestly:
-- CRITICAL: breaks the product, security hole, or data loss.
-- MAJOR: a significant problem later (wrong behaviour users hit, costly rework, a contradiction a builder must guess at).
-- MINOR: nice-to-have, wording, small clarity gain.
-Do not inflate. Zero CRITICAL/MAJOR is an acceptable answer. Fewer, real findings beat many.
-
-Output: a numbered list, most severe first; for each: severity, spec location (section + line), the problem, a concrete failure scenario, evidence (file:line), the smallest fix. Then a short "checked and holds" list. Do not edit files.
-```
-
-</mode_d_prompt_template>
-
 <dynamic_fields>
 
 The orchestrator fills these fields:
@@ -149,10 +123,6 @@ The orchestrator fills these fields:
 | `{round_specific_instructions}` | Round 1: "Be thorough." Round 2+: "This is a CONVERGENCE round. Verify the fixes listed above are clean and check for regressions. Do NOT expand scope beyond Round 1's coverage. Do NOT dig deeper into areas that were clean in prior rounds. If the fixes are correct and no regressions exist, report zero Critical/Major — that is the expected outcome of a successful convergence round." |
 | `{combined_lenses}` | Mode C only: All selected archetypes formatted as numbered lens sections, each with name, one-liner, and focus areas |
 | `{lens_count}` | Mode C only: Count of selected archetypes |
-| `{repo_root}`, `{spec_summary}` | Mode D only: the repo's absolute path; one line on what the spec covers (its stack and main parts) |
-| `{mode_d_round_context}` | Mode D only. Round 1: "This is round 1." Round 2+: "This is round N. Round N-1's changes (see `git show <sha>`): [one line per fix]. Check those changes against the evidence and that they introduced no new problem, AND review the whole spec fresh." |
-| `{left_to_builder_note}` | Mode D only: if the spec has a section listing what it leaves to the builder: "Items under '<that heading>' are not findings." Otherwise empty |
-| `{evidence_list}` | Mode D only: one line per evidence source with its path: spike findings, spike code and outputs, library source, the project's code, research notes, related specs |
 
 </dynamic_fields>
 

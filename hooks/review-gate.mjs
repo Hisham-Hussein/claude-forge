@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Gate for the adversarial-spec-review skill. Active only while
+// Gate for the adversarial-spec-review and reviewing-documents skills. Active only while
 // .review-state/active.json exists (walked up from the session cwd).
 // Exit 2 blocks the tool call / the stop; stderr is shown to Claude.
 import { existsSync, readFileSync, realpathSync } from "node:fs";
