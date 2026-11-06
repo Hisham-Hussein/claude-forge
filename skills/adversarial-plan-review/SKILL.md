@@ -1,6 +1,6 @@
 ---
 name: reviewing-plans-adversarially
-description: Runs adversarial multi-round review of implementation plans for executability, task decomposition quality, dependency correctness, spec fidelity, and TDD readiness. Triggers on "review plan", "review this plan", "adversarial plan review", "plan review", "check plan quality", "validate plan", "plan ready for execution", or after creating an implementation plan. Spawns a dynamic team of domain-relevant reviewers that loop until convergence.
+description: Runs adversarial multi-round review of implementation plans for executability, task decomposition quality, dependency correctness, spec fidelity, and TDD readiness. Triggers on "review plan", "review this plan", "adversarial plan review", "plan review", "check plan quality", "validate plan", "plan ready for execution", or after creating an implementation plan. Spawns a dynamic team of domain-relevant reviewers that loop until convergence, or, for "Mode D" or "Independent Reviewer Loop" on a plan, runs one fresh reviewer per round with no approval stops.
 allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Edit, Bash
 ---
 
@@ -26,7 +26,7 @@ Minor issues and polish suggestions are not blockers. The loop stops when no Cri
 The purpose of the review is to determine whether the plan is execution-ready — not to produce a list of findings. Reporting zero issues is a valid outcome when the plan is genuinely clean. The orchestrator must downgrade findings where the reviewer is reaching — where the concern is theoretical, the plan already addresses it, or a competent implementer would handle it on the fly. BE ACCURATE. You do not get points for inflating issues that are minor or cosmetic into Major, and you do not get points for deflating genuine issues to avoid reporting them. The only measure of a good review is accuracy — did you correctly identify what is and is not a problem? When dismissing a concern as "an implementer would handle this," verify: would the implementer KNOW this concern exists without the plan mentioning it? If not, flag it.
 
 **Principle 5: Always pause for user approval before editing.**
-Plan edits are high-stakes — they change what gets built. Never auto-apply fixes. Present findings with your critical assessment, get user approval, then apply fixes. Then re-review.
+Plan edits are high-stakes — they change what gets built. Never auto-apply fixes. Present findings with your critical assessment, get user approval, then apply fixes. Then re-review. Mode D is the one exception: choosing it is the approval for that review's fixes and rounds.
 
 **Principle 6: Judge against executability fundamentals.**
 The orchestrator judges every finding through this lens in synthesis:
@@ -43,7 +43,7 @@ These are not separate review items — they are the lens through which all find
 
 <prerequisites>
 
-Three execution modes exist (Agent Teams, Parallel Subagents, Solo Reviewer) — see Step 5 of the workflow for details and the critical distinctions between them.
+Four execution modes exist (Agent Teams, Parallel Subagents, Solo Reviewer, Independent Reviewer Loop) — see Step 5 of the workflow for details and the critical distinctions between them.
 
 The plan being reviewed should follow the writing-plans skill output format: tasks with steps, file paths, TDD cycle (write test → verify fail → implement → verify pass → commit), and verification criteria. The skill adapts to other plan formats but is optimized for this structure.
 
@@ -59,7 +59,7 @@ The skill handles everything: reads the plan (and its source spec), selects the 
 </quick_start>
 
 <routing>
-This skill has one workflow. Proceed directly to `workflows/run-review.md`.
+This skill has one workflow. Proceed directly to `workflows/run-review.md`. Mode D branches from it to `workflows/mode-d.md`.
 </routing>
 
 <reference_index>

@@ -8,7 +8,7 @@ Review Progress:
 - [ ] Step 2: Select the review team (announce to user, get acknowledgment)
 - [ ] Step 3: Identify files for reviewers (plan + spec + source + types + tests)
 - [ ] Step 4: Generate focus areas per reviewer (specific questions, not instructions)
-- [ ] Step 5: Ask user for mode (Agent Teams vs Parallel Subagents vs Solo Reviewer), then spawn reviewers
+- [ ] Step 5: Ask user for mode (Agent Teams vs Parallel Subagents vs Solo Reviewer vs Independent Reviewer Loop), then spawn reviewers
 - [ ] Step 6: Synthesize with critical judgment (cross-challenge, severity calibration)
 - [ ] Step 7: Present to user and get decision
 - [ ] Step 8: Regression-Safe Fixes (8a → 8b → 8c)
@@ -30,6 +30,8 @@ Read the plan file completely. Then analyze it for scope dimensions:
 5. **Note the plan's complexity** — task count, phase count, number of files touched, number of new vs modified files. Name the 3 riskiest areas.
 
 Output: a mental map of the plan's scope dimensions and which archetypes match.
+
+**Mode D:** if the user's request names Mode D (Independent Reviewer Loop), read `workflows/mode-d.md` now and follow it instead of the rest of this workflow.
 </step_1>
 
 <step_2>
@@ -91,7 +93,7 @@ Questions should be specific to THIS plan, not generic. Reference actual task nu
 <step_5>
 **Step 5: Spawn Reviewers**
 
-**MANDATORY: Ask the user which mode they want BEFORE spawning in Round 1.** Present all options clearly and wait for their choice. For subsequent rounds, confirm briefly: "Continuing with Mode [A/B/C] — OK, or want to switch?" Example for Round 1:
+**MANDATORY: Ask the user which mode they want BEFORE spawning in Round 1.** Present all options clearly and wait for their choice. For subsequent rounds, confirm briefly: "Continuing with Mode [A/B/C] — OK, or want to switch?" (Mode D has no later rounds here: its loop runs in `reviewing-documents`.) Example for Round 1:
 
 ```
 Before I spawn the reviewers, which mode do you want?
@@ -105,9 +107,15 @@ No inter-agent communication. I handle cross-challenge in synthesis.
 **Mode C: Solo Reviewer** (lightweight) — One agent reviews through all lenses in a single
 comprehensive pass. Best for small-medium plans, quick validation, or budget-conscious
 reviews. Same rigor, single agent.
+
+**Mode D: Independent Reviewer Loop** (hands-off) — One fresh reviewer per round. I judge
+every finding and fix without asking, until a round has no Critical or Major. Decisions only
+you can make wait for the final report.
 ```
 
-Three modes are available. They are fundamentally different — do NOT confuse them.
+**If the user picks Mode D:** read `workflows/mode-d.md` now; the rest of this step does not apply.
+
+Four modes are available. They are fundamentally different — do NOT confuse them.
 
 ### Mode A: Agent Teams (PREFERRED)
 
@@ -172,6 +180,10 @@ The lead manages task creation, assignment, and synthesis. Teammates self-coordi
 3. The agent reviews through all lenses sequentially, performs a cross-lens pass, and returns consolidated findings.
 
 **Key difference from Mode B:** Mode B spawns N independent agents in parallel — diversity of perspective catches blind spots through independent convergence. Mode C spawns 1 agent with N lenses combined — the solo reviewer sees connections across lenses that independent agents cannot, but may have blind spots that diversity would catch. The orchestrator compensates via mandatory spot-checking (see Step 6).
+
+### Mode D: Independent Reviewer Loop
+
+**What it is:** one fresh reviewer per round, with the orchestrator judging and fixing each round without asking until a round has nothing judged Critical or Major. It is the `reviewing-documents` skill run with a plan profile: see `workflows/mode-d.md`.
 </step_5>
 
 <step_6>

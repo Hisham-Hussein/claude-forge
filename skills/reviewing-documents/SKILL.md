@@ -1,6 +1,6 @@
 ---
 name: reviewing-documents
-description: Runs an independent reviewer loop on any written document that isn't running code (a design, plan, requirements or experience document, proposal, runbook, policy) and fixes it round by round until it is ready for whoever uses it next. Use whenever the user asks to review, check, stress-test or harden a document, says "review this doc", "Mode D", "Independent Reviewer Loop", or "is this ready", even if they don't say "adversarial". Not for reviewing code, a diff or a pull request (tests and code review do that), and not for a multi-reviewer team review (reviewing-specs-adversarially Modes A-C, reviewing-plans-adversarially).
+description: Runs an independent reviewer loop on any written document that isn't running code (a design, plan, requirements or experience document, proposal, runbook, policy) and fixes it round by round until it is ready for whoever uses it next. Use whenever the user asks to review, check, stress-test or harden a document, says "review this doc", "Mode D", "Independent Reviewer Loop", or "is this ready", even if they don't say "adversarial". Not for reviewing code, a diff or a pull request (tests and code review do that), and not for a multi-reviewer team review (reviewing-specs-adversarially Modes A-C, reviewing-plans-adversarially Modes A-C). For Mode D on an implementation plan, use reviewing-plans-adversarially, which runs this skill with its plan profile.
 allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion, Edit, Write, Bash
 ---
 
@@ -9,6 +9,8 @@ allowed-tools: Read, Glob, Grep, Agent, TaskCreate, TaskUpdate, TaskList, TaskGe
 One fresh independent reviewer per round reads the document. The orchestrator judges every finding against evidence, fixes what is worth fixing without asking, and starts the next round. The loop stops at the first round where nothing is judged Critical or Major; that round's worthwhile Minors are fixed and no further round runs.
 
 The skill knows nothing about document types. What the document is, who it serves and what "ready" means are worked out from the document itself in the review brief (R1), and everything later reads from that brief.
+
+**A profile.** Another skill may invoke this one with a profile for its kind of document: brief lines, extra R3 checks, a fix limit. A profile's lines go into the brief as given, its checks join R3, and its fix limit replaces the one below. Everything else runs as written here. If you are asked for this review on an implementation plan and no profile came with the request, stop and invoke `reviewing-plans-adversarially` with the user's words, naming Mode D.
 
 **One document.** The review edits only the document it was given. Other documents it affects are reported, never edited, because editing whatever a search finds turns one review into an uncontrolled change across the repo.
 
@@ -54,10 +56,11 @@ Left out on purpose: what it leaves to someone else, each item quoted from this 
 Severity standard: the project's own definition, quoted, if it states one; otherwise references/judging.md
 Evidence: the files, code, data, research and sources its claims can be checked against
 Riskiest areas: the 3 places a mistake would cost most
+Review focus: the questions a profile gave the reviewer to answer; "none" without a profile
 History: what in this repo is a record of the past, and is never changed (archives, spikes, logs, finished work), judged from this repo's layout
 ```
 
-Take every answer from the document, what cites it and the user's words. The brief drives everything after it, so a vague "Ready means" gives a vague review: write it as something the next reader does. An item with no text to quote stays in scope, because "Left out on purpose" tells the reviewer not to look there.
+Take every answer from the document, what cites it, the user's words and any profile. The brief drives everything after it, so a vague "Ready means" gives a vague review: write it as something the next reader does. An item with no text to quote stays in scope, because "Left out on purpose" tells the reviewer not to look there.
 
 ## R2: Related documents and the start question
 
@@ -103,7 +106,7 @@ Read `references/judging.md` now. Before any verdict:
 - Re-rank on evidence: upgrade, downgrade, or drop with a one-line reason. What the brief lists under "Left out on purpose", and risks the document accepts, are not findings unless the acceptance is unreasonable.
 - Write the FOR/AGAINST weighing down for every Critical or Major candidate.
 - Spot-check the areas the last round's fixes touched (round 1: the brief's riskiest areas). A Critical or Major you find there is a finding of this round.
-- Decide each finding worth acting on, whatever its severity: **fix** it within the limit at the top of this skill, or send it to the **owner** if it needs new procedure, new design, a change of goal, or a choice only the owner can make. The reviewer's suggested fix is an input, not the decision.
+- Decide each finding worth acting on, whatever its severity: **fix** it within the limit at the top of this skill (or the profile's), or send it to the **owner** if it needs new procedure, new design, a change of goal, or a choice only the owner can make. The reviewer's suggested fix is an input, not the decision.
 - Write `round-N/7-approved.md`: the request's quote, then per finding: fix, owner or drop, judged severity, one-line reason.
 
 ## R6: Fix

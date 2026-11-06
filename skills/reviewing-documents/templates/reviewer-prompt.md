@@ -9,6 +9,7 @@ Fill every field. Do not add anything about the document's type beyond what the 
 | `{repo_root}` | The repo's absolute path |
 | `{document_path}`, `{what_it_is}` | The brief's Document line |
 | `{next_readers}`, `{ready_means}`, `{in_scope}`, `{left_out}` | The brief's lines of those names |
+| `{review_focus}` | The brief's Review focus, as "Also answer: [questions]". Empty if it is "none" |
 | `{owner_items}` | Round 2+: "Already sent to the owner, not findings: [one line each]." Otherwise empty |
 
 For Codex, add at the end: "Review only. Do not edit any file, invoke review skills or spawn agents. Your final message is your whole report."
@@ -22,7 +23,7 @@ WHO IT SERVES: {next_readers}. READY MEANS: {ready_means}.
 
 SCOPE: This document is responsible for: {in_scope}. It leaves these out on purpose: {left_out}. Do NOT raise what it leaves out, or anything its next reader settles in the normal course of their work. {owner_items} Accepted risks stated in the document are not findings unless the acceptance is unreasonable. An "Impact on other documents" appendix is a to-do list for other documents, not part of this review.
 
-Look for what would make the next reader do the wrong thing, or have to guess: content that is wrong, unsafe, contradictory, or missing; a rule contradicting another; a diagram or table that disagrees with the text; a case or state with no defined outcome; a claim not backed by its cited evidence; a stated goal nothing in the document serves.
+Look for what would make the next reader do the wrong thing, or have to guess: content that is wrong, unsafe, contradictory, or missing; a rule contradicting another; a diagram or table that disagrees with the text; a case or state with no defined outcome; a claim not backed by its cited evidence; a stated goal nothing in the document serves. {review_focus}
 
 Evidence, not memory:
 {evidence_list}

@@ -7,6 +7,7 @@ allowed-tools:
   - Grep
   - Agent
   - Edit
+  - Write
   - TaskCreate
   - TaskUpdate
   - TaskList
@@ -14,6 +15,7 @@ allowed-tools:
   - AskUserQuestion
   - Bash
   - Skill(reviewing-plans-adversarially)
+  - Skill(reviewing-documents)
 ---
 
 Invoke the reviewing-plans-adversarially skill for: $ARGUMENTS
