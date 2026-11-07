@@ -1,18 +1,36 @@
 {
-  "description": "Step gates for the adversarial-spec-review and reviewing-documents skills (no-op unless .review-state/active.json exists)",
+  "description": "Step gates: review-gate for the adversarial-spec-review and reviewing-documents skills (no-op unless .review-state/active.json exists); design-gate for design-concept (no-op outside a folder with AGREED-LIST.md)",
   "hooks": {
     "PreToolUse": [
       {
         "matcher": "Agent|Task|Edit|Write|MultiEdit|Bash",
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-gate.mjs\"", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-gate.mjs\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Skill|Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/design-gate.mjs\"",
+            "timeout": 10
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-gate.mjs\"", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-gate.mjs\"",
+            "timeout": 10
+          }
         ]
       }
     ]

@@ -16,7 +16,7 @@ Every concept's DESIGN.md has these eleven numbered sections, in this order. The
 | 10 | Open items | What is not finished or not decided. The review never reports these |
 | 11 | Where we depart from Material 3 on purpose | Each departure with its reason. The review never reports these |
 
-A header above §1 says where the concept came from: its inspiration, the reference CSS, the screens.
+A header above §1 says where the concept came from: its inspiration, the reference CSS, the screens. With an inspiration, it also holds a numbered **Signatures** list: the three to six moves that make that look itself, and how each shows on a product screen.
 
 ## The settings block
 

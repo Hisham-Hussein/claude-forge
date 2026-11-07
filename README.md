@@ -15,7 +15,7 @@ claude --plugin-dir ~/.claude/plugins/marketplaces/claude-forge
 
 ## Contents
 
-### Skills (19)
+### Skills (20)
 
 | Skill | Description |
 |-------|-------------|
@@ -28,6 +28,7 @@ claude --plugin-dir ~/.claude/plugins/marketplaces/claude-forge
 | `create-hooks` | Expert guidance for creating Claude Code hooks |
 | `create-requirements` | Transform business cases into formal requirements |
 | `deepeval` | Work with DeepEval testing framework |
+| `design-concept` | Turns a design inspiration into a DESIGN.md and working screens, gated by design-review and an outside check |
 | `design-review` | Reviews screens, mockups, code and DESIGN.md files against a concept's own DESIGN.md, an optional constitution and Material 3 |
 | `execute-phase` | Execute phases from project plans |
 | `expertise` | Domain expertise guidance |

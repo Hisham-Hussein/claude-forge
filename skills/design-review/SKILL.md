@@ -72,6 +72,7 @@ When a skill such as `design-concept` runs you in the middle of its own work, th
 
 - Ask nothing. Fix all technical findings and apply Material's answers, as in step 6.
 - For each real choice, keep the design as it stands, render the options, save the pictures in `<folder>/review-choices/`, and list them. With no screens yet, render each option on a small sample of the component. A judgement call you would mention is a real choice: list it there, never as a side note.
+- For a whole DESIGN.md, once no Blocker or Major finding is left: save the findings, fixes and choices to `<folder>/DESIGN-REVIEW.md`, then run `node scripts/stamp.cjs <folder>`. It signs the file with DESIGN.md's hash. A hook refuses to build screens until that signature matches, so a later change to DESIGN.md needs another review.
 - Return the findings table, what you fixed, and that list. The calling skill shows the list with its result.
 
 ## Finding format
