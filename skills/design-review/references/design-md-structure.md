@@ -36,7 +36,7 @@ A header above §1 says where the concept came from: its inspiration, the refere
 
 Required: `css` (from the concept folder; holds the tokens), `spacing`, `type` (`rtl` only with right-to-left pages).
 
-Optional, with their defaults: `src` (`"src"`, the folder of `*.html` pages), `themes` (`["light", "dark"]`), `targets` (24 and 44), `chartTextMin` (10.5), `hitAreas` (selector to the px a hit area adds past the mark), `selectors`:
+Optional, with their defaults: `src` (`"src"`, the folder of `*.html` pages; `"src/pages"` when pages have their own folder), `themes` (`["light", "dark"]`), `targets` (24 and 44), `chartTextMin` (10.5), `hitAreas` (selector to the px a hit area adds past the mark), `selectors`:
 
 | Key | Lists |
 |---|---|

@@ -14,7 +14,7 @@ Find what is being built in this release: the MVP on the first run, release 2 on
 
 On a later release, list only the new or changed pages, and reuse DESIGN.md and the existing screens.
 
-Write `AGREED-LIST.md`: each page, its ID in the UX plan, its states, the stories it serves, the languages and themes. Tell the user what you understood and ask them to approve the list. **This is the one stop.** After approval, run to the end.
+Settle "Decisions first" in SKILL.md. Then write `RELEASE-LIST.md` beside the chosen DESIGN.md: each page, its ID in the UX plan, its states, the stories it serves, the languages and themes. Tell the user what you understood and ask them to approve the list. **This is the one stop.** After approval, run to the end.
 
 ## 3. Build
 
@@ -27,4 +27,4 @@ Write `AGREED-LIST.md`: each page, its ID in the UX plan, its states, the storie
 
 ## 4. Check and finish
 
-Rules 3 to 5 in SKILL.md, then the end report. When the stack is not plain HTML, serve the app and point the checks at its pages, or walk design-review's `auto N` checks by hand and say so.
+Rules 3 to 5 in SKILL.md, then the end report. The scripts read HTML files. When the stack is not plain HTML, serve the app, take the same set of screenshots with Playwright, walk design-review's `auto N` checks by hand, and say so in the end report.

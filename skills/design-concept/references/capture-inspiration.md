@@ -28,9 +28,11 @@ Write `inspiration-<source>/README.md`:
 
 ## From study to DESIGN.md
 
-Read the project's standing design decisions first (its design README, brand notes, what the user chose before): a font, a language rule or a thing to avoid that the user already settled binds every concept. Those decisions are inputs; only the look of the inspiration is open.
+Read the project's standing design decisions first (its design README, brand notes, what the user chose before): a font or a language rule the user already settled binds every concept. A general "avoid" list does not remove something the inspiration itself uses: if the site has a gradient or a glow, it stays, because the look comes from the site.
 
-Each rule in DESIGN.md either carries a measured value or says why it departs from one. Good reasons: WCAG contrast, an open-licence font in place of a paid one (the closest match, named in §3), density a work tool needs. "Simpler" is not one.
+Each rule in DESIGN.md either carries a measured value or says why it departs from one. Good reasons: WCAG contrast, density a work tool needs. "Simpler" is not one.
+
+If a font the look depends on is paid, look for its licence and price, build with the closest open-licence match, name it in §3, and list the swap as a real choice with pictures of both in `review-choices/`, so the user decides whether to buy it. Never swap a signature font silently.
 
 For what the site does not show, extend its logic, do not fall back to a default kit: a site of hairlines and flat fills gets tables of hairlines and flat fills. A missing second theme is built from the site's palette; if the user named which theme the site should inspire, follow that.
 

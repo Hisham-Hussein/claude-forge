@@ -6,13 +6,15 @@ For when the look and feel matters most and the product idea may still be unfini
 
 Look in the project and use the most developed description: a story map, then a PRD or business case, then a product brief. Screens, a UX plan and competitor research help if they exist; none is required.
 
-If you find no description, offer to help refine the idea, for example through `superpowers:brainstorming`; the refined idea is the product brief. If the user declines, the idea as they gave it is enough. This is the only stop in this workflow.
+If you find no description, offer to help refine the idea, for example through `superpowers:brainstorming`; the refined idea is the product brief. If the user declines, the idea as they gave it is enough.
+
+Then settle "Decisions first" in SKILL.md. These two are the only stops in this workflow, and both come before any work; with the answers in the project, there are none.
 
 ## 2. Agree the list
 
 Use the screens the run was given. With none, pick three from the idea that test the style hardest, such as a dense list, a detail page with charts, and a working page, and name them at the start. Do not wait for an answer.
 
-Use the project's languages and both themes, unless the run says otherwise.
+Use the languages and themes from "Decisions first".
 
 **Comparing sites:** every run gets the same screens and the same sample data, so only the style differs. Use the sample data file you are given. With none, write `sample-data.json` beside the concept folders and reuse it in later runs. Sample data looks real: full names, odd lengths, missing values.
 

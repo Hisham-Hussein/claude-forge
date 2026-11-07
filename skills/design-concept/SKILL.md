@@ -32,11 +32,25 @@ An inspiration site with no chosen DESIGN.md means Look first. "Build the mockup
 
 A competitor's colour or an inspiration site's feature does not cross over.
 
+## Decisions first
+
+Before the run starts, find what the user has already decided, the same way the idea is found: look in the project first (brief, story map, PRD, UX plan, constitution, design notes), and ask only about what is left. A skill run on another product has no such notes, so never assume any.
+
+Settle these three, and ask them together, once:
+
+- **Languages.** The inspiration's language says nothing about the product's. Does the product need one language or several, and any right to left?
+- **Fonts for each script the inspiration lacks.** If a language needs a script the site has no font for, is there a preferred font?
+- **Themes.** If the site has one theme, is a second one wanted, and based on what?
+
+If no one can answer, because another agent is running this skill and its brief does not say, take the default and go on: languages as the idea is written, no fonts beyond the inspiration's, one theme. Mark each "assumed" in the list and name it in the end report. The same goes for every other question in this skill.
+
+Everything else about the look comes from the inspiration. A general "avoid" list does not remove something the inspiration itself uses: if the site has a gradient or a glow, it stays. Write the answers at the top of `AGREED-LIST.md`, with where each came from.
+
 ## Rules for both workflows
 
-1. **DESIGN.md comes first.** Study the inspiration (`references/capture-inspiration.md`), write DESIGN.md in the concept's folder to the structure in design-review's `references/design-md-structure.md`, and pass it through `claude-forge:design-review` before building any screen. Run it with the Skill tool, not by hand: a builder checking its own file is what this rule exists to prevent. This is enforced: write `AGREED-LIST.md` first, and a hook then refuses every screen and build command in that folder until design-review has signed `DESIGN-REVIEW.md` for the current DESIGN.md. Editing DESIGN.md outside its settings block voids the signature. Tell design-review it was called by this skill, so it never stops the run: it settles what it can and returns any real choice, which waits for the end. Product first starts from a chosen DESIGN.md, so it skips the study and this review unless DESIGN.md changes.
+1. **DESIGN.md comes first.** Study the inspiration (`references/capture-inspiration.md`), write DESIGN.md in the concept's folder to the structure in design-review's `references/design-md-structure.md`, and pass it through `claude-forge:design-review` before building any screen. Run it with the Skill tool, not by hand: a builder checking its own file is what this rule exists to prevent. This is enforced in Look first: write `AGREED-LIST.md` first, and a hook then refuses screens and build commands in that folder until design-review has signed `DESIGN-REVIEW.md` for the current DESIGN.md. Editing DESIGN.md outside its settings block voids the signature, so run design-review on the change, which signs again. The hook stops the usual ways round the review, not a determined one, so do not look for one. Tell design-review it was called by this skill, so it never stops the run: it settles what it can and returns any real choice, which waits for the end. Write the settings block now with `css`, `spacing` and `type`; selectors follow after the build. Product first starts from a chosen DESIGN.md that has already passed, so it skips the study and this review, and the gate below does not apply to it.
 2. **Build the whole list in one go.** Every screen on the agreed list, in every language and theme the project needs, before showing anything. Build in the concept's folder (`references/prototype.md`).
-3. **Run the mechanical checks after building:** `check.cjs` and `render.cjs` from design-review, then `scripts/links.cjs` from this skill. Fix every FAIL. They prove the rules hold, not that the design is good.
+3. **Run the mechanical checks after building:** `check.cjs` from design-review, then `scripts/links.cjs` and `scripts/shots.cjs` from this skill. Fix every FAIL. They prove the rules hold, not that the design is good.
 4. **Hold the look against the inspiration yourself:** before the outside check, put your main screens beside the inspiration's pictures and go through DESIGN.md's signature list (`references/capture-inspiration.md`). A screen that passes every check and reads as a generic admin kit has failed: it is the most likely way this skill goes wrong. Fix it before going on.
 5. **Pass the outside check before saying "done"** (`references/outside-check.md`): a separate agent given only DESIGN.md, the agreed list and the screenshots. If it fails, fix the screens and run it again. After three failed rounds, stop and report what still fails. Never soften a failure: the end report states it.
 6. **Mockups live in code, not Figma.**
@@ -47,10 +61,11 @@ A competitor's colour or an inspiration site's feature does not cross over.
 
 Show the user, once, at the end:
 
-- Where the concept is, and how to open it (the first page or the running app).
+- Where the concept is, and how to open it: the first page or the running app, and the stand-alone file (`scripts/bundle.cjs`) that opens anywhere and can be sent to anyone.
 - The screens, as pictures.
 - The outside check's result, including what it did not cover.
-- Any real choices from design-review, with their pictures from `<folder>/review-choices/`.
+- Anything this skill says to do that the run did not do, stated plainly.
+- Every assumption and every real choice, your own and design-review's, with their pictures from `<folder>/review-choices/`.
 
 ## Common mistakes
 
@@ -62,5 +77,4 @@ Show the user, once, at the end:
 - Writing "matches the inspiration" with no measured value behind it.
 - Drawing placeholder shapes where the look needs photos. See `references/prototype.md`.
 - Letting the required content crush the look: fitting every column by shrinking everything until the screen reads as an admin panel.
-- Leaving scaffolding on the page: notes about the test, sample-data labels, a demo footer.
 - Taking the outside agent's pass as covering what it could not see: behaviour, keyboard, real data.

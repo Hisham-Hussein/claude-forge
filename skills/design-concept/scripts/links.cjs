@@ -1,7 +1,7 @@
-// Check a prototype's links without a browser. Usage: node links.cjs <concept-folder> [<src-folder-name>]
-// Every local href and src in src/*.html must reach a file, and every #anchor an id on that page.
+// Check a prototype's links without a browser. Usage: node links.cjs <concept-folder> [<pages-folder>]
+// Every local href and src in the page files must reach a file, and every #anchor an id on that page.
 const fs = require('fs'); const path = require('path');
-const dir = path.join(path.resolve(process.argv[2] || '.'), process.argv[3] || 'src');
+const root = path.resolve(process.argv[2] || '.'); const dir = process.argv[3] ? path.join(root, process.argv[3]) : fs.existsSync(path.join(root, 'src/pages')) ? path.join(root, 'src/pages') : path.join(root, 'src');
 const pages = fs.readdirSync(dir).filter((f) => f.endsWith('.html')); const bad = []; let links = 0;
 const read = (f) => fs.readFileSync(f, 'utf8');
 const hasId = (html, id) => new RegExp(`\\bid=["']${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html);
@@ -15,8 +15,8 @@ for (const page of pages) { const html = read(path.join(dir, page));
     if (anchor && target.endsWith('.html') && !hasId(read(target), anchor)) bad.push(`${page}: ${value} has no such id`);
   }
 }
-const review = path.join(dir, '..', 'DESIGN-REVIEW.md'); // Look first only: Product first builds in the project's stack
-if (fs.existsSync(path.join(dir, '..', 'AGREED-LIST.md')) && !(fs.existsSync(review) && read(review).includes('design-md-sha256:'))) bad.push('DESIGN-REVIEW.md is missing or unsigned: design-review never passed this DESIGN.md');
+const review = path.join(root, 'DESIGN-REVIEW.md'); // Look first only: Product first builds in the project's stack
+if (fs.existsSync(path.join(root, 'AGREED-LIST.md')) && !(fs.existsSync(review) && read(review).includes('design-md-sha256:'))) bad.push('DESIGN-REVIEW.md is missing or unsigned: design-review never passed this DESIGN.md');
 console.log(`${bad.length ? 'FAIL' : 'PASS'}  links: ${pages.length} pages, ${links} local links, ${bad.length} bad`);
 bad.slice(0, 40).forEach((x) => console.log('      ' + x));
 process.exit(bad.length ? 1 : 0);

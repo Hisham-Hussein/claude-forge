@@ -3,8 +3,8 @@
 You built it, so you are the wrong judge of it. Spawn a separate agent that has not seen this run. Give it only:
 
 - the concept's DESIGN.md
-- `AGREED-LIST.md`
-- the screenshots, as a set the agent can really open: each screen in every language and theme at 1440px; each screen at phone width in the main language; each state, dialog and menu once, in the main language and light. Cut long pages into screen-height slices, since very tall images fail to open.
+- `AGREED-LIST.md` (`RELEASE-LIST.md` in Product first)
+- the screenshots from `scripts/shots.cjs` (`renders/check/`), a set the agent can really open: each screen in every language and theme at 1440px, each screen at phone width in the main language, each state, dialog and menu once, with long pages cut into slices.
 
 Never give it the inspiration site, a competitor, or your notes. The pages and functions differ from both on purpose, so a comparison would only reward copying.
 
@@ -17,9 +17,9 @@ DESIGN.md: <path>
 Agreed list: <path>
 Screenshots: <folder>
 
-Part 1, Look. Open every screenshot. First hold each main screen against DESIGN.md's Signatures and §1 Principles: does the screen actually show them, or could it be any admin template? A broken signature or principle fails the check, even when every token is right. Then, does it match the rest of DESIGN.md: colours, type, corners, spacing, depth, component rules, right-to-left rules? Would a person take this for a finished product? Placeholder images, cells wrapping to three lines, names cut in the middle and notes about the test all count against it. Cite the section and the screenshot for each mismatch.
+Part 1, Look. Open every screenshot. First hold each main screen against DESIGN.md's Signatures and §1 Principles: does the screen actually show them, or could it be any admin template? A broken signature or principle fails the check, even when every token is right. Then, does it match the rest of DESIGN.md: colours, type, corners, spacing, depth, component rules, right-to-left rules? Would a person take this for a finished product? Placeholder images, cells wrapping to three lines and names cut in the middle count against it. The "Demo state" selector and notes about sample data are there on purpose: ignore them. Cite the section and the screenshot for each mismatch.
 
-Part 2, Completeness. For each item on the agreed list: is the page there, in each language and theme listed, with every function and state listed, and finished? Placeholder text, an empty region, or a state that cannot be seen counts as missing.
+Part 2, Completeness. For each item on the agreed list: is the page there, in each language and theme listed, with every function and state listed, and finished? Placeholder text, an empty region, or a state that cannot be seen counts as missing, apart from the selector and notes named above.
 
 Answer in this form:
 VERDICT: PASS or FAIL
