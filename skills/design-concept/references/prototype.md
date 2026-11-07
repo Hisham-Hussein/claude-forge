@@ -5,6 +5,7 @@
 ├── DESIGN.md
 ├── DESIGN-REVIEW.md   signed by design-review
 ├── AGREED-LIST.md
+├── PLAN-MATCH.md      where a UX plan covers the screens
 ├── OUTSIDE-CHECK.md
 ├── shots.json         what shots.cjs renders
 ├── inspiration-<source>/
@@ -31,10 +32,12 @@ Organise it as a good front-end developer would, with one job per file. In the s
 - **Real images when the look uses them.** If the inspiration's look rests on photography, the screens need photographs: use the project's own, or open-licence stock saved in `assets/`, and record the source in §10. Grey silhouettes, tinted tiles and initials in place of photos remove the look itself, so they count as unfinished. Images in the sample data are shared across runs, like the data.
 - **Density without losing the look.** Dense content is where concepts collapse into a generic admin kit. Keep the inspiration's scale and air: the title at its display size, rows with room, one line per cell. Put secondary data behind a column setting or into the detail view if the plan allows it, rather than shrinking everything. A cell that wraps to three lines, or a name cut in the middle, is a defect.
 - **Asset paths as plain strings** in HTML, CSS, JS and data (`../assets/photos/a.jpg`), never put together at run time, so the stand-alone build can find them.
+- **One visible scrollbar.** The page's own. An area that needs its own scroll, such as a filters rail, shows its bar only on hover or keyboard focus (`scrollbar-color: transparent transparent`, then a colour on `:hover` and `:focus-within`), and nothing scrolls sideways. Check 9 fails any other. An open menu may keep a thin bar.
+- **No unstyled browser controls.** A `<select>` opens the browser's own plain list, which CSS cannot style and screenshots never show. Every dropdown opens a menu built in the concept's look (`preventDefault` on the select's `mousedown`, or a button and a menu); check 9 fails any that does not. The same goes for date pickers and file inputs.
 - **Focus rings as `outline`**, since check 4 reads it, and motion that stops with reduced motion.
 - **Motion from the inspiration, built:** if the study found scroll or load animation, the prototype has it.
 
-Then add the selectors to the settings block in DESIGN.md §9, naming this concept's classes. Write `shots.json` with every state, dialog and menu on the list:
+Then add the selectors to the settings block in DESIGN.md §9, naming this concept's classes. Write `shots.json` with every state, dialog and menu on the list. Content inside a scrolling area, such as a filters rail, does not show in a page screenshot, so give it a shot of its own:
 
 ```json
 [{ "page": "creators", "name": "empty", "query": "?state=empty" },

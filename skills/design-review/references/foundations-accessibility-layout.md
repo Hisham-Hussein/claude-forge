@@ -89,7 +89,7 @@ Each line ends with its source: a DESIGN.md section, a Material page (key below)
 
 ## Layout and widths
 
-- **FA-33** `source` Is there no sideways scroll at any width from 360 to 1920px, including 720px (1440px at 200% zoom)? *DESIGN.md §9.9; bp; auto 9 (390, 720, 900, 1440, 1920)*
+- **FA-33** `source` Is there no sideways scroll at any width from 360 to 1920px, including 720px (1440px at 200% zoom), and no scrollbar showing inside the page at rest (a panel that scrolls on its own shows its bar only on hover or focus; an open menu may keep one)? *DESIGN.md §9.9; bp; auto 9 (390, 720, 900, 1440, 1920)*
 - **FA-34** `source` When the layout changes with width, do swapped parts do the same job (never a button turned into a chip)? Do navigation, search and filters change at the widths §5 sets, with nothing lost? *DESIGN.md §5 Top bar, Filter pill; bp*
 - **FA-35** `see` M3 Is reading text (bios, notes, briefs, help) held to about 40–60 characters a line? *bp*
 - **FA-36** `product` M3 Is a compact table a choice the person makes, never switched on by width, with text size and targets unchanged? *density, chips-a11y*

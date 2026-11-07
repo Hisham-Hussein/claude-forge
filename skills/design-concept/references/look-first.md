@@ -26,7 +26,7 @@ Follow rule 1 in SKILL.md. Use a new folder for the concept; never overwrite an 
 
 ## 4. Build
 
-Follow `prototype.md`. If a UX plan covers a screen, its layout, states and wording apply, and only the look is yours. If not, draw the screen from the idea and the competitor research.
+Follow `prototype.md`. If a UX plan covers a screen, its layout, states and wording apply, and only the look is yours: follow `plan-match.md`. If not, draw the screen from the idea and the competitor research.
 
 ## 5. Check and finish
 

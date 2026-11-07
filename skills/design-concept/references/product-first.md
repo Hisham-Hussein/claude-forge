@@ -19,7 +19,7 @@ Settle "Decisions first" in SKILL.md. Then write `RELEASE-LIST.md` beside the ch
 ## 3. Build
 
 - Use the project's real front-end stack, so the front end reuses the screens with few changes. Follow the project's constitution if it has one.
-- Layouts, states and wording come from the UX plan, exactly. Where it and DESIGN.md seem to disagree, the plan says what is on the screen and DESIGN.md how it looks.
+- Layouts, states and wording come from the UX plan, exactly: follow `plan-match.md`. Where it and DESIGN.md seem to disagree, the plan says what is on the screen and DESIGN.md how it looks.
 - Every state the plan lists gets built and reachable: loading, empty, error, no permission, and the rest. A page with only its happy path is not finished.
 - Use sample data, behind a seam the real data can replace.
 - Components come first: build each one once from DESIGN.md §5, then compose pages from them.

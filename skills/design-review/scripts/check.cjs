@@ -9,7 +9,7 @@
 // 6 type         every text size is on the type scale at 390, 900 and 1440px (right-to-left pages have their own steps)
 // 7 chart text   chart labels reach the minimum size on screen at 390, 900 and 1440px
 // 8 tokens       every colour token in DESIGN.md has the same value in the CSS; both dark blocks agree
-// 9 sizes        no sideways scroll at 390, 720 (1440 at 200% zoom), 900, 1440 and 1920px
+// 9 sizes        no sideways scroll, no scrollbar showing inside the page and no control cut off by its box or too narrow for its longest option, and no select opening the browser's plain list, at 390, 720 (1440 at 200% zoom), 900, 1280, 1440 and 1920px
 // 10 motion      nothing moves when the device asks for reduced motion
 // --structure runs check 0 alone, with no browser. Prints PASS/FAIL per check with the offending elements; exit code 1 if any check fails.
 const fs = require('fs'); const path = require('path');
@@ -128,7 +128,7 @@ function report(keys) {
   const skipControl = [disabled, sel.controlsDrawnForShow].filter(Boolean).join(', ');
   const controls = ['button', 'a', sel.controls].filter(Boolean).join(', ');
   const skipTarget = ['[aria-hidden="true"]', sel.disabled].filter(Boolean).join(', ');
-  const b = await playwright().chromium.launch();
+  const b = await playwright().chromium.launch({ ignoreDefaultArgs: ['--hide-scrollbars'] }); // headless hides scrollbars unless told not to
   for (const { name, url, rtl } of pages(root, s)) {
     const steps = s.type[rtl ? 'rtl' : 'ltr'] || s.type.ltr; const tag = rtl ? 'rtl' : 'ltr';
     const open = async (opts) => { const p = await b.newPage(opts); await p.goto(url); await p.evaluate(() => document.fonts.ready); return p; };
@@ -147,9 +147,13 @@ function report(keys) {
       }
       await p.close();
     }
-    for (const width of [...WIDTHS, 720, 1920]) {
+    for (const width of [...WIDTHS, 720, 1280, 1920]) {
       const p = await open({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
       if (await p.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) add('9 sizes', `${name} at ${width}px`);
+      for (const f of await p.evaluate(() => [...document.querySelectorAll('body *')].flatMap((el) => { if (!el.offsetWidth) return []; const st = getComputedStyle(el); if (!/auto|scroll/.test(st.overflowX + st.overflowY)) return []; if (/^(transparent|rgba\(0, 0, 0, 0\))/.test(st.scrollbarColor)) return []; const bw = (k) => parseFloat(st[k]) || 0; const v = el.offsetWidth - el.clientWidth - bw('borderLeftWidth') - bw('borderRightWidth') > 0.5; const h = el.offsetHeight - el.clientHeight - bw('borderTopWidth') - bw('borderBottomWidth') > 0.5; return v || h ? [`${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]} ${v ? 'vertical' : ''}${h ? ' sideways' : ''}`] : []; }))) add('9 sizes', `${name} at ${width}px: scrollbar showing inside the page on ${f}`);
+      for (const f of await p.evaluate(() => [...document.querySelectorAll('button, select, input, a, label, td *')].flatMap((el) => { const r = el.getBoundingClientRect(); if (r.width < 2 || r.height < 2 || el.closest('.sr-only, [aria-hidden="true"]')) return []; for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) { const st = getComputedStyle(a); if (/auto|scroll/.test(st.overflowX)) return []; if (/hidden|clip/.test(st.overflowX)) { const c = a.getBoundingClientRect(); return r.right > c.right + 1 || r.left < c.left - 1 ? [`${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]}`] : []; } } return []; }))) add('9 sizes', `${name} at ${width}px: cut off by its box: ${f}`);
+      for (const f of await p.evaluate(() => { const c = document.createElement('canvas').getContext('2d'); return [...document.querySelectorAll('select')].flatMap((el) => { if (!el.offsetWidth) return []; const st = getComputedStyle(el); c.font = `${st.fontWeight} ${st.fontSize} ${st.fontFamily}`; const room = el.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight); const long = [...el.options].find((o) => c.measureText(o.text).width > room + 1); return long ? [long.text] : []; }); })) add('9 sizes', `${name} at ${width}px: select too narrow for "${f}"`);
+      if (width === 1920) { const plain = await p.evaluate(() => [...document.querySelectorAll('select')].filter((el) => el.offsetWidth).filter((el) => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 }))).length); if (plain) add('9 sizes', `${name}: ${plain} select(s) open the browser's plain list, not a styled menu`); }
       if (WIDTHS.includes(width)) {
         for (const f of await p.evaluate(inPage.spacing, { scale: s.spacing, skip: sel.skipSpacing })) add('5 spacing', `${f} (${width})`);
         for (const f of await p.evaluate(inPage.type, steps)) add('6 type', `${tag} ${f} (${width})`);

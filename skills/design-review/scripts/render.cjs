@@ -6,7 +6,7 @@ const { root, design } = args(process.argv.slice(2));
 const s = settings(fs.readFileSync(design, 'utf8')) || { src: 'src', themes: ['light', 'dark'] };
 const out = path.join(root, 'renders'); fs.mkdirSync(out, { recursive: true });
 (async () => {
-  const b = await playwright().chromium.launch();
+  const b = await playwright().chromium.launch({ ignoreDefaultArgs: ['--hide-scrollbars'] });
   for (const scheme of s.themes) {
     const p = await b.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: scheme });
     for (const page of pages(root, s)) {

@@ -27,13 +27,15 @@ async function shot(b, { page, label, width, scheme = 'light', query = '', click
     if (click) { await p.click(click, { timeout: 3000 }); await p.waitForTimeout(400); }
     const height = await p.evaluate(() => document.documentElement.scrollHeight);
     if (click || height <= SLICE) { await p.screenshot({ path: path.join(out, `${label}.png`), fullPage: !click }); count++; }
-    else for (let y = 0, i = 1; y < height; y += SLICE, i++) { await p.screenshot({ path: path.join(out, `${label}-part${i}.png`), fullPage: true, clip: { x: 0, y, width, height: Math.min(SLICE, height - y) } }); count++; }
+    else for (let y = 0, i = 1, h = height; y < h; y += SLICE, i++) { // a page can change height while it is captured; a short tail joins the last slice
+      h = await p.evaluate(() => document.documentElement.scrollHeight); const part = h - y < SLICE + 120 ? h - y : SLICE;
+      await p.screenshot({ path: path.join(out, `${label}-part${i}.png`), fullPage: true, clip: { x: 0, y, width, height: part } }); count++; if (part > SLICE) break; }
   } catch (e) { console.log(`FAIL  ${label}: ${e.message.split('\n')[0]}`); failed = true; }
   await ctx.close();
 }
 
 (async () => {
-  const b = await playwright().chromium.launch();
+  const b = await playwright().chromium.launch({ ignoreDefaultArgs: ['--hide-scrollbars'] });
   for (const { name } of pages) {
     for (const scheme of themes) await shot(b, { page: name, label: `${name}-${scheme}`, width: 1440, scheme });
     if (!translation(name)) await shot(b, { page: name, label: `${name}-phone`, width: 390 });

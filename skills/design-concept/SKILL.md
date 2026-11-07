@@ -49,10 +49,10 @@ Everything else about the look comes from the inspiration. A general "avoid" lis
 ## Rules for both workflows
 
 1. **DESIGN.md comes first.** Study the inspiration (`references/capture-inspiration.md`), write DESIGN.md in the concept's folder to the structure in design-review's `references/design-md-structure.md`, and pass it through `claude-forge:design-review` before building any screen. Run it with the Skill tool, not by hand: a builder checking its own file is what this rule exists to prevent. This is enforced in Look first: write `AGREED-LIST.md` first, and a hook then refuses screens and build commands in that folder until design-review has signed `DESIGN-REVIEW.md` for the current DESIGN.md. Editing DESIGN.md outside its settings block voids the signature, so run design-review on the change, which signs again. If it cannot sign, because a Blocker or Major stays open, stop and report that; do not build. The hook stops the usual ways round the review, not a determined one, so do not look for one. Tell design-review it was called by this skill, so it never stops the run: it settles what it can and returns any real choice, which waits for the end. Write the settings block now with `src`, `css`, `spacing` and `type` (and `themes` for one theme); selectors follow after the build. Product first starts from a chosen DESIGN.md that has already passed, so it skips the study and this review, and the gate below does not apply to it.
-2. **Build the whole list in one go.** Every screen on the agreed list, in every language and theme the project needs, before showing anything. Build in the concept's folder (`references/prototype.md`).
-3. **Run the mechanical checks after building:** `check.cjs` from design-review, then `scripts/links.cjs` and `scripts/shots.cjs` from this skill. Fix every FAIL. They prove the rules hold, not that the design is good.
-4. **Hold the look against the inspiration yourself:** before the outside check, put your main screens beside the inspiration's pictures and go through DESIGN.md's signature list (`references/capture-inspiration.md`). A screen that passes every check and reads as a generic admin kit has failed: it is the most likely way this skill goes wrong. Fix it before going on.
-5. **Pass the outside check before saying "done"** (`references/outside-check.md`): a separate agent given only DESIGN.md, the agreed list and the screenshots. If it fails, fix the screens and run it again. After three failed rounds, stop and report what still fails. If no separate agent can be started, do not judge the work yourself: say the check did not run. Never soften a failure: the end report states it.
+2. **Build the whole list in one go.** Every screen on the agreed list, in every language and theme the project needs, before showing anything. Build in the concept's folder (`references/prototype.md`). Where a UX plan covers a screen, write `PLAN-MATCH.md` first and hold every control to the plan (`references/plan-match.md`): the look never changes what a control is.
+3. **Run the mechanical checks after building:** `check.cjs` from design-review, then `scripts/links.cjs`, `scripts/shots.cjs` and `scripts/walk.cjs` from this skill. Fix every FAIL. `walk.cjs` clicks each kind of control and pictures what opens: open those pictures yourself, because a design is judged in use, not only at rest. They prove the rules hold, not that the design is good.
+4. **Hold the look against the inspiration yourself:** before the outside check, put your main screens beside the inspiration's pictures and go through DESIGN.md's signature list (`references/capture-inspiration.md`). A screen that passes every check and reads as a generic admin kit has failed: it is the most likely way this skill goes wrong. Fix it before going on. Then use the main screens yourself in a real, visible browser at a laptop size such as 1536 by 730: Claude in Chrome if it is connected, otherwise Playwright with `headless: false`. Scroll, open every dropdown and menu, tab through. Screenshots miss what only shows in use, so note what you fixed, and say so in the end report if no such browser could run.
+5. **Pass the outside check before saying "done"** (`references/outside-check.md`): a separate agent given only DESIGN.md, the agreed list, the screenshots and, where one covers the screens, the UX plan. If it fails, fix the screens and run it again. After three failed rounds, stop and report what still fails. If no separate agent can be started, do not judge the work yourself: say the check did not run. Never soften a failure: the end report states it.
 6. **Mockups live in code, not Figma.**
 
 `scripts/` means this skill's folder. Scripts need Playwright: they look in the project, `NODE_PATH` and the global npm folder.
@@ -66,6 +66,7 @@ Show the user, once, at the end:
 - The outside check's result, including what it did not cover.
 - Anything this skill says to do that the run did not do, stated plainly.
 - Every assumption and every real choice, your own and design-review's, with their pictures from `<folder>/review-choices/`.
+- Every departure from the UX plan, with what the plan says and why it could not be built as written.
 
 ## Common mistakes
 
@@ -74,7 +75,9 @@ Show the user, once, at the end:
 - Copying the inspiration's pages. Its look carries over; its pages and functions do not.
 - Letting a competitor's look in, or an inspiration's feature.
 - Inventing product structure a UX plan already decides, or reusing an old prototype's screens as the product's structure.
+- Changing a control the UX plan names to suit the look, or sizing a control to the sample data instead of the real product.
 - Writing "matches the inspiration" with no measured value behind it.
 - Drawing placeholder shapes where the look needs photos. See `references/prototype.md`.
 - Letting the required content crush the look: fitting every column by shrinking everything until the screen reads as an admin panel.
+- Finishing the resting screens and leaving what opens from them in the browser's default look: dropdown lists, pickers, tooltips, alerts.
 - Taking the outside agent's pass as covering what it could not see: behaviour, keyboard, real data.
