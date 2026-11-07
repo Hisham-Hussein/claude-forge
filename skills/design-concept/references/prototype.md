@@ -23,7 +23,7 @@ Organise it as a good front-end developer would, with one job per file. In the s
 ## What every screen needs
 
 - **One source of style.** Tokens and components sit in `src/css/`, so a change reaches every screen. Pages carry no styles of their own.
-- **Tokens exactly as DESIGN.md §2:** the same names and values, in a `:root` block, then `:root[data-theme="dark"]`, and `:root:not([data-theme="light"])` inside a device-dark media query.
+- **Tokens exactly as DESIGN.md §2:** the same names and values, in a `:root` block, then `:root[data-theme="dark"]`, and `:root:not([data-theme="light"])` inside a device-dark media query. With one theme, set `"themes": ["light"]` in the settings block and leave the dark blocks out.
 - **Fonts self-hosted, open licence.** No outside requests, so a page opens anywhere.
 - **Each language is its own page:** `<page>.html`, and `<page>-ar.html` (or the language's code) with `dir="rtl"` on `<html>` for right-to-left languages.
 - **Clickable like the real product:** plain `<a href="other-page.html">` between pages, a language link, a theme switch that carries from page to page, menus, panels and dialogs that really open. Anything with no page yet says so; no dead links.

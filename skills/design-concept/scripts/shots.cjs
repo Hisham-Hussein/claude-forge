@@ -15,6 +15,8 @@ const pages = fs.readdirSync(dir).filter((f) => f.endsWith('.html')).sort().map(
 const list = fs.existsSync(path.join(root, 'shots.json')) ? JSON.parse(fs.readFileSync(path.join(root, 'shots.json'), 'utf8')) : [];
 fs.rmSync(out, { recursive: true, force: true }); fs.mkdirSync(out, { recursive: true });
 const translation = (n) => /-[a-z]{2}$/.test(n) && pages.some((p) => p.name === n.slice(0, -3)); // creators-ar beside creators
+const design = path.join(root, 'DESIGN.md'); const settings = fs.existsSync(design) && fs.readFileSync(design, 'utf8').match(/```json design-check\n([\s\S]*?)```/);
+const themes = (settings && JSON.parse(settings[1]).themes) || ['light', 'dark'];
 let count = 0; let failed = false;
 
 async function shot(b, { page, label, width, scheme = 'light', query = '', click }) {
@@ -33,7 +35,7 @@ async function shot(b, { page, label, width, scheme = 'light', query = '', click
 (async () => {
   const b = await playwright().chromium.launch();
   for (const { name } of pages) {
-    for (const scheme of ['light', 'dark']) await shot(b, { page: name, label: `${name}-${scheme}`, width: 1440, scheme });
+    for (const scheme of themes) await shot(b, { page: name, label: `${name}-${scheme}`, width: 1440, scheme });
     if (!translation(name)) await shot(b, { page: name, label: `${name}-phone`, width: 390 });
   }
   for (const e of list) await shot(b, { page: e.page, label: `${e.page}-${e.name}`, width: 1440, query: e.query, click: e.click });
