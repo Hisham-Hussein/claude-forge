@@ -11,7 +11,7 @@ git log --oneline --merges -10
 
 - Compare commits and merged PRs against items in ACTIVE.md and QUEUE.md
 - Any completed items still listed as "not started" or "in progress" → mark done
-- Any merged PRs that correspond to QUEUE.md items → remove from queue
+- Any merged PRs that correspond to QUEUE.md items → move out of the queue, as in Step 4
 
 ## Step 1: Analyze the conversation
 
@@ -32,7 +32,7 @@ Do this BEFORE trimming ACTIVE.md — decisions must be captured here first.
 - STRICT: Each entry = heading + one short paragraph. No sub-headings, no bullet lists, no "What was done / Impact / Artifacts" structure. Details live in ACTIVE.md and research docs — the log is a scannable index, not a record of everything.
 - Good: "Created custom `/execute-phase` skill (not GSD) because GSD won't enforce our architecture principles. Borrows wave parallelization and deviation rules but adds DOE integration. At `.claude/skills/execute-phase/`."
 - Bad: Multi-paragraph entry with "What was done:", "Key decisions:", "Impact:" sections and 15+ lines
-- **Queue behavior:** Add entry at TOP, move the entry at the BOTTOM word for word to `roadmap/ARCHIVE.md`. Max 10 entries. Push front, shift back — every time.
+- **Queue behavior:** Add entry at TOP, then move the entry at the BOTTOM word for word to `roadmap/ARCHIVE.md`, under `## Moved YYYY-MM-DD from LOG.md`. First read it for a decision still in force or open work, and send that to its home as in Step 3. Max 10 entries. Push front, shift back — every time.
 - Each entry should be self-contained (make sense without reading others)
 
 ## Step 3: Update ACTIVE.md
@@ -46,7 +46,7 @@ Older history can move out now — this session's decisions are captured in LOG.
 - **CONSISTENCY CHECK:** Scan supplementary content (specs, plans, designs embedded below the core sections) for staleness. If research or work completed this session produced updated designs that supersede embedded specs, update the specs to match or replace with a reference to the authoritative artifact. A fresh agent must never see conflicting instructions between "How to Continue" and the specs below.
 - **SIZE CONTROL:** ACTIVE.md is a Kanban board, not a history file: at most 200 lines and 40 KB. The KB limit matters because a few very long lines can dodge a line count. Step 9 enforces both.
   - **Nothing is deleted; it moves.** History leaves ACTIVE.md so each session starts light, and it stays findable in `roadmap/ARCHIVE.md`. The archive is a record to search when someone needs the history: never load it at the start of a session or add it to this skill's Context.
-  - **What may leave ACTIVE.md:** only Progress entries older than the most recent day that has entries. That whole day stays, because parallel sessions each need their last entry for handoff; if the file is still over a limit, that day's oldest entries move too. Current Focus, Success Criteria, Blockers and How to Continue stay.
+  - **What may leave ACTIVE.md:** only Progress entries older than the most recent day that has entries, and embedded specs that exist elsewhere (below). That whole day stays, because parallel sessions each need their last entry for handoff; if the file is still over a limit, that day's oldest entries move too, but never the entry this session wrote. Current Focus, Success Criteria, Blockers and How to Continue stay.
   - **Before moving an entry, read it for anything still live.** Open work goes to QUEUE.md. A decision still in force goes to `roadmap/decisions/` or the spec it belongs to; LOG.md is no home for it, because it holds only 10 entries. Then move the whole entry word for word to the top of ARCHIVE.md, under `## Moved YYYY-MM-DD from ACTIVE.md`.
   - Large specs/plans that exist elsewhere → reference by file path instead of embedding, with the embedded text moved to ARCHIVE.md.
   - "How to Continue" = actionable next steps + key context a fresh agent needs.
@@ -58,7 +58,7 @@ Older history can move out now — this session's decisions are captured in LOG.
 - Promote items to "Next Up" if they become urgent
 - **Move completed items to ARCHIVE.md, word for word, under `## Moved YYYY-MM-DD from QUEUE.md`** — do NOT leave struck-through items in Next Up. A completed item cluttering #1 misleads fresh agents about what to work on next.
 - If an item was promoted from Backlog to Next Up, replace the Backlog entry with a pointer (e.g., "Promoted to Next Up #1") or remove it, moving any text that isn't in Next Up to ARCHIVE.md. Never have the same item described in both sections.
-- **SIZE CONTROL:** QUEUE.md holds at most 200 lines and 60 KB (Step 9). Only finished or duplicated items may leave. Open work stays: to shorten an item, point to the spec that holds its detail and move the long wording to ARCHIVE.md.
+- **SIZE CONTROL:** QUEUE.md holds at most 200 lines and 60 KB (Step 9). Only finished or duplicated items may leave. Open work stays: to shorten an item, first confirm a spec holds its full detail, then point to that spec and move the long wording to ARCHIVE.md.
 - Keep "Next Up" to roughly 5 items
 - **LABELS:** Every QUEUE item starts with one bold work-area label, e.g. `**[BACK END]**`. The project's allowed labels are listed once in a `Labels:` line near the top of QUEUE.md (create it on first use from the labels already in the file, merging near-duplicates; keep the list short, about six). Use only listed labels; add a new one only when the work truly fits none. Label new items, relabel items whose label is missing or not on the list, and use the same labels on ACTIVE.md's Current Focus items, Success Criteria headings and How to Continue steps.
 - **CRITICAL:** If clearing ACTIVE.md, ensure "Next Up" has at least one item (check project directives, strategic docs, or conversation context for logical next steps)
@@ -118,6 +118,9 @@ It must pass before the update is finished.
 
 - **`LOST` line:** the line left the roadmap and exists nowhere else. Restore it, or move it to ARCHIVE.md word for word if it really is finished or replaced.
 - **Over a limit:** move whatever Steps 3 and 4 allow. If nothing more may move, stop and tell the user which sections take the space. The user decides what happens to open work; the limit is never passed by deleting it, or by raising the limit in the script.
+- **Exit code 2:** the check did not run, which is not a pass. Run it from the project root, or pass the root as the first argument.
+
+After any move made here, redo Step 7. The check can't see open work moved to the archive, or an item that lost up to about 30% of its words, so Steps 3 and 4 are what protect those.
 
 ## Step 10: Present summary to user
 

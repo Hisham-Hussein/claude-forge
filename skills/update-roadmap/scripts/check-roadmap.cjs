@@ -15,7 +15,7 @@ if (!fs.existsSync(dir)) { console.error(`No roadmap/ folder in ${root}`); proce
 const lines = (text) => text.split('\n').map((l) => l.trim()).filter((l) => /[\p{L}\p{N}].{10}/u.test(l));
 const words = (l) => new Set(l.toLowerCase().match(/[\p{L}\p{N}]+/gu) || []);
 const atBase = (name) => {
-  try { return execFileSync('git', ['show', `${base}:roadmap/${name}`], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 1 << 26 }); }
+  try { return execFileSync('git', ['show', `${base}:./roadmap/${name}`], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 1 << 26 }); }
   catch { return null; }
 };
 const allMarkdown = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => {
