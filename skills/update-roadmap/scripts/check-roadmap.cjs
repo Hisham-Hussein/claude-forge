@@ -12,7 +12,7 @@ const base = baseAt >= 0 ? args.splice(baseAt, 2)[1] : 'HEAD';
 const root = path.resolve(args[0] || '.'); const dir = path.join(root, 'roadmap');
 if (!fs.existsSync(dir)) { console.error(`No roadmap/ folder in ${root}`); process.exit(2); }
 
-const lines = (text) => text.split('\n').map((l) => l.trim()).filter((l) => /[\p{L}\p{N}].{10}/u.test(l));
+const lines = (text) => text.split('\n').map((l) => l.trim()).filter((l) => /[\p{L}\p{N}]/u.test(l));
 const words = (l) => new Set(l.toLowerCase().match(/[\p{L}\p{N}]+/gu) || []);
 const atBase = (name) => {
   try { return execFileSync('git', ['show', `${base}:./roadmap/${name}`], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 1 << 26 }); }
@@ -36,7 +36,7 @@ for (const [name, limit] of Object.entries(LIMITS)) {
 const everywhere = new Set(allMarkdown(dir).flatMap((f) => lines(fs.readFileSync(f, 'utf8'))));
 const lost = []; let moved = 0; let edited = 0;
 for (const name of WATCHED) {
-  const before = atBase(name); if (before === null) continue;
+  const before = atBase(name); if (before === null) { console.log(`SKIP  ${name}: not in ${base}, nothing compared`); continue; }
   const file = path.join(dir, name); const now = fs.existsSync(file) ? lines(fs.readFileSync(file, 'utf8')) : [];
   const stillHere = new Set(now); const nowWords = now.map(words);
   for (const line of lines(before)) {

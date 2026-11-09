@@ -32,7 +32,7 @@ Do this BEFORE trimming ACTIVE.md — decisions must be captured here first.
 - STRICT: Each entry = heading + one short paragraph. No sub-headings, no bullet lists, no "What was done / Impact / Artifacts" structure. Details live in ACTIVE.md and research docs — the log is a scannable index, not a record of everything.
 - Good: "Created custom `/execute-phase` skill (not GSD) because GSD won't enforce our architecture principles. Borrows wave parallelization and deviation rules but adds DOE integration. At `.claude/skills/execute-phase/`."
 - Bad: Multi-paragraph entry with "What was done:", "Key decisions:", "Impact:" sections and 15+ lines
-- **Queue behavior:** Add entry at TOP, then move the entry at the BOTTOM word for word to `roadmap/ARCHIVE.md`, under `## Moved YYYY-MM-DD from LOG.md`. First read it for a decision still in force or open work, and send that to its home as in Step 3. Max 10 entries. Push front, shift back — every time.
+- **Queue behavior:** Add entry at TOP. When that makes more than 10 entries, move the entry at the BOTTOM word for word to `roadmap/ARCHIVE.md`, under `## Moved YYYY-MM-DD from LOG.md`. First read it for a decision still in force or open work, and send that to its home as in Step 3.
 - Each entry should be self-contained (make sense without reading others)
 
 ## Step 3: Update ACTIVE.md
@@ -108,7 +108,7 @@ Final consistency check:
 
 ## Step 9: Run the roadmap check
 
-Run this before committing, because it compares the roadmap with the last commit. `<skill directory>` is the base directory shown when this skill loaded.
+Run this before committing, because it compares the roadmap with the last commit; if roadmap/ was already committed outside this skill this session, add `--base <the commit before that>`. `<skill directory>` is the base directory shown when this skill loaded.
 
 ```bash
 node <skill directory>/scripts/check-roadmap.cjs
@@ -118,7 +118,7 @@ It must pass before the update is finished.
 
 - **`LOST` line:** the line left the roadmap and exists nowhere else. Restore it, or move it to ARCHIVE.md word for word if it really is finished or replaced.
 - **Over a limit:** move whatever Steps 3 and 4 allow. If nothing more may move, stop and tell the user which sections take the space. The user decides what happens to open work; the limit is never passed by deleting it, or by raising the limit in the script.
-- **Exit code 2:** the check did not run, which is not a pass. Run it from the project root, or pass the root as the first argument.
+- **Exit code 2:** the check did not run, which is not a pass. Run it from the project root, or pass the root as the first argument. A `SKIP` line means that file had no earlier version to compare, so tell the user unless the file is new.
 
 After any move made here, redo Step 7. The check can't see open work moved to the archive, or an item that lost up to about 30% of its words, so Steps 3 and 4 are what protect those.
 
