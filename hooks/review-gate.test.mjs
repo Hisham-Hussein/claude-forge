@@ -84,6 +84,8 @@ test("review gate checkout scope and commit matching", async (t) => {
   for (const command of [
     'echo "run git commit later" >> notes.txt',
     "echo 'run git commit later' >> notes.txt",
+    "echo '$(git commit -m x)' >> notes.txt",
+    "echo '`git commit -m x`' >> notes.txt",
     'echo "say \\"git commit later\\"" >> notes.txt',
     "cat <<'EOF' >> notes.txt\nrun git commit later\nEOF",
   ]) {
@@ -96,6 +98,12 @@ test("review gate checkout scope and commit matching", async (t) => {
     'git -C "dir with space" commit -m x',
     "cd x && git commit -m y",
     "git add a; git commit -m y",
+    'bash -c "git commit -m x"',
+    "sh -c 'git commit -m x'",
+    'bash -lc "git commit -m x"',
+    "sh -ec 'git commit -m x'",
+    'echo "$(git commit -m x)"',
+    'echo "`git commit -m x`"',
   ]) {
     await t.test(`blocks actual commit: ${command}`, () => check(main, command, 2));
   }

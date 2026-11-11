@@ -128,8 +128,16 @@ if (tool === "Agent" || tool === "Task") {
   const redirectsIntoSpec = [...cmd.matchAll(/>{1,2}\s*["']?([^\s"';&|<>]+)/g)].some((m) => isSpec(m[1]));
   const writer = /(\b(sed|perl)\b.*\s(-[a-zA-Z]*i|--in-place)|\bcp\b|\bmv\b|\bpython3?\b|\bnode\b|\btee\b|\btruncate\b|\bdd\b)/.test(cmd);
   if (redirectsIntoSpec || (namesSpec && writer)) need(["7-approved.md", "8a-impact-trace.md"], "7/8a");
-  // Quoted text is data here; keep a token for options like -C "dir with space".
-  const commitCmd = cmd.replace(/"(?:\\.|[^"\\])*"|'[^']*'/g, "Q");
+  // Strip quoted data, but preserve shell -c arguments and double-quoted substitutions.
+  // Keep a token for options like -C "dir with space".
+  const commitCmd = cmd.replace(/"(?:\\.|[^"\\])*"|'[^']*'/g, (quoted, offset) => {
+    if (/(?:^|\s)-[a-zA-Z]*c\s+$/.test(cmd.slice(0, offset)) ||
+        (quoted.startsWith('"') && /\$\(|`/.test(quoted))) {
+      // Expose command boundaries to the commit matcher, including backticks.
+      return quoted.slice(1, -1).replace(/`/g, " ");
+    }
+    return "Q";
+  });
   if (/(?:^|[;&|(]\s*|\s)git(?:\s+(?:-[Cc]\s+\S+|--[\w-]+(?:=\S+)?))*\s+commit(?![-\w])/.test(commitCmd) && specDirty()) {
     needVerification("committing the spec");
   }
