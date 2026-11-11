@@ -25,7 +25,7 @@ function findRoot(dir) {
   }
   for (let d = resolve(dir); ; d = dirname(d)) {
     if (existsSync(join(d, ".review-state", "active.json"))) return d;
-    if (d === checkoutRoot || dirname(d) === d) return null;
+    if (real(d) === checkoutRoot || dirname(d) === d) return null;
   }
 }
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -64,6 +64,11 @@ test("review gate checkout scope and commit matching", async (t) => {
 
   await t.test("nested linked worktree ignores the main checkout review", () => {
     check(worktree, "git commit -m x", 0);
+  });
+  await t.test("symlinked nested worktree ignores the main checkout review", () => {
+    const linkedWorktree = join(main, "linked-worktree");
+    symlinkSync(worktree, linkedWorktree, "dir");
+    check(linkedWorktree, "git commit -m x", 0);
   });
   await t.test("walk includes the main checkout root", () => {
     const subdir = join(main, "subdir");
