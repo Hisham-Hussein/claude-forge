@@ -15,9 +15,17 @@ try {
 const cwd = input.cwd || process.cwd();
 
 function findRoot(dir) {
+  let checkoutRoot;
+  try {
+    checkoutRoot = execFileSync("git", ["rev-parse", "--show-toplevel"], {
+      cwd: dir, encoding: "utf8", stdio: "pipe",
+    }).trim();
+  } catch {
+    // Outside Git, retain the walk to the filesystem root.
+  }
   for (let d = resolve(dir); ; d = dirname(d)) {
     if (existsSync(join(d, ".review-state", "active.json"))) return d;
-    if (dirname(d) === d) return null;
+    if (d === checkoutRoot || dirname(d) === d) return null;
   }
 }
 
@@ -120,7 +128,9 @@ if (tool === "Agent" || tool === "Task") {
   const redirectsIntoSpec = [...cmd.matchAll(/>{1,2}\s*["']?([^\s"';&|<>]+)/g)].some((m) => isSpec(m[1]));
   const writer = /(\b(sed|perl)\b.*\s(-[a-zA-Z]*i|--in-place)|\bcp\b|\bmv\b|\bpython3?\b|\bnode\b|\btee\b|\btruncate\b|\bdd\b)/.test(cmd);
   if (redirectsIntoSpec || (namesSpec && writer)) need(["7-approved.md", "8a-impact-trace.md"], "7/8a");
-  if (/(?:^|[;&|(]\s*|\s)git(?:\s+(?:-[Cc]\s+\S+|--[\w-]+(?:=\S+)?))*\s+commit(?![-\w])/.test(cmd) && specDirty()) {
+  // Quoted text is data here; keep a token for options like -C "dir with space".
+  const commitCmd = cmd.replace(/"(?:\\.|[^"\\])*"|'[^']*'/g, "Q");
+  if (/(?:^|[;&|(]\s*|\s)git(?:\s+(?:-[Cc]\s+\S+|--[\w-]+(?:=\S+)?))*\s+commit(?![-\w])/.test(commitCmd) && specDirty()) {
     needVerification("committing the spec");
   }
 }
