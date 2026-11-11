@@ -125,3 +125,7 @@ After any move made here, redo Step 7. The check can't see open work moved to th
 ## Step 10: Present summary to user
 
 Summarize in ONE line only (e.g. "Roadmap updated."). No per-file breakdown, no lists. If the check could not pass, say so and name what is blocking it.
+
+## Step 11: Update the project's dashboard (when it has one).
+
+If the project has `.claude/skills/update-dashboard/SKILL.md`, invoke the `update-dashboard` skill now; its tick list is its own output, separate from Step 10's one line. Otherwise skip this step.

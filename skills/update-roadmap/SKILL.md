@@ -9,7 +9,7 @@ Synchronize `roadmap/` with actual work done — conversation progress, git hist
 
 ## Before starting
 
-**Read [steps.md](steps.md) now.** It contains the complete 11-step process. Do not proceed from memory — load the steps from disk every time.
+**Read [steps.md](steps.md) now.** It contains the complete 12-step process. Do not proceed from memory — load the steps from disk every time.
 
 ## Files to update
 
@@ -35,6 +35,7 @@ Roadmap Update Progress:
 - [ ] Step 8: Memory sync check
 - [ ] Step 9: Run the roadmap check (scripts/check-roadmap.cjs), before committing
 - [ ] Step 10: Present summary to user
+- [ ] Step 11: Invoke update-dashboard if the project has it
 ```
 
 ## Context
