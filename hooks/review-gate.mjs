@@ -2,7 +2,7 @@
 // Gate for the adversarial-spec-review and reviewing-documents skills. Active only while
 // .review-state/active.json exists (walked up from the session cwd).
 // Exit 2 blocks the tool call / the stop; stderr is shown to Claude.
-import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve, basename } from "node:path";
 import { execFileSync } from "node:child_process";
 
@@ -29,8 +29,42 @@ function findRoot(dir) {
   }
 }
 
+// The review belongs to one session. .review-state/owner holds that session's id; whoever last
+// touched .review-state (PostToolUse below) owns it. Other sessions in the same checkout are never gated.
+function findStateDir(dir, mentioned) {
+  for (const m of mentioned.matchAll(/(\/[^\s"'=<>|;&()]*?)\/\.review-state(?=[\/\s"'<>|;&()]|$)/g)) {
+    if (existsSync(join(m[1], ".review-state"))) return join(m[1], ".review-state");
+  }
+  let checkoutRoot;
+  try {
+    checkoutRoot = execFileSync("git", ["rev-parse", "--show-toplevel"], { cwd: dir, encoding: "utf8", stdio: "pipe" }).trim();
+  } catch {}
+  for (let d = resolve(dir); ; d = dirname(d)) {
+    if (existsSync(join(d, ".review-state"))) return join(d, ".review-state");
+    if (real(d) === checkoutRoot || dirname(d) === d) return null;
+  }
+}
+
+if (input.hook_event_name === "PostToolUse") {
+  const t = input.tool_input || {};
+  const target = `${t.file_path || ""} ${t.command || ""}`;
+  if (typeof input.session_id === "string" && input.session_id && target.includes(".review-state")) {
+    const dir = findStateDir(cwd, target);
+    // Skip when the call just deleted the folder (no state left to own).
+    if (dir) {
+      try { writeFileSync(join(dir, "owner"), input.session_id); } catch {}
+    }
+  }
+  process.exit(0);
+}
+
 const root = findRoot(cwd);
 if (!root) process.exit(0);
+
+let owner = "";
+try { owner = readFileSync(join(root, ".review-state", "owner"), "utf8").trim(); } catch {}
+// No owner recorded (legacy state) gates nobody until a session touches .review-state and claims it.
+if (!owner || (typeof input.session_id === "string" && input.session_id !== owner)) process.exit(0);
 
 // A broken state file blocks everything except the calls that repair or remove it.
 function badState(msg) {
@@ -56,7 +90,7 @@ if (!existsSync(specPath)) badState(`.review-state/active.json names a spec that
 const has = (f) => existsSync(join(roundDir, f));
 const ABORT = " (To abandon the review, or if this state is stale from an earlier session, delete .review-state/active.json.)";
 // Agents allowed before the team OK: read-only helpers, never reviewers.
-const HELPER_AGENTS = new Set(["Explore", "Plan", "claude-code-guide"]);
+const HELPER_AGENTS = new Set(["Explore", "Plan", "claude-code-guide", "web-fetch"]);
 
 function real(p) {
   try { return realpathSync(p); } catch { return p; }
