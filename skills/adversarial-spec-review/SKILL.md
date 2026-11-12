@@ -92,5 +92,5 @@ Review is complete when:
 - Zero Critical/Major issues remain after a round's synthesis
 - The orchestrator's critical judgment confirms the verdict
 - The user sees the "implementation-ready" verdict
-- `.review-state/` is deleted (the review is over; otherwise the gates keep blocking in later sessions, and old gate files satisfy a later review's gates)
+- `.review-state/` is deleted (the review is over; otherwise the gates keep blocking the session that owns the review, and old gate files satisfy a later review's gates)
 </success_criteria>
