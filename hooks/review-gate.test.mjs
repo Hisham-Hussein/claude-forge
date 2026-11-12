@@ -32,10 +32,10 @@ function git(cwd, ...args) {
 const OWNER = "session-owner";
 const OTHER = "session-other";
 
-function activate(root, spec, owner = OWNER) {
-  mkdirSync(join(root, ".review-state"), { recursive: true });
-  writeFileSync(join(root, ".review-state", "active.json"), JSON.stringify({ spec, round: 1 }));
-  if (owner) writeFileSync(join(root, ".review-state", "owner"), owner);
+function activate(root, spec, sid = OWNER) {
+  const dir = join(root, ".review-state", sid);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "active.json"), JSON.stringify({ spec, round: 1 }));
 }
 
 function run(cwd, payload) {
@@ -126,38 +126,45 @@ test("review gate checkout scope and commit matching", async (t) => {
   });
 });
 
-test("review gate is scoped to the owning session", async (t) => {
-  const temp = mkdtempSync(join(tmpdir(), "review-gate-owner-"));
+test("review state is per session", async (t) => {
+  const temp = mkdtempSync(join(tmpdir(), "review-gate-sessions-"));
   t.after(() => rmSync(temp, { recursive: true, force: true }));
   const repo = join(temp, "repo");
   mkdirSync(repo);
   git(repo, "init");
   writeFileSync(join(repo, "spec.md"), "Original\n");
-  git(repo, "add", "spec.md");
-  git(repo, "commit", "-m", "spec");
+  writeFileSync(join(repo, "spec-b.md"), "Original B\n");
+  git(repo, "add", ".");
+  git(repo, "commit", "-m", "specs");
   writeFileSync(join(repo, "spec.md"), "Changed\n");
-  activate(repo, join(repo, "spec.md"));
-  const owned = () => readFileSync(join(repo, ".review-state", "owner"), "utf8");
+  writeFileSync(join(repo, "spec-b.md"), "Changed B\n");
   const pre = (session, tool_name, tool_input, event = "PreToolUse") =>
     run(repo, { session_id: session, tool_name, tool_input, hook_event_name: event });
   const reviewer = { subagent_type: "general-purpose", prompt: "review" };
-  const edit = { file_path: join(repo, "spec.md") };
+  const edit = (f) => ({ file_path: join(repo, f) });
+  const gate = (sid, file, content = "x") => {
+    mkdirSync(join(repo, ".review-state", sid, "round-1"), { recursive: true });
+    writeFileSync(join(repo, ".review-state", sid, "round-1", file), content);
+  };
+  const tree = () => spawnSync("find", [join(repo, ".review-state"), "-type", "f", "-exec", "md5sum", "{}", "+"], { encoding: "utf8" }).stdout;
+  activate(repo, join(repo, "spec.md"), OWNER);
 
-  await t.test("owner is blocked at Step 0/2 for a reviewer agent", () => {
+  await t.test("A is gated at Step 0/2, 7/8a, 8b commit and Stop", () => {
     const r = pre(OWNER, "Agent", reviewer);
     assert.equal(r.status, 2);
     assert.match(r.stderr, /Step 0\/2 not done/);
-  });
-  await t.test("owner is blocked editing the spec, committing and stopping", () => {
-    assert.equal(pre(OWNER, "Edit", edit).status, 2);
+    assert.match(r.stderr, /\.review-state\/session-owner\/round-1\/0-checklist\.md/);
+    assert.equal(pre(OWNER, "Edit", edit("spec.md")).status, 2);
     assert.equal(pre(OWNER, "Bash", { command: "git commit -am x" }).status, 2);
+    gate(OWNER, "8a-impact-trace.md");
+    assert.equal(pre(OWNER, undefined, {}, "Stop").status, 2);
   });
-  await t.test("owner may spawn web-fetch before the team OK", () => {
+  await t.test("A may spawn web-fetch before the team OK", () => {
     assert.equal(pre(OWNER, "Agent", { subagent_type: "web-fetch", prompt: "x" }).status, 0);
   });
-  await t.test("another session is not blocked for agent, edit, commit or stop", () => {
+  await t.test("B is never gated by A's review", () => {
     for (const [tool, input, event] of [
-      ["Agent", reviewer], ["Edit", edit], ["Bash", { command: "git commit -am x" }],
+      ["Agent", reviewer], ["Edit", edit("spec.md")], ["Bash", { command: "git commit -am x" }],
       ["Bash", { command: "echo hi > spec.md" }], [undefined, {}, "Stop"],
     ]) {
       const r = pre(OTHER, tool, input, event);
@@ -165,38 +172,67 @@ test("review gate is scoped to the owning session", async (t) => {
       assert.equal(r.stderr, "");
     }
   });
-  await t.test("another session is not blocked by a broken state file", () => {
-    writeFileSync(join(repo, ".review-state", "active.json"), "{nope");
-    assert.equal(pre(OTHER, "Agent", reviewer).status, 0);
-    assert.equal(pre(OWNER, "Agent", reviewer).status, 2);
-    activate(repo, join(repo, "spec.md"));
+  await t.test("B's own review runs side by side with its own gates", () => {
+    activate(repo, join(repo, "spec-b.md"), OTHER);
+    const r = pre(OTHER, "Agent", reviewer);
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /session-other\/round-1\/0-checklist\.md/);
+    // A's gate files do not satisfy B, and B's do not satisfy A.
+    gate(OWNER, "0-checklist.md"); gate(OWNER, "2-team-ok.md");
+    assert.equal(pre(OWNER, "Agent", reviewer).status, 0);
+    assert.equal(pre(OTHER, "Agent", reviewer).status, 2);
+    // Each session's gate is about its own spec.
+    assert.equal(pre(OTHER, "Edit", edit("spec-b.md")).status, 2);
+    assert.equal(pre(OTHER, "Edit", edit("spec.md")).status, 0);
+    assert.equal(pre(OWNER, "Edit", edit("spec-b.md")).status, 0);
+    assert.equal(pre(OWNER, "Edit", edit("spec.md")).status, 2);
   });
-  await t.test("legacy state without an owner blocks nobody", () => {
-    rmSync(join(repo, ".review-state", "owner"));
-    for (const s of [OWNER, OTHER]) {
-      assert.equal(pre(s, "Agent", reviewer).status, 0);
-      assert.equal(pre(s, "Edit", edit).status, 0);
+  await t.test("read-only commands on .review-state change nothing for anyone", () => {
+    const before = tree();
+    for (const command of ["ls .review-state", "cat .review-state/session-owner/active.json", `ls ${repo}/.review-state/session-other`]) {
+      for (const event of ["PreToolUse", "PostToolUse"]) {
+        assert.equal(pre("session-onlooker", "Bash", { command }, event).status, 0);
+        assert.equal(pre(OTHER, "Bash", { command }, event).status, 0);
+      }
+    }
+    assert.equal(tree(), before);
+    assert.equal(pre(OWNER, "Agent", reviewer).status, 0);
+    assert.equal(pre("session-onlooker", "Edit", edit("spec.md")).status, 0);
+    assert.equal(pre(OTHER, "Agent", reviewer).status, 2);
+  });
+  await t.test("a broken state file gates only its own session", () => {
+    writeFileSync(join(repo, ".review-state", OWNER, "active.json"), "{nope");
+    assert.equal(pre(OWNER, "Agent", reviewer).status, 2);
+    assert.equal(pre(OTHER, "Edit", edit("spec.md")).status, 0);
+    assert.equal(pre(OWNER, "Bash", { command: "rm .review-state/session-owner/active.json" }).status, 0);
+    activate(repo, join(repo, "spec.md"), OWNER);
+  });
+  await t.test("legacy top-level state (with or without an owner file) blocks nobody", () => {
+    const legacy = join(temp, "legacy");
+    mkdirSync(join(legacy, ".review-state"), { recursive: true });
+    git(legacy, "init");
+    writeFileSync(join(legacy, "spec.md"), "x\n");
+    writeFileSync(join(legacy, ".review-state", "active.json"), JSON.stringify({ spec: join(legacy, "spec.md"), round: 1 }));
+    for (const withOwner of [false, true]) {
+      if (withOwner) writeFileSync(join(legacy, ".review-state", "owner"), OWNER);
+      for (const s of [OWNER, OTHER]) {
+        for (const [tool, input] of [["Agent", reviewer], ["Edit", { file_path: join(legacy, "spec.md") }]]) {
+          assert.equal(run(legacy, { session_id: s, tool_name: tool, tool_input: input, hook_event_name: "PreToolUse" }).status, 0);
+        }
+        assert.equal(run(legacy, { session_id: s, hook_event_name: "Stop" }).status, 0);
+      }
     }
   });
-  await t.test("PostToolUse on a Write under .review-state claims ownership", () => {
-    const r = pre(OTHER, "Write", { file_path: join(repo, ".review-state", "round-1", "0-checklist.md") }, "PostToolUse");
-    assert.equal(r.status, 0);
-    assert.equal(owned(), OTHER);
-    assert.equal(pre(OTHER, "Agent", reviewer).status, 2);
+  await t.test("a payload without a session id, or with an unsafe one, gates nobody", () => {
+    for (const s of [undefined, "", "../session-owner", "a/b"]) {
+      const r = run(repo, { session_id: s, tool_name: "Agent", tool_input: reviewer, hook_event_name: "PreToolUse" });
+      assert.equal(r.status, 0);
+    }
+  });
+  await t.test("cleanup of A's folder leaves B's intact and ends A's gates", () => {
+    rmSync(join(repo, ".review-state", OWNER), { recursive: true });
     assert.equal(pre(OWNER, "Agent", reviewer).status, 0);
-  });
-  await t.test("PostToolUse on a Bash command mentioning .review-state hands ownership over", () => {
-    pre(OWNER, "Bash", { command: "ls .review-state/round-1" }, "PostToolUse");
-    assert.equal(owned(), OWNER);
-  });
-  await t.test("PostToolUse on unrelated calls changes nothing", () => {
-    pre(OTHER, "Bash", { command: "ls" }, "PostToolUse");
-    pre(OTHER, "Write", { file_path: join(repo, "x.md") }, "PostToolUse");
-    assert.equal(owned(), OWNER);
-  });
-  await t.test("deleting the review folder leaves no owner file behind", () => {
-    rmSync(join(repo, ".review-state"), { recursive: true });
-    pre(OWNER, "Bash", { command: "rm -rf .review-state" }, "PostToolUse");
-    assert.equal(existsSync(join(repo, ".review-state")), false);
+    assert.equal(existsSync(join(repo, ".review-state", OTHER, "active.json")), true);
+    assert.equal(pre(OTHER, "Agent", reviewer).status, 2);
   });
 });

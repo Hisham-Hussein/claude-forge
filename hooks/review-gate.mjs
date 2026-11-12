@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Gate for the adversarial-spec-review and reviewing-documents skills. Active only while
-// .review-state/active.json exists (walked up from the session cwd).
+// .review-state/<session_id>/active.json exists (walked up from the session cwd).
 // Exit 2 blocks the tool call / the stop; stderr is shown to Claude.
-import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, join, resolve, basename } from "node:path";
 import { execFileSync } from "node:child_process";
 
@@ -14,6 +14,17 @@ try {
 }
 const cwd = input.cwd || process.cwd();
 
+// Review state is per session: .review-state/<session_id>/{active.json,brief.md,round-N/...}.
+// The hook only ever looks at the folder named by its own session_id, so one session's review is
+// invisible to every other session, and reviews can run side by side. A legacy top-level
+// .review-state/active.json (no session folder) gates nobody. Hooks never write state.
+const sid = typeof input.session_id === "string" && /^[A-Za-z0-9_-]+$/.test(input.session_id) ? input.session_id : "";
+if (!sid || input.hook_event_name === "PostToolUse") process.exit(0);
+
+function real(p) {
+  try { return realpathSync(p); } catch { return p; }
+}
+
 function findRoot(dir) {
   let checkoutRoot;
   try {
@@ -24,77 +35,41 @@ function findRoot(dir) {
     // Outside Git, retain the walk to the filesystem root.
   }
   for (let d = resolve(dir); ; d = dirname(d)) {
-    if (existsSync(join(d, ".review-state", "active.json"))) return d;
+    if (existsSync(join(d, ".review-state", sid, "active.json"))) return d;
     if (real(d) === checkoutRoot || dirname(d) === d) return null;
   }
-}
-
-// The review belongs to one session. .review-state/owner holds that session's id; whoever last
-// touched .review-state (PostToolUse below) owns it. Other sessions in the same checkout are never gated.
-function findStateDir(dir, mentioned) {
-  for (const m of mentioned.matchAll(/(\/[^\s"'=<>|;&()]*?)\/\.review-state(?=[\/\s"'<>|;&()]|$)/g)) {
-    if (existsSync(join(m[1], ".review-state"))) return join(m[1], ".review-state");
-  }
-  let checkoutRoot;
-  try {
-    checkoutRoot = execFileSync("git", ["rev-parse", "--show-toplevel"], { cwd: dir, encoding: "utf8", stdio: "pipe" }).trim();
-  } catch {}
-  for (let d = resolve(dir); ; d = dirname(d)) {
-    if (existsSync(join(d, ".review-state"))) return join(d, ".review-state");
-    if (real(d) === checkoutRoot || dirname(d) === d) return null;
-  }
-}
-
-if (input.hook_event_name === "PostToolUse") {
-  const t = input.tool_input || {};
-  const target = `${t.file_path || ""} ${t.command || ""}`;
-  if (typeof input.session_id === "string" && input.session_id && target.includes(".review-state")) {
-    const dir = findStateDir(cwd, target);
-    // Skip when the call just deleted the folder (no state left to own).
-    if (dir) {
-      try { writeFileSync(join(dir, "owner"), input.session_id); } catch {}
-    }
-  }
-  process.exit(0);
 }
 
 const root = findRoot(cwd);
 if (!root) process.exit(0);
-
-let owner = "";
-try { owner = readFileSync(join(root, ".review-state", "owner"), "utf8").trim(); } catch {}
-// No owner recorded (legacy state) gates nobody until a session touches .review-state and claims it.
-if (!owner || (typeof input.session_id === "string" && input.session_id !== owner)) process.exit(0);
+const SD = join(root, ".review-state", sid);
+const SDN = `.review-state/${sid}`;
 
 // A broken state file blocks everything except the calls that repair or remove it.
 function badState(msg) {
   const t = input.tool_input || {};
   const target = `${t.file_path || ""} ${t.command || ""}`;
   if (input.hook_event_name === "Stop" || target.includes(".review-state")) process.exit(0);
-  block(`${msg} Fix it, or delete .review-state/active.json to end the review.`);
+  block(`${msg} Fix it, or delete ${SDN}/active.json to end the review.`);
 }
 
 let state;
 try {
-  state = JSON.parse(readFileSync(join(root, ".review-state", "active.json"), "utf8"));
+  state = JSON.parse(readFileSync(join(SD, "active.json"), "utf8"));
 } catch {
-  badState(".review-state/active.json is not valid JSON.");
+  badState(`${SDN}/active.json is not valid JSON.`);
 }
 if (typeof state?.spec !== "string" || !Number.isInteger(state?.round)) {
-  badState('.review-state/active.json must be {"spec": "<path>", "round": <integer>}.');
+  badState(`${SDN}/active.json must be {"spec": "<path>", "round": <integer>}.`);
 }
 
-const roundDir = join(root, ".review-state", `round-${state.round}`);
+const roundDir = join(SD, `round-${state.round}`);
 const specPath = real(resolve(root, state.spec));
-if (!existsSync(specPath)) badState(`.review-state/active.json names a spec that doesn't exist: ${specPath}. Use the spec's absolute path.`);
+if (!existsSync(specPath)) badState(`${SDN}/active.json names a spec that doesn't exist: ${specPath}. Use the spec's absolute path.`);
 const has = (f) => existsSync(join(roundDir, f));
-const ABORT = " (To abandon the review, or if this state is stale from an earlier session, delete .review-state/active.json.)";
+const ABORT = ` (To abandon the review, or if this state is stale, delete ${SDN}/active.json.)`;
 // Agents allowed before the team OK: read-only helpers, never reviewers.
 const HELPER_AGENTS = new Set(["Explore", "Plan", "claude-code-guide", "web-fetch"]);
-
-function real(p) {
-  try { return realpathSync(p); } catch { return p; }
-}
 
 function block(msg) {
   process.stderr.write(`[review-gate] ${msg}\n`);
@@ -104,7 +79,7 @@ function block(msg) {
 function need(files, step) {
   const missing = files.filter((f) => !has(f));
   if (missing.length) {
-    block(`Step ${step} not done for round ${state.round}: missing ${missing.map((f) => `.review-state/round-${state.round}/${f}`).join(", ")}. Read the step file, do the step, then write the gate file.${ABORT}`);
+    block(`Step ${step} not done for round ${state.round}: missing ${missing.map((f) => `${SDN}/round-${state.round}/${f}`).join(", ")}. Read the step file, do the step, then write the gate file.${ABORT}`);
   }
 }
 
@@ -116,7 +91,7 @@ function verificationValid() {
 
 function needVerification(what) {
   if (!verificationValid()) {
-    block(`Step 8b not done for round ${state.round}: ${what} needs .review-state/round-${state.round}/8b-verification.md with "## Pass 1", "## Pass 2" and "## Pass 3". Read steps/08b-verify.md and run all three passes.${ABORT}`);
+    block(`Step 8b not done for round ${state.round}: ${what} needs ${SDN}/round-${state.round}/8b-verification.md with "## Pass 1", "## Pass 2" and "## Pass 3". Read steps/08b-verify.md and run all three passes.${ABORT}`);
   }
 }
 

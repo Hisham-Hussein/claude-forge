@@ -60,9 +60,9 @@ The skill handles everything: reads the spec, selects the right reviewer team, r
 <routing>
 Run these steps in order. At each step, READ ITS FILE NOW (not earlier, not from memory), then do every instruction in it. If a read comes back truncated, read the rest before acting.
 
-Gate files go in `.review-state/` in the session's working directory (`N` = current round). Hooks block the next action until the gate file exists; they do not check quality, so do the step, then write its file. Before the team OK, use Read/Grep/Glob or a read-only helper agent (`Explore`, `Plan`, `claude-code-guide`) only; any other agent spawn, and any Codex job (`codex-companion.mjs`), counts as a reviewer and is gated. Write gate files and `active.json` with the Write tool.
+Review state is per session: all of it lives in your own folder `S` = `.review-state/${CLAUDE_SESSION_ID}/` in the session's working directory (the id is filled in when this skill loads; if you see a literal `${CLAUDE_SESSION_ID}`, stop and tell the user). In every step file, `<S>` means this folder, and a path like `round-N/...` is relative to it (`N` = current round). Never read, write or delete another session's folder under `.review-state/`: other sessions may be running their own reviews. Hooks block the next action until the gate file exists; they do not check quality, so do the step, then write its file. Before the team OK, use Read/Grep/Glob or a read-only helper agent (`Explore`, `Plan`, `claude-code-guide`) only; any other agent spawn, and any Codex job (`codex-companion.mjs`), counts as a reviewer and is gated. Write gate files and `active.json` with the Write tool; the hook gates only this session, so another session's review never blocks you and yours never blocks it.
 
-0.  `steps/00-checklist.md` — post the checklist. If `.review-state/active.json` already exists, tell the user which spec and round it names and ask before replacing it. Delete any old `.review-state/round-*` folders (old gate files would satisfy this review's gates). Create `.review-state/active.json` = `{"spec": "<absolute spec path>", "round": 1}`, append `.review-state/` to the file `git rev-parse --git-path info/exclude` prints (works in worktrees), write `.review-state/round-1/0-checklist.md` (the checklist as posted).
+0.  `steps/00-checklist.md` — post the checklist. If `<S>/active.json` already exists, tell the user which spec and round it names and ask before replacing it. Delete any old `<S>/round-*` folders (old gate files would satisfy this review's gates). A top-level `.review-state/active.json` (no session folder) is legacy state from an older plugin version and gates nobody: if the user says this review continues it, move it with `mkdir -p <S> && mv .review-state/active.json .review-state/brief.md .review-state/round-* <S>/` (skip names that don't exist) and `rm -f .review-state/owner`; otherwise leave it alone. Create `<S>/active.json` = `{"spec": "<absolute spec path>", "round": 1}`, append `.review-state/` to the file `git rev-parse --git-path info/exclude` prints (works in worktrees), write `<S>/round-1/0-checklist.md` (the checklist as posted).
 1.  `steps/01-analyze.md`
 
 **Mode D:** if the user's request names Mode D (Independent Reviewer Loop), or the user picks it at Step 5, read `steps/mode-d.md` and follow it instead of the rest of this workflow.
@@ -77,7 +77,7 @@ Gate files go in `.review-state/` in the session's working directory (`N` = curr
 8b. `steps/08b-verify.md` — write `round-N/8b-verification.md` with headings `## Pass 1`, `## Pass 2`, `## Pass 3` and what each found.
 8c. `steps/08c-commit-loop.md` — commit; ask before the next round. For a new round: set `round` in `active.json` to N+1 and write `round-<N+1>/0-checklist.md` and `round-<N+1>/2-team-ok.md` after the user confirms.
 9.  `steps/09-safety-valve.md` (if round 5 has open Critical/Major)
-10. `steps/10-finish.md` — when the review ends (converged, stopped, or user says stop), delete `.review-state/` (`active.json` and every round folder).
+10. `steps/10-finish.md` — when the review ends (converged, stopped, or user says stop), delete your own folder `<S>` (`active.json` and every round folder), never `.review-state/` itself or another session's folder.
 </routing>
 
 <reference_index>
@@ -92,5 +92,5 @@ Review is complete when:
 - Zero Critical/Major issues remain after a round's synthesis
 - The orchestrator's critical judgment confirms the verdict
 - The user sees the "implementation-ready" verdict
-- `.review-state/` is deleted (the review is over; otherwise the gates keep blocking the session that owns the review, and old gate files satisfy a later review's gates)
+- Your session folder `<S>` is deleted (the review is over; otherwise the gates keep blocking this session, and old gate files satisfy a later review's gates)
 </success_criteria>

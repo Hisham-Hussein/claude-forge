@@ -36,16 +36,17 @@ Review Progress:
 
 ## R0: Gate files
 
-A hook blocks reviewers, document edits, commits and ending the turn until the matching file exists in `.review-state/` in the working directory. It checks that the file exists, not its quality, so do the step and then write its file. Its messages use step numbers from `reviewing-specs-adversarially`: Step 0/2 is R4's gate files, 7/8a is R5 and R6's trace, 8b is R6's verification.
+A hook blocks reviewers, document edits, commits and ending the turn until the matching file exists in your own session folder `S` = `.review-state/${CLAUDE_SESSION_ID}/` in the working directory (the id is filled in when this skill loads; if you see a literal `${CLAUDE_SESSION_ID}`, stop and tell the user). The hook looks only at `S`: another session's review never gates you, and you never touch another session's folder. Below, `<S>` means `S`. It checks that the file exists, not its quality, so do the step and then write its file. Its messages use step numbers from `reviewing-specs-adversarially`: Step 0/2 is R4's gate files, 7/8a is R5 and R6's trace, 8b is R6's verification.
 
-- If `.review-state/active.json` already exists, tell the user which document and round it names and ask before replacing it.
-- Delete any old `.review-state/round-*` folders, because old gate files would satisfy this review's gates.
-- Create `.review-state/active.json` with the Write tool: `{"spec": "<absolute document path>", "round": 1}`. The key is `spec` for every document; the hook reads that name.
+- If `<S>/active.json` already exists, tell the user which document and round it names and ask before replacing it.
+- A top-level `.review-state/active.json` (no session folder) is legacy state from an older plugin version and gates nobody. If the user says this review continues it, move it with `mkdir -p <S> && mv .review-state/active.json .review-state/brief.md .review-state/round-* <S>/` (skip names that don't exist) and `rm -f .review-state/owner`; otherwise leave it alone.
+- Delete any old `<S>/round-*` folders, because old gate files would satisfy this review's gates.
+- Create `<S>/active.json` with the Write tool: `{"spec": "<absolute document path>", "round": 1}`. The key is `spec` for every document; the hook reads that name.
 - Append `.review-state/` to the file `git rev-parse --git-path info/exclude` prints.
 
 ## R1: Review brief
 
-Read the whole document, then write `.review-state/brief.md` and post it to the user. Do not wait for an answer; the user corrects it if it is off, and a correction applies from that point on.
+Read the whole document, then write `<S>/brief.md` and post it to the user. Do not wait for an answer; the user corrects it if it is off, and a correction applies from that point on.
 
 ```
 Document: <path>, and what it is in one line
@@ -80,7 +81,7 @@ The reviewer engine is Claude unless the user named Codex.
 
 Check what a script can check, so the reviewer's rounds go to judgment:
 - If the project requires a checklist or appendix in this kind of document, it is filled and has no gaps.
-- Write a check script in the scratchpad, or reuse the project's if it keeps one. It checks: cross-references point at sections that exist; numbered lists run in order; cited files and `file:line` exist; every defined name, ID, setting and code is declared once and used consistently; IDs trace to their source; every list that must be complete matches its source. It reads the document path from `.review-state/active.json` and never writes the document: the gate treats a `python` or `node` command that names the document as an edit.
+- Write a check script in the scratchpad, or reuse the project's if it keeps one. It checks: cross-references point at sections that exist; numbered lists run in order; cited files and `file:line` exist; every defined name, ID, setting and code is declared once and used consistently; IDs trace to their source; every list that must be complete matches its source. It reads the document path from `<S>/active.json` and never writes the document: the gate treats a `python` or `node` command that names the document as an edit.
 - If the checks need edits, do them as round 0: set `round` to 0 in `active.json`, write `round-0/7-approved.md` (the user's request to run this review, and the check findings), do R6 and R7 for them, then set `round` to 1.
 
 ## R4: Spawn a fresh reviewer for round N
@@ -89,12 +90,12 @@ Check what a script can check, so the reviewer's rounds go to judgment:
 - Prompt: `templates/reviewer-prompt.md`, every field filled from the brief. Round 2+ also reviews the whole document fresh.
 - A new reviewer every round, never a previous round's reviewer: a fresh reader is the point of the loop.
 - **Claude:** one Agent call, `model: sonnet`.
-- **Codex:** one read-only job, from the directory that holds `.review-state/`. Write the prompt to `.review-state/round-N/codex/solo-prompt.md`, then run in the background:
+- **Codex:** one read-only job, from the directory that holds `.review-state/`. Write the prompt to `<S>/round-N/codex/solo-prompt.md`, then run in the background:
   ```
   CX=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1) && \
   node "$CX"scripts/codex-companion.mjs task --model gpt-6.1-sol --effort high \
-    --prompt-file .review-state/round-N/codex/solo-prompt.md \
-    > .review-state/round-N/codex/solo-review.md 2> .review-state/round-N/codex/solo.log
+    --prompt-file <S>/round-N/codex/solo-prompt.md \
+    > <S>/round-N/codex/solo-review.md 2> <S>/round-N/codex/solo.log
   ```
   Check before the first job, in one Bash call, since variables don't survive between calls: `CX=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1) && node "$CX"scripts/codex-companion.mjs setup --json` must report `"ready": true`. If a job fails twice or setup isn't ready, tell the user and offer Claude. Use another model or effort if the user names one.
 
@@ -162,7 +163,7 @@ Then, in this order, with no reviewer and no further round:
 
 If `Impact report: no`, leave any existing appendix as it is.
 
-Delete `.review-state/` (`active.json`, the brief and every round folder), so the gates stop and nothing satisfies a later review's gates. Then end with:
+Delete your session folder `<S>` (`active.json`, the brief and every round folder; never `.review-state/` itself or another session's folder), so the gates stop and nothing satisfies a later review's gates. Then end with:
 
 ```
 Document is ready for <next readers>. N rounds. Critical/Major by round: R1 a, R2 b, ...
@@ -176,4 +177,4 @@ Decisions for the owner:
 
 If a Critical went to the owner, say so in the first line: the document is ready apart from that decision.
 
-If the user stops the review early, delete `.review-state/` and report the open Critical and Major findings instead of the verdict.
+If the user stops the review early, delete `<S>` and report the open Critical and Major findings instead of the verdict.

@@ -1,5 +1,5 @@
 
-**Step 10: Finish.** Delete `.review-state/` (`active.json` and every round folder), so the gates stop and no old gate file satisfies a later review's gates.
+**Step 10: Finish.** Delete your session folder `<S>` = `.review-state/${CLAUDE_SESSION_ID}/` (`active.json` and every round folder; never another session's folder), so the gates stop and no old gate file satisfies a later review's gates.
 
 </process>
 
@@ -14,5 +14,5 @@ This workflow is complete when:
 - [ ] Final round: zero Critical/Major remain after synthesis
 - [ ] Orchestrator confirmed the verdict with own judgment
 - [ ] User received "implementation-ready" declaration
-- [ ] `.review-state/` deleted
+- [ ] session folder `<S>` deleted
 </success_criteria>

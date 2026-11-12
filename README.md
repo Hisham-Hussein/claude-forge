@@ -64,7 +64,7 @@ claude --plugin-dir ~/.claude/plugins/marketplaces/claude-forge
 
 | Hook | Description |
 |------|-------------|
-| `review-gate` | Step gates for `adversarial-spec-review` and `reviewing-documents`: blocks spawning reviewers (Claude agents or Codex jobs), editing the spec, committing it and ending the turn after spec edits until that step's gate file exists in `.review-state/round-N/`. No-op unless `.review-state/active.json` exists; `Explore`, `Plan` and `claude-code-guide` agents are never gated. |
+| `review-gate` | Step gates for `adversarial-spec-review` and `reviewing-documents`: blocks spawning reviewers (Claude agents or Codex jobs), editing the spec, committing it and ending the turn after spec edits until that step's gate file exists in `.review-state/<session id>/round-N/` (state is per session: skills write to `.review-state/${CLAUDE_SESSION_ID}/`, so one session's review never gates another and reviews can run side by side). No-op unless `.review-state/<this session's id>/active.json` exists; `Explore`, `Plan` and `claude-code-guide` agents are never gated. |
 
 ## Usage
 

@@ -111,10 +111,10 @@ The engine decides who runs each reviewer seat in Modes B and C; the prompts, se
 
 **Codex:** each Codex seat is one read-only Codex job, launched through Bash instead of the Agent tool:
 
-Every command below starts by resolving the plugin path in the same Bash call (variables do not survive between calls), and runs from the directory that holds `.review-state/`.
+Every command below starts by resolving the plugin path in the same Bash call (variables do not survive between calls), and runs from the directory that holds `.review-state/`. `<S>` is your session folder `.review-state/<session id>/` named in SKILL.md; write the real path, with the id filled in.
 
 1. Check once per review: `CX=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1) && node "$CX"scripts/codex-companion.mjs setup --json` must report `"ready": true`. If not, tell the user to run `/codex:setup` and offer the Claude engine.
-2. Write the reviewer's prompt with the Write tool to `.review-state/round-N/codex/{slug}-prompt.md` (`{slug}` = the archetype in kebab case; Mode C: `solo`): the same `agent_prompt_template` (Mode C: `solo_agent_prompt_template`) with every field filled, then this block:
+2. Write the reviewer's prompt with the Write tool to `.review-state/<session id>/round-N/codex/{slug}-prompt.md` (`{slug}` = the archetype in kebab case; Mode C: `solo`): the same `agent_prompt_template` (Mode C: `solo_agent_prompt_template`) with every field filled, then this block:
    ```
    You are one reviewer on a team; another agent synthesizes. Review only. Do not edit any
    file, do not invoke review skills, and do not spawn agents. Your final message is your
@@ -125,8 +125,8 @@ Every command below starts by resolving the plugin path in the same Bash call (v
    ```
    CX=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1) && \
    node "$CX"scripts/codex-companion.mjs task --model gpt-6-astra --effort high \
-     --prompt-file .review-state/round-N/codex/{slug}-prompt.md \
-     > .review-state/round-N/codex/{slug}-review.md 2> .review-state/round-N/codex/{slug}.log
+     --prompt-file .review-state/<session id>/round-N/codex/{slug}-prompt.md \
+     > .review-state/<session id>/round-N/codex/{slug}-review.md 2> .review-state/<session id>/round-N/codex/{slug}.log
    ```
    No `--write`: the job runs in Codex's read-only sandbox. Stdout is the reviewer's final message; the `.log` holds progress.
 4. **Model and effort:** the default is `gpt-6-astra` with `high`. If the user names another model or effort, in any wording ("Codex on 6.1-sol", "medium effort"), use it for every Codex seat or only the seats they name.
